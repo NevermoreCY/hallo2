@@ -9,7 +9,10 @@ data:
   n_sample_frames: 14
   audio_margin: 2
   train_meta_paths:
-    - "./data/hdtf_split_stage2.json"
+    - "./data/hallo_HDTF_stage2.json"
+    - "./data/MAVD_yu_stage2.json"
+    - "./data/bili_yu_v2_stage2.json"
+    - "./data/hallo_liutao_cn_r02_stage2.json"
 
 wav2vec_config:
   audio_type: "vocals" # audio vocals
