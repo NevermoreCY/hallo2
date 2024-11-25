@@ -55,7 +55,7 @@ from pathlib import Path
 from hallo.animate.face_animate import FaceAnimatePipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
-from hallo.datasets.talk_video import TalkingVideoDataset
+from hallo.datasets.talk_video_loopy import TalkingVideoDataset
 from hallo.models.audio_proj import AudioProjModel
 from hallo.models.face_locator import FaceLocator
 from hallo.models.image_proj import ImageProjModel
