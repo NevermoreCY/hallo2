@@ -381,10 +381,25 @@ def log_validation(
                     dtype=source_image_pixels.dtype, device=source_image_pixels.device)
                 pixel_values_ref_img = torch.cat(
                     [source_image_pixels, motion_zeros], dim=0)  # concat the ref image and the first motion frames
-            else:
+            elif len(tensor_result) == 1:
                 motion_frames = tensor_result[-1][0]
                 motion_frames = motion_frames.permute(1, 0, 2, 3)
-                motion_frames = motion_frames[0 - cfg.data.n_motion_frames:]
+                motion_frames = motion_frames[np.array([-13, -11,-9,-7,-5, -4,-3,-2,-1])]
+                motion_frames = motion_frames * 2.0 - 1.0
+                motion_frames_to_pad = source_image_pixels.repeat(3, 1, 1, 1)
+                motion_frames = torch.cat([motion_frames_to_pad, motion_frames], dim=0)
+                pixel_values_ref_img = torch.cat(
+                    [source_image_pixels, motion_frames], dim=0)  # concat the ref image and the motion frames
+            else:
+                # motion_frames = tensor_result[-1][0]
+                # motion_frames = motion_frames.permute(1, 0, 2, 3)
+                # motion_frames = motion_frames[0 - cfg.data.n_motion_frames:]
+                motion_frames_1 = tensor_result[-1][0]
+                motion_frames_1 = motion_frames_1.permute(1, 0, 2, 3)
+                motion_frames_2 = tensor_result[-2][0]
+                motion_frames_2 = motion_frames_2.permute(1, 0, 2, 3)
+                motion_frames = torch.cat([motion_frames_2, motion_frames_1], dim=0)
+                motion_frames = motion_frames[np.array([-25,-21,-17,-13, -11,-9,-7,-5, -4,-3,-2,-1])]
                 motion_frames = motion_frames * 2.0 - 1.0
                 motion_frames = motion_frames.to(
                     dtype=source_image_pixels.dtype, device=source_image_pixels.device)
@@ -393,6 +408,8 @@ def log_validation(
 
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
 
+
+            # here we do patch drop
             pixel_motion_values = pixel_values_ref_img[:, 1:]
 
             if cfg.use_mask:
@@ -411,6 +428,9 @@ def log_validation(
                 pixel_values_ref_img[:, 1:] = pixel_motion_values
 
             assert pixel_motion_values.shape[0] == 1
+
+            # patch drop done
+
 
             audio_tensor = audio_emb[
                 t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0])
@@ -797,6 +817,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
                 timesteps = timesteps.long()
 
+                # motion frame stem steps?
                 motion_timesteps = torch.randint(
                     0,
                     50,
@@ -1000,7 +1021,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 save_path = os.path.join(
                     checkpoint_dir, f"checkpoint-{global_step}")
                 if accelerator.is_main_process:
-                    delete_additional_ckpt(checkpoint_dir, 100)
+                    delete_additional_ckpt(checkpoint_dir, 30)
                 accelerator.wait_for_everyone()
                 accelerator.save_state(save_path)
 
@@ -1012,7 +1033,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         module_dir,
                         "net",
                         global_step,
-                        total_limit=100,
+                        total_limit=30,
                     )
             if global_step >= cfg.solver.max_train_steps:
                 break
