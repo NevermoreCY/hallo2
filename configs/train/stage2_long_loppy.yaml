@@ -101,7 +101,7 @@ snr_gamma: 5.0
 enable_zero_snr: True
 
 # to change
-audio_ckpt_dir: ./pretrained_models/hallo
+stage1_ckpt_dir: "/yuch_ws/DH/hallo/exp_output/stage1"
 
 
 single_inference_times: 10

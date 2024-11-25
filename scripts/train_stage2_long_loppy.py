@@ -573,6 +573,38 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         context_tokens=32,
     ).to(device="cuda", dtype=weight_dtype)
 
+
+    # load module weight from stage 1
+    stage1_ckpt_dir = cfg.stage1_ckpt_dir
+    denoising_unet.load_state_dict(
+        torch.load(
+            os.path.join(stage1_ckpt_dir, "denoising_unet.pth"),
+            map_location="cpu",
+        ),
+        strict=False,
+    )
+    reference_unet.load_state_dict(
+        torch.load(
+            os.path.join(stage1_ckpt_dir, "reference_unet.pth"),
+            map_location="cpu",
+        ),
+        strict=False,
+    )
+    face_locator.load_state_dict(
+        torch.load(
+            os.path.join(stage1_ckpt_dir, "face_locator.pth"),
+            map_location="cpu",
+        ),
+        strict=False,
+    )
+    imageproj.load_state_dict(
+        torch.load(
+            os.path.join(stage1_ckpt_dir, "imageproj.pth"),
+            map_location="cpu",
+        ),
+        strict=False,
+    )
+
     # Freeze
     vae.requires_grad_(False)
     imageproj.requires_grad_(False)
@@ -611,16 +643,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         audioproj,
     ).to(dtype=weight_dtype)
 
-    m,u = net.load_state_dict(
-        torch.load(
-            os.path.join(cfg.audio_ckpt_dir, "net-3000.pth"),
-            map_location="cpu",
-        ),
-        strict=False
-    )
-
-    logger.info(f"missing key: {m}")
-    logger.info(f"unexcepted key: {u}")
+    # m,u = net.load_state_dict(
+    #     torch.load(
+    #         os.path.join(cfg.audio_ckpt_dir, "net-3000.pth"),
+    #         map_location="cpu",
+    #     ),
+    #     strict=False
+    # )
+    #
+    # logger.info(f"missing key: {m}")
+    # logger.info(f"unexcepted key: {u}")
 
     # get noise scheduler
     train_noise_scheduler, val_noise_scheduler = get_noise_scheduler(cfg)
