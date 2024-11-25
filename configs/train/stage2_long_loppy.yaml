@@ -1,5 +1,5 @@
 data:
-  train_bs: 8
+  train_bs: 4
   val_bs: 1
   train_width: 512
   train_height: 512
@@ -116,7 +116,7 @@ mask_rate: 0.25
 
 seed: 42
 resume_from_checkpoint: "latest"
-checkpointing_steps: 1000
+checkpointing_steps: 100
 
 exp_name: "stage2_long"
 output_dir: "./exp_output"
