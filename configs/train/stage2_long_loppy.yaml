@@ -1,5 +1,5 @@
 data:
-  train_bs: 6
+  train_bs: 4
   val_bs: 1
   train_width: 512
   train_height: 512
