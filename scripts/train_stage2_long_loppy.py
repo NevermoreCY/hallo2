@@ -368,7 +368,7 @@ def log_validation(
         tensor_result = []
         generator = torch.manual_seed(42)
 
-        save_path = os.path.join(save_dir, f"{global_step}_{Path(ref_img_path).name}")
+        # save_path = os.path.join(save_dir, f"{global_step}_{Path(ref_img_path).name}")
 
         for t in range(times):
             print(f"[{t+1}/{times}]")
@@ -463,8 +463,9 @@ def log_validation(
         tensor_result = tensor_result[:, :audio_length]
         audio_name = os.path.basename(audio_path).split('.')[0]
         ref_name = os.path.basename(ref_img_path).split('.')[0]
-        output_file = os.path.join(save_path,f"{global_step}_{ref_name}_{audio_name}.mp4")
+        output_file = os.path.join(save_dir,f"{global_step}_{ref_name}_{audio_name}.mp4")
         # save the result after all iteration
+        print("***\n\n tensor to video , output_file ", output_file , ref_name, audio_name, audio_path)
         tensor_to_video(tensor_result, output_file, audio_path)
 
 
