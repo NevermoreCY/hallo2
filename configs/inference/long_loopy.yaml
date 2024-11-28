@@ -1,5 +1,33 @@
-source_image: ./examples/reference_images/1.jpg
-driving_audio: ./examples/driving_audios/1.wav
+source_image:
+  - examples/reference_images/1.jpg
+  - test_samples/subtitle_test.jpg
+  - test_samples/BV1a4421o7AF.jpg
+  - test_samples/BV1EUnQe9E5U.jpg
+  - test_samples/BV1Hx4y147Vz.jpg
+  - test_samples/BV1JJWWeDEUi.jpg
+  - test_samples/BV1JJWWeDEUi.jpg
+  - test_samples/BV1Th4y1f7en.jpg
+  - test_samples/BV1Th4y1f7en.jpg
+  - test_samples/BV18x4y1s7yr.jpg
+  - test_samples/BV1a4421o7AF.jpg
+  - test_samples/BV1EUnQe9E5U.jpg
+  - test_samples/BV1JJWWeDEUi.jpg
+  - test_samples/BV1Th4y1f7en.jpg
+driving_audio:
+  - examples/driving_audios/1.wav
+  - examples/driving_audios/1.wav
+  - examples/driving_audios/1.wav
+  - test_samples/M1_22.wav
+  - test_samples/M1_22.wav
+  - examples/driving_audios/1.wav
+  - test_samples/F23_1.wav
+  - examples/driving_audios/1.wav
+  - test_samples/F20_45.wav
+  - test_samples/M1_22.wav
+  - test_samples/test_audio_BV1a4421o7AF_male.wav
+  - test_samples/test_audio_BV1a4421o7AF_male.wav
+  - test_samples/BV1Th4y1f7en.wav
+  - test_samples/BV1Th4y1f7en.wav
 
 weight_dtype: fp16
 
