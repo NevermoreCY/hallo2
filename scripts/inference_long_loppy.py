@@ -515,7 +515,7 @@ def inference_process(args: argparse.Namespace):
                 audio_length -= length
                 start += length
 
-            merge_videos(save_seg_path, os.path.join(Path(save_seg_path).parent, "merge_video.mp4"))
+        merge_videos(save_seg_path, os.path.join(Path(save_seg_path).parent, "merge_video.mp4"))
 
     return save_seg_path
     
@@ -543,8 +543,6 @@ if __name__ == "__main__":
 
 
     command_line_args = parser.parse_args()
-
-    
 
     save_path = inference_process(command_line_args)
 
