@@ -54,7 +54,7 @@ from hallo.models.unet_2d_condition import UNet2DConditionModel
 from hallo.models.unet_3d import UNet3DConditionModel
 from hallo.utils.config import filter_non_none
 from hallo.utils.util import tensor_to_video_batch, merge_videos
-
+from hallo.utils.util import tensor_to_video
 from icecream import ic
 
 class Net(nn.Module):
@@ -487,35 +487,44 @@ def inference_process(args: argparse.Namespace):
             ic(pipeline_output.videos.shape)
             tensor_result.append(pipeline_output.videos)
 
-            if (t+1) % batch_size == 0 or (t+1)==times:
-                last_motion_frame = [tensor_result[-1]]
-                ic(len(tensor_result))
+            tensor_result = torch.cat(tensor_result, dim=2)
+            tensor_result = tensor_result.squeeze(0)
+            tensor_result = tensor_result[:, :audio_length]
 
-                if start!=0:
-                    tensor_result = torch.cat(tensor_result[1:], dim=2)
-                else:
-                    tensor_result = torch.cat(tensor_result, dim=2)
-
-                tensor_result = tensor_result.squeeze(0)
-                f = tensor_result.shape[1]
-                length = min(f, audio_length)
-                tensor_result = tensor_result[:, :length]
-
-                ic(tensor_result.shape)
-                ic(start)
-                ic(audio_length)
-
-                name = Path(save_path).name
-                output_file = os.path.join(save_seg_path, f"{name}-{t+1:06}.mp4")
-
-                tensor_to_video_batch(tensor_result, output_file, start, driving_audio_path)
-                del tensor_result
-
-                tensor_result = last_motion_frame
-                audio_length -= length
-                start += length
-
-        merge_videos(save_seg_path, os.path.join(Path(save_seg_path).parent, "merge_video.mp4"))
+            output_file = config.output + source_image_name + '_' + driving_audio_name + '.mp4'
+            # save the result after all iteration
+            tensor_to_video(tensor_result, output_file, driving_audio_path)
+        # return output_file
+        #
+        #     if (t+1) % batch_size == 0 or (t+1)==times:
+        #         last_motion_frame = [tensor_result[-1]]
+        #         ic(len(tensor_result))
+        #
+        #         if start!=0:
+        #             tensor_result = torch.cat(tensor_result[1:], dim=2)
+        #         else:
+        #             tensor_result = torch.cat(tensor_result, dim=2)
+        #
+        #         tensor_result = tensor_result.squeeze(0)
+        #         f = tensor_result.shape[1]
+        #         length = min(f, audio_length)
+        #         tensor_result = tensor_result[:, :length]
+        #
+        #         ic(tensor_result.shape)
+        #         ic(start)
+        #         ic(audio_length)
+        #
+        #         name = Path(save_path).name
+        #         output_file = os.path.join(save_seg_path, f"{name}-{t+1:06}.mp4")
+        #
+        #         tensor_to_video_batch(tensor_result, output_file, start, driving_audio_path)
+        #         del tensor_result
+        #
+        #         tensor_result = last_motion_frame
+        #         audio_length -= length
+        #         start += length
+        #
+        # merge_videos(save_seg_path, os.path.join(Path(save_seg_path).parent, "merge_video.mp4"))
 
     return save_seg_path
     
