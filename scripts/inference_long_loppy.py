@@ -487,13 +487,15 @@ def inference_process(args: argparse.Namespace):
             ic(pipeline_output.videos.shape)
             tensor_result.append(pipeline_output.videos)
 
-            tensor_result = torch.cat(tensor_result, dim=2)
-            tensor_result = tensor_result.squeeze(0)
-            tensor_result = tensor_result[:, :audio_length]
+        tensor_result = torch.cat(tensor_result, dim=2)
+        tensor_result = tensor_result.squeeze(0)
+        tensor_result = tensor_result[:, :audio_length]
 
-            output_file = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
-            # save the result after all iteration
-            tensor_to_video(tensor_result, output_file, driving_audio_path)
+        output_file = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
+        # save the result after all iteration
+        tensor_to_video(tensor_result, output_file, driving_audio_path)
+
+
         # return output_file
         #
         #     if (t+1) % batch_size == 0 or (t+1)==times:
