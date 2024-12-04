@@ -120,7 +120,7 @@ with torch.autocast("cuda"):
 
     # print(" 1 audio_embds shape is ", audio_embs.)
 
-    print(" 1 audio_embds shape is ", audio_embs.shape)
+    print(" 1 audio_embds shape is ", len(audio_embs))
 
     audio_embs = torch.cat(audio_embs, dim=1)
 
