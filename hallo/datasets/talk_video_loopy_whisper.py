@@ -349,6 +349,7 @@ class TalkingVideoDataset(Dataset):
                     [pixel_values_ref_img, pixel_values_motion], dim=0
                 )
 
+            print("\n audio_tensor shape is :", audio_tensor.shape)
             sample = {
                 "video_dir": video_path,
                 "pixel_values_vid": pixel_values_vid,

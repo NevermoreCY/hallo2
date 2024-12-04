@@ -951,6 +951,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         f"Unknown prediction type {train_noise_scheduler.prediction_type}"
                     )
 
+                print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
+
                 # ---- Forward!!! -----
                 model_pred = net(
                     noisy_latents=noisy_latents,
