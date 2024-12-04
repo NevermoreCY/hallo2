@@ -11,7 +11,7 @@ audio_path = "/yuch_ws/DH_Data/hallo_liutao/audios/chdtf_num_7251d00f1f45252a75a
 
 fps = 25
 # echo mimic :
-audio_guider = load_audio_model(model_path=audio_model_path)
+audio_guider = load_audio_model(model_path=audio_model_path,device='cuda')
 
 whisper_feature = audio_guider.audio2feat(audio_path)
 print("whisper feature shape :", whisper_feature.shape)
