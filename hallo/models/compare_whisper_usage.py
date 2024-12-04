@@ -99,6 +99,9 @@ else:
 # 0 audio_embds shape is  torch.Size([10, 1500, 384])
 #  1 audio_embds shape is  torch.Size([1500, 10, 384])
 
+# 0 audio_embds shape is  torch.Size([10, 1500, 512])
+#  1 audio_embds shape is  torch.Size([1500, 10, 512])
+
 whisper_encoder = whisper.load_model(name='base',  device='cpu').encoder
 whisper_encoder = whisper_encoder.to(device="cuda",dtype=torch.float16)
 
@@ -117,9 +120,11 @@ with torch.autocast("cuda"):
 
     # print(" 1 audio_embds shape is ", audio_embs.)
 
+    print(" 1 audio_embds shape is ", audio_embs.shape)
+
     audio_embs = torch.cat(audio_embs, dim=1)
 
-    print(" 1 audio_embds shape is ", audio_embs.shape)
+    print(" 2 audio_embds shape is ", audio_embs.shape)
 
     batch_size = audio_embs.shape[0]
 
