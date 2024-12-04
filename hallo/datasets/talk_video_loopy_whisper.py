@@ -211,8 +211,9 @@ class TalkingVideoDataset(Dataset):
         return ret_tensor
 
     def __getitem__(self, index):
-        print("\n\n\n Getting image at index {}".format(index))
+
         try:
+            print("\n\n\n  Getting image at index {}".format(index))
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
             mask_path = video_meta["mask_path"]
@@ -225,15 +226,15 @@ class TalkingVideoDataset(Dataset):
             ]
 
             # here we use whisper instead of wav2vec
-            audio_path = video_meta["video_path"].replace("images", "audios") + ".wav"
+            audio_path = video_meta["video_path"].replace("images", "audios")
             audio_path = audio_path.replace(".mp4", ".wav")
-            print("\n audio path is {}".format(audio_path))
+            print(f"\n {index} audio path is {}".format(audio_path))
             tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
-            print("video length:", video_length)
+            print(f" {index} video length:", video_length)
 
             assert (
                 video_length
@@ -261,7 +262,7 @@ class TalkingVideoDataset(Dataset):
             face_emb = torch.load(face_emb_path)
             audio_emb = torch.load(audio_emb_path)
 
-            print(f"\n Audio embedding shape: {audio_emb.shape}")
+            print(f"\n {index} Audio embedding shape: {audio_emb.shape}")
 
             indices = (
                 torch.arange(2 * self.audio_margin + 1) - self.audio_margin
@@ -271,17 +272,17 @@ class TalkingVideoDataset(Dataset):
                 start_idx + self.n_sample_frames,
             ).unsqueeze(1) + indices.unsqueeze(0)
             audio_tensor = audio_emb[center_indices]
-            print(f"\n center_indices are {center_indices}")
+            print(f"\n {index} center_indices are {center_indices}")
 
             # whisper log mel
             if not os.path.exists(audio_path):
-                print(f"\n\nAudio path does not exist: {audio_path}")
+                print(f"\n {index} Audio path does not exist: {audio_path}")
                 mels = np.zeros((80, 3000))
                 audio_start_index = -1
                 audio_end_index = -1
             else:
                 audio, _ = librosa.load(audio_path, sr=16000)
-                print(f"\n Audio librosa shape is :", audio.shape)
+                print(f"\n {index} Audio librosa shape is :", audio.shape)
                 # audio_start_index = int(pick_start / 25 * 50)
                 # audio_end_index = audio_start_index + int(random_pick_size / 25 * 50)
 
