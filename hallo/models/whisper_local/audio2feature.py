@@ -87,7 +87,7 @@ class Audio2Feature():
         while 1:
             start_idx = int(i * whisper_idx_multiplier)
             selected_feature,selected_idx = self.get_sliced_feature(feature_array= feature_array,vid_idx = i,audio_feat_length=audio_feat_length,fps=fps)
-            #print(f"i:{i},selected_idx {selected_idx}")
+            print(f"i:{i},selected_idx {selected_idx}, selected feature shape,{selected_feature.shape}")
             whisper_chunks.append(selected_feature)
             i += 1
             if start_idx>len(feature_array):
