@@ -98,6 +98,7 @@ whisper_encoder = whisper.load_model(name='tiny',  device='cpu').encoder
 whisper_encoder = whisper_encoder.to(device="cuda",dtype=torch.float16)
 
 audio_feats = torch.Tensor(mels).to(device="cuda",dtype=torch.float16)
+audio_feats = audio_feats.repeat(10,1,1)
 # whisper feature
 with torch.autocast("cuda"):
     _, audio_embs = whisper_encoder(audio_feats)
