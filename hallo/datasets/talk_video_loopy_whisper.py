@@ -228,7 +228,7 @@ class TalkingVideoDataset(Dataset):
             # here we use whisper instead of wav2vec
             audio_path = video_meta["video_path"].replace("images", "audios")
             audio_path = audio_path.replace(".mp4", ".wav")
-            print(f"\n {index} audio path is {}".format(audio_path))
+            print(f"\n {index} audio path is {audio_path}")
             tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
             assert tgt_mask_pil is not None, "Fail to load target mask."
