@@ -211,6 +211,7 @@ class TalkingVideoDataset(Dataset):
         return ret_tensor
 
     def __getitem__(self, index):
+        print("\n\n\n Getting image at index {}".format(index))
         try:
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
@@ -224,13 +225,15 @@ class TalkingVideoDataset(Dataset):
             ]
 
             # here we use whisper instead of wav2vec
-            audio_path = video_meta["frame_path"].replace("images", "audios") + ".wav"
-
+            audio_path = video_meta["video_path"].replace("images", "audios") + ".wav"
+            audio_path = audio_path.replace(".mp4", ".wav")
+            print("\n audio path is {}".format(audio_path))
             tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
+            print("video length:", video_length)
 
             assert (
                 video_length
