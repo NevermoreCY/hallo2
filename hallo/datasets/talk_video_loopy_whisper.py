@@ -226,7 +226,7 @@ class TalkingVideoDataset(Dataset):
             ]
 
             # here we use whisper instead of wav2vec
-            audio_path = video_meta["video_path"].replace("images", "audios")
+            audio_path = video_meta["video_path"].replace("videos", "audios")
             audio_path = audio_path.replace(".mp4", ".wav")
             print(f"\n {index} audio path is {audio_path}")
             tgt_mask_pil = Image.open(mask_path)
@@ -294,7 +294,10 @@ class TalkingVideoDataset(Dataset):
 
                 audio = whisper.pad_or_trim(
                     audio.flatten())  # as least 30s. you can slide to your specific duration at the usage.
+
+                print(f"\n {index} After pad or trim audio shape is :", audio.shape)
                 mels = whisper.log_mel_spectrogram(audio)
+                print(f"\n {index} mels shape is :", mels.shape)
 
             ref_img_idx = random.randint(
                 self.total_motion_frames,
