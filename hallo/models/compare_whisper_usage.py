@@ -95,7 +95,7 @@ else:
 
 
 whisper_encoder = whisper.load_model(name='tiny',  device='cpu').encoder
-whisper_encoder = whisper_encoder.to(device="cuda")
+whisper_encoder = whisper_encoder.to(device="cuda",dtype=torch.float32)
 
 audio_feats = torch.Tensor(mels)
 # whisper feature
