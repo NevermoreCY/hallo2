@@ -92,9 +92,14 @@ else:
     mels = whisper.log_mel_spectrogram(audio)
     print(f"\n mels shape is :", mels.shape)
 
+#  tiny
+#  mels shape is : torch.Size([80, 3000])
+# audio feature shape   torch.Size([10, 80, 3000])
+# <class 'torch.Tensor'>
+# 0 audio_embds shape is  torch.Size([10, 1500, 384])
+#  1 audio_embds shape is  torch.Size([1500, 10, 384])
 
-
-whisper_encoder = whisper.load_model(name='tiny',  device='cpu').encoder
+whisper_encoder = whisper.load_model(name='base',  device='cpu').encoder
 whisper_encoder = whisper_encoder.to(device="cuda",dtype=torch.float16)
 
 audio_feats = torch.Tensor(mels).to(device="cuda",dtype=torch.float16)
