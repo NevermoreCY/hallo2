@@ -567,7 +567,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     ).to(device="cuda", dtype=weight_dtype)
     audioproj = AudioProjModel(
         window=50,
-        channels=768,
+        channels=384,
         intermediate_dim=512,
         output_dim=768,
         context_tokens=32,
