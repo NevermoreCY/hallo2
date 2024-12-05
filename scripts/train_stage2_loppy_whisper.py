@@ -459,7 +459,7 @@ def log_validation(
             audio_fea_final = torch.Tensor(whisper_chunks)
             print("audio_fea_final shape ", audio_fea_final.shape)
             audio_length = audio_fea_final.shape[0] - 1
-            audio_tensor = audio_fea_final[:,t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
+            audio_tensor = audio_fea_final[t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
                            ]
             audio_tensor = audio_tensor.unsqueeze(0)
             audio_tensor = audio_tensor.to(
