@@ -566,8 +566,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         conditioning_embedding_channels=320,
     ).to(device="cuda", dtype=weight_dtype)
     audioproj = AudioProjModel(
-        seq_len=5,
-        blocks=12,
+        window=50,
         channels=768,
         intermediate_dim=512,
         output_dim=768,
