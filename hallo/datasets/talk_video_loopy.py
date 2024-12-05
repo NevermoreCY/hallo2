@@ -305,7 +305,8 @@ class TalkingVideoDataset(Dataset):
                         else:
                             motion = video_frames[ind].asnumpy()
                             motion = Image.fromarray(motion)
-                            motion.save(out_path)
+                            if ind < 10:
+                                motion.save(out_path)
                             motion_list.append(motion)
                         print("saved motion frames to " + out_path)
                 else:
