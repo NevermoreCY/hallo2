@@ -350,7 +350,7 @@ def log_validation(
 
         audio_emb, audio_length = audio_processor.preprocess(
             audio_path, clip_length)
-        print("\n\n\naudio length is {}".format(audio_length))
+        # print("\n\n\naudio length is {}".format(audio_length))
         audio_emb = process_audio_emb(audio_emb)
 
         source_image_pixels = source_image_pixels.unsqueeze(0)
@@ -457,7 +457,7 @@ def log_validation(
             # print("whisper_chunks:", whisper_chunks.shape)
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
-            print("audio_fea_final shape ", audio_fea_final.shape)
+            # print("audio_fea_final shape ", audio_fea_final.shape)
             audio_length = audio_fea_final.shape[0] - 1
             audio_tensor = audio_fea_final[t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
                            ]
@@ -976,7 +976,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         f"Unknown prediction type {train_noise_scheduler.prediction_type}"
                     )
 
-                print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
+                # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
 
                 # ---- Forward!!! -----
                 model_pred = net(
