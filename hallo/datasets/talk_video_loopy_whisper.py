@@ -233,16 +233,16 @@ class TalkingVideoDataset(Dataset):
             # here we use whisper instead of wav2vec
             audio_path = video_meta["video_path"].replace("videos", "audios")
             audio_path = audio_path.replace(".mp4", ".wav")
-            print(f"\n {index} audio path is {audio_path}")
+            # print(f"\n {index} audio path is {audio_path}")
             fps = 25
             whisper_feature = self.audio_guider.audio2feat(audio_path)
-            print("whisper feature shape :", whisper_feature.shape)
+            # print("whisper feature shape :", whisper_feature.shape)
             whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
-            print("whisper_chunks:", whisper_chunks.shape)
+            # print("whisper_chunks:", whisper_chunks.shape)
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
             audio_fea_final = audio_fea_final.unsqueeze(0)
-            print("audio_fea_final:", audio_fea_final.shape)
+            # print("audio_fea_final:", audio_fea_final.shape)
 
 
             tgt_mask_pil = Image.open(mask_path)
@@ -250,7 +250,7 @@ class TalkingVideoDataset(Dataset):
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
-            print(f" {index} video length:", video_length)
+            # print(f" {index} video length:", video_length)
 
             assert (
                 video_length
@@ -278,7 +278,7 @@ class TalkingVideoDataset(Dataset):
             face_emb = torch.load(face_emb_path)
             audio_emb = torch.load(audio_emb_path)
 
-            print(f"\n {index} Audio embedding shape: {audio_emb.shape}")
+            # print(f"\n {index} Audio embedding shape: {audio_emb.shape}")
 
             indices = (
                 torch.arange(2 * self.audio_margin + 1) - self.audio_margin
@@ -288,11 +288,11 @@ class TalkingVideoDataset(Dataset):
                 start_idx + self.n_sample_frames,
             ).unsqueeze(1) + indices.unsqueeze(0)
             audio_tensor = audio_emb[center_indices]
-            print(f"\n {index} center_indices are {center_indices}")
+            # print(f"\n {index} center_indices are {center_indices}")
 
             audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
             # audio_fea_final: torch.Size([1, 243, 50, 384])
-            print("audio tensor whisper shape :", audio_tensor_whisper.shape)
+            # print("audio tensor whisper shape :", audio_tensor_whisper.shape)
             # [1,14,50,384]
             # whisper log mel
             # if not os.path.exists(audio_path):
