@@ -369,7 +369,9 @@ class TalkingVideoDataset(Dataset):
                     [pixel_values_ref_img, pixel_values_motion], dim=0
                 )
 
+            audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
             print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
+
             sample = {
                 "start_idx": start_idx,
                 "video_dir": video_path,
