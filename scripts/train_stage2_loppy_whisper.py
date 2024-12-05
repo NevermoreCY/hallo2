@@ -67,6 +67,8 @@ from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               load_checkpoint, save_checkpoint,
                               seed_everything, tensor_to_video)
 
+from hallo.models.whisper_local.audio2feature import load_audio_model
+
 warnings.filterwarnings("ignore")
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
@@ -308,6 +310,9 @@ def log_validation(
     imageproj = ori_net.imageproj
     audioproj = ori_net.audioproj
 
+    audio_model_path = "/yuch_ws/DH/EchoMimic/pretrained_weights/audio_processor/whisper_tiny.pt"
+    audio_guider = load_audio_model(model_path=audio_model_path, device='cuda')
+
     generator = torch.manual_seed(42)
     tmp_denoising_unet = copy.deepcopy(denoising_unet)
 
@@ -445,9 +450,16 @@ def log_validation(
 
             audio_tensor = audioproj(audio_tensor)
 
+            whisper_feature = audio_guider.audio2feat(audio_path)
+            # print("whisper feature shape :", whisper_feature.shape)
+            whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            # print("whisper_chunks:", whisper_chunks.shape)
+            audio_frame_num = whisper_chunks.shape[0]
+            audio_fea_final = torch.Tensor(whisper_chunks)
+
             pipeline_output = pipeline(
                 ref_image=pixel_values_ref_img,
-                audio_tensor=audio_tensor,
+                audio_tensor=audio_fea_final , # audio_tensor
                 face_emb=source_image_face_emb,
                 face_mask=source_image_face_region,
                 pixel_values_full_mask=source_image_full_mask,
