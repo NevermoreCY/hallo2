@@ -341,9 +341,11 @@ def log_validation(
         source_image_face_mask, \
         source_image_lip_mask = image_processor.preprocess(
             ref_img_path, os.path.join(save_dir, '.cache'), cfg.face_expand_ratio)
+
+
         audio_emb, audio_length = audio_processor.preprocess(
             audio_path, clip_length)
-
+        print("audio length is {}".format(audio_length))
         audio_emb = process_audio_emb(audio_emb)
 
         source_image_pixels = source_image_pixels.unsqueeze(0)
@@ -438,6 +440,9 @@ def log_validation(
             audio_tensor = audio_tensor.unsqueeze(0)
             audio_tensor = audio_tensor.to(
                 device=audioproj.device, dtype=audioproj.dtype)
+
+
+
             audio_tensor = audioproj(audio_tensor)
 
             pipeline_output = pipeline(
