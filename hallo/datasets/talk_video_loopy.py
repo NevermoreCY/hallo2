@@ -307,6 +307,7 @@ class TalkingVideoDataset(Dataset):
                             motion = Image.fromarray(motion)
                             motion.save(out_path)
                             motion_list.append(motion)
+                        print("saved motion frames to " + out_path)
                 else:
                     # actual_indices = list(start_idx + self.motion_indices_offset)
 
