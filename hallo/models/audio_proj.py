@@ -103,12 +103,14 @@ class AudioProjModel(ModelMixin):
         Returns:
             context_tokens (torch.Tensor): The output context tokens with shape (batch_size, video_length, context_tokens, output_dim).
         """
+        print("audio proj forward 0 audio embeds shape : ", audio_embeds.shape)
         # merge
         video_length = audio_embeds.shape[1]
         audio_embeds = rearrange(audio_embeds, "bz f w b c -> (bz f) w b c")
         batch_size, window_size, blocks, channels = audio_embeds.shape
+        print("audio proj forward 1 audio embeds shape : ", audio_embeds.shape)
         audio_embeds = audio_embeds.view(batch_size, window_size * blocks * channels)
-
+        print("audio proj forward 2 audio embeds shape : ", audio_embeds.shape)
         audio_embeds = torch.relu(self.proj1(audio_embeds))
         audio_embeds = torch.relu(self.proj2(audio_embeds))
 
