@@ -1102,6 +1102,6 @@ if __name__ == "__main__":
         "--config", type=str, default="./configs/train/stage2_long.yaml"
     )
     args = parser.parse_args()
-
+    torch.multiprocessing.set_start_method('spawn')
     config = load_config(args.config)
     train_stage2_process(config)
