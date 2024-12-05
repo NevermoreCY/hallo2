@@ -302,13 +302,15 @@ class TalkingVideoDataset(Dataset):
                         if ind < 0: # we use mask for this case
                             motion_list.append(zero_img)
                             zero_img.save(out_path)
+                            print("saved motion frames to " + out_path)
                         else:
                             motion = video_frames[ind].asnumpy()
                             motion = Image.fromarray(motion)
                             if ind < 10:
                                 motion.save(out_path)
+                                print("saved motion frames to " + out_path)
                             motion_list.append(motion)
-                        print("saved motion frames to " + out_path)
+
                 else:
                     # actual_indices = list(start_idx + self.motion_indices_offset)
 
