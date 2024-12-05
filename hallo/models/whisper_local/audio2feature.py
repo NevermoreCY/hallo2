@@ -83,11 +83,11 @@ class Audio2Feature():
         whisper_chunks = []
         whisper_idx_multiplier = 50./fps 
         i = 0
-        print(f"video in {fps} FPS, audio idx in 50FPS")
+        # print(f"video in {fps} FPS, audio idx in 50FPS")
         while 1:
             start_idx = int(i * whisper_idx_multiplier)
             selected_feature,selected_idx = self.get_sliced_feature(feature_array= feature_array,vid_idx = i,audio_feat_length=audio_feat_length,fps=fps)
-            print(f"i:{i},selected_idx {selected_idx}, selected feature shape,{selected_feature.shape}")
+            # print(f"i:{i},selected_idx {selected_idx}, selected feature shape,{selected_feature.shape}")
             whisper_chunks.append(selected_feature)
             i += 1
             if start_idx>len(feature_array):
@@ -102,18 +102,18 @@ class Audio2Feature():
         for emb in result['segments']:
             # print("emb shape ",emb.shape)
             encoder_embeddings = emb['encoder_embeddings']
-            print("encider shape0",encoder_embeddings.shape)
+            # print("encider shape0",encoder_embeddings.shape)
             encoder_embeddings = encoder_embeddings.transpose(0,2,1,3)
-            print("encider shape1", encoder_embeddings.shape)
+            # print("encider shape1", encoder_embeddings.shape)
             encoder_embeddings = encoder_embeddings.squeeze(0)
-            print("encider shape2", encoder_embeddings.shape)
+            # print("encider shape2", encoder_embeddings.shape)
             start_idx = int(emb['start'])
             end_idx = int(emb['end'])
             emb_end_idx = int((end_idx - start_idx)/2)
-            print("start idx",start_idx, "end idx",end_idx, "emb end idx", emb_end_idx)
+            # print("start idx",start_idx, "end idx",end_idx, "emb end idx", emb_end_idx)
             embed_list.append(encoder_embeddings[:emb_end_idx])
         concatenated_array = np.concatenate(embed_list, axis=0)
-        print("concatenated array",concatenated_array.shape)
+        # print("concatenated array",concatenated_array.shape)
         return concatenated_array
 
 def load_audio_model(model_path, device):
