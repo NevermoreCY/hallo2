@@ -438,7 +438,8 @@ def log_validation(
 
             # patch drop done
 
-
+            print("\n\n audio_emb.shape ",audio_emb.shape)
+            print("t t * clip_length", t * clip_length, min((t + 1) * clip_length,audio_emb.shape[0] ))
             audio_tensor = audio_emb[
                 t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0])
             ]
@@ -446,7 +447,7 @@ def log_validation(
             audio_tensor = audio_tensor.to(
                 device=audioproj.device, dtype=audioproj.dtype)
 
-
+            print("\n\n audio_tensor shape ", audio_tensor.shape)
 
             audio_tensor = audioproj(audio_tensor)
 
@@ -456,6 +457,7 @@ def log_validation(
             # print("whisper_chunks:", whisper_chunks.shape)
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
+            print("audio_fea_final shape ", audio_fea_final.shape)
 
             pipeline_output = pipeline(
                 ref_image=pixel_values_ref_img,
