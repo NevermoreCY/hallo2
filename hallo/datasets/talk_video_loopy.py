@@ -290,7 +290,7 @@ class TalkingVideoDataset(Dataset):
             zero_img = Image.new("RGB", (self.img_size[0], self.img_size[1]))
 
             test_out_dir = "/yuch/DH/hallo2/test_dir/"
-
+            video_name = video_path.split("/")[-1].split(".")[0]
             if self.n_motion_frames > 0:
                 # motions = video_frames[start_idx - self.n_motion_frames : start_idx]
 
@@ -298,7 +298,7 @@ class TalkingVideoDataset(Dataset):
                     actual_indices = list(start_idx + self.motion_indices_offset)
                     motion_list = []
                     for ind in actual_indices:
-                        out_path = test_out_dir + f"{video_path}_{ind}.png"
+                        out_path = test_out_dir + f"{video_name}_{ind}.png"
                         if ind < 0: # we use mask for this case
                             motion_list.append(zero_img)
                             zero_img.save(out_path)
