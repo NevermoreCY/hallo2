@@ -453,7 +453,7 @@ def log_validation(
 
             whisper_feature = audio_guider.audio2feat(audio_path)
             # print("whisper feature shape :", whisper_feature.shape)
-            whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=25)
             # print("whisper_chunks:", whisper_chunks.shape)
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
