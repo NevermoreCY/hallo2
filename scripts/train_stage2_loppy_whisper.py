@@ -345,7 +345,7 @@ def log_validation(
 
         audio_emb, audio_length = audio_processor.preprocess(
             audio_path, clip_length)
-        print("audio length is {}".format(audio_length))
+        print("\n\n\naudio length is {}".format(audio_length))
         audio_emb = process_audio_emb(audio_emb)
 
         source_image_pixels = source_image_pixels.unsqueeze(0)
