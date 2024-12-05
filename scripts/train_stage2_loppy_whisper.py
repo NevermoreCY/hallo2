@@ -438,16 +438,16 @@ def log_validation(
 
             # patch drop done
 
-            print("\n\n audio_emb.shape ",audio_emb.shape)
-            print("t t * clip_length", t * clip_length, min((t + 1) * clip_length,audio_emb.shape[0] ))
-            audio_tensor = audio_emb[
-                t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0])
-            ]
-            audio_tensor = audio_tensor.unsqueeze(0)
-            audio_tensor = audio_tensor.to(
-                device=audioproj.device, dtype=audioproj.dtype)
+            # print("\n\n audio_emb.shape ",audio_emb.shape)
+            # print("t t * clip_length", t * clip_length, min((t + 1) * clip_length,audio_emb.shape[0] ))
+            # audio_tensor = audio_emb[
+            #     t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0])
+            # ]
+            # audio_tensor = audio_tensor.unsqueeze(0)
+            # audio_tensor = audio_tensor.to(
+            #     device=audioproj.device, dtype=audioproj.dtype)
 
-            print("\n\n audio_tensor shape ", audio_tensor.shape)
+            # print("\n\n audio_tensor shape ", audio_tensor.shape)
 
             # audio_tensor = audioproj(audio_tensor)
 
@@ -458,12 +458,18 @@ def log_validation(
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
             print("audio_fea_final shape ", audio_fea_final.shape)
+            audio_length = audio_fea_final.shape[0] - 1
+            audio_tensor = audio_fea_final[
+                           t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
+                           ]
 
+            audio_tensor = audio_tensor.to(
+                device=audioproj.device, dtype=audioproj.dtype)
             audio_tensor = audioproj(audio_tensor)
 
             pipeline_output = pipeline(
                 ref_image=pixel_values_ref_img,
-                audio_tensor=audio_fea_final , # audio_tensor
+                audio_tensor=audio_tensor,
                 face_emb=source_image_face_emb,
                 face_mask=source_image_face_region,
                 pixel_values_full_mask=source_image_full_mask,
