@@ -301,14 +301,14 @@ class TalkingVideoDataset(Dataset):
                         out_path = test_out_dir + f"{video_name}_{ind}.png"
                         if ind < 0: # we use mask for this case
                             motion_list.append(zero_img)
-                            zero_img.save(out_path)
-                            print("saved motion frames to " + out_path)
+                            # zero_img.save(out_path)
+                            # print("saved motion frames to " + out_path)
                         else:
                             motion = video_frames[ind].asnumpy()
                             motion = Image.fromarray(motion)
-                            if ind < 10:
-                                motion.save(out_path)
-                                print("saved motion frames to " + out_path)
+                            # if ind < 10:
+                            #     motion.save(out_path)
+                                # print("saved motion frames to " + out_path)
                             motion_list.append(motion)
 
                 else:
