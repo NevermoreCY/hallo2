@@ -218,7 +218,7 @@ class TalkingVideoDataset(Dataset):
     def __getitem__(self, index):
 
         try:
-            print("\n\n\n  Getting image at index {}".format(index))
+            # print("\n\n\n  Getting image at index {}".format(index))
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
             mask_path = video_meta["mask_path"]
@@ -293,6 +293,7 @@ class TalkingVideoDataset(Dataset):
             audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
             # audio_fea_final: torch.Size([1, 243, 50, 384])
             print("audio tensor whisper shape :", audio_tensor_whisper.shape)
+            # [1,14,50,384]
             # whisper log mel
             # if not os.path.exists(audio_path):
             #     print(f"\n {index} Audio path does not exist: {audio_path}")
@@ -368,7 +369,7 @@ class TalkingVideoDataset(Dataset):
                     [pixel_values_ref_img, pixel_values_motion], dim=0
                 )
 
-            print("\n audio_tensor shape is :", audio_tensor.shape)
+            print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
             sample = {
                 "start_idx": start_idx,
                 "video_dir": video_path,
