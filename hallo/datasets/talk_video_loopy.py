@@ -289,7 +289,7 @@ class TalkingVideoDataset(Dataset):
 
             zero_img = Image.new("RGB", (self.img_size[0], self.img_size[1]))
 
-            test_out_dir = "/yuch/DH/hallo2/test_dir/"
+            test_out_dir = "/yuch_ws/DH/hallo2/test_dir/"
             video_name = video_path.split("/")[-1].split(".")[0]
             if self.n_motion_frames > 0:
                 # motions = video_frames[start_idx - self.n_motion_frames : start_idx]
