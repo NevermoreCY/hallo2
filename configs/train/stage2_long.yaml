@@ -114,7 +114,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 500
 
-exp_name: "stage2_long"
+exp_name: "stage2_test_mask"
 output_dir: "./exp_output"
 
 ref_img_path:

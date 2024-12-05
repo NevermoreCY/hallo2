@@ -208,6 +208,9 @@ class TalkingVideoDataset(Dataset):
 
     def __getitem__(self, index):
         try:
+
+            motion_mask = True
+
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
             mask_path = video_meta["mask_path"]
@@ -224,14 +227,30 @@ class TalkingVideoDataset(Dataset):
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
 
-            assert (
-                video_length
-                > self.n_sample_frames + self.total_motion_frames  + 2 * self.audio_margin
-            )
-            start_idx = random.randint(
-                self.total_motion_frames ,
-                video_length - self.n_sample_frames - self.audio_margin - 1,
-            )
+
+            if motion_mask == True:
+
+                assert (
+                        video_length
+                        > self.n_sample_frames + 2 * self.audio_margin
+                )
+                # we can start with 0, just use mask
+                start_idx = random.randint(
+                    self.audio_margin,
+                    video_length - self.n_sample_frames - self.audio_margin - 1,
+                )
+
+            else:
+
+                assert (
+                        video_length
+                        > self.n_sample_frames + self.total_motion_frames + 2 * self.audio_margin
+                )
+                start_idx = random.randint(
+                    self.total_motion_frames,
+                    video_length - self.n_sample_frames - self.audio_margin - 1,
+                )
+
 
             videos = video_frames[start_idx : start_idx + self.n_sample_frames]
 
@@ -256,6 +275,9 @@ class TalkingVideoDataset(Dataset):
                 start_idx,
                 start_idx + self.n_sample_frames,
             ).unsqueeze(1) + indices.unsqueeze(0)
+
+
+
             audio_tensor = audio_emb[center_indices]
 
             ref_img_idx = random.randint(
@@ -265,12 +287,33 @@ class TalkingVideoDataset(Dataset):
             ref_img = video_frames[ref_img_idx].asnumpy()
             ref_img = Image.fromarray(ref_img)
 
+            zero_img = Image.new("RGB", (self.img_size[0], self.img_size[1]))
+
+            test_out_dir = "/yuch/DH/ernerf/test_dir/"
+
             if self.n_motion_frames > 0:
                 # motions = video_frames[start_idx - self.n_motion_frames : start_idx]
-                motions = video_frames.get_batch(list(start_idx + self.motion_indices_offset))
-                motion_list = [
-                    Image.fromarray(motion).convert("RGB") for motion in motions.asnumpy()
-                ]
+
+                if motion_mask:
+                    actual_indices = list(start_idx + self.motion_indices_offset)
+                    motion_list = []
+                    for ind in actual_indices:
+                        out_path = test_out_dir + f"{video_path}_{ind}.png"
+                        if ind < 0: # we use mask for this case
+                            motion_list.append(zero_img)
+                            zero_img.save(out_path)
+                        else:
+                            motion = video_frames[ind].asnumpy()
+                            motion = Image.fromarray(motion)
+                            motion.save(out_path)
+                            motion_list.append(motion)
+                else:
+                    # actual_indices = list(start_idx + self.motion_indices_offset)
+
+                    motions = video_frames.get_batch(list(start_idx + self.motion_indices_offset))
+                    motion_list = [
+                        Image.fromarray(motion).convert("RGB") for motion in motions.asnumpy()
+                    ]
 
             # transform
             state = torch.get_rng_state()
