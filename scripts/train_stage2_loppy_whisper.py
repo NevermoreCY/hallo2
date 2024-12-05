@@ -56,7 +56,7 @@ from hallo.animate.face_animate import FaceAnimatePipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.datasets.talk_video_loopy_whisper import TalkingVideoDataset
-from hallo.models.audio_proj import AudioProjModel
+from hallo.models.audio_proj_whisper import AudioProjModel
 from hallo.models.face_locator import FaceLocator
 from hallo.models.image_proj import ImageProjModel
 from hallo.models.mutual_self_attention import ReferenceAttentionControl
