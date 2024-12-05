@@ -83,6 +83,7 @@ import numpy as np
 import whisper
 import os
 import librosa
+from ..models.whisper_local.audio2feature import load_audio_model
 
 class TalkingVideoDataset(Dataset):
     """
@@ -116,6 +117,7 @@ class TalkingVideoDataset(Dataset):
         n_sample_frames=16,
         data_meta_paths=None,
         wav2vec_cfg=None,
+        device='cuda',
     ):
         super().__init__()
         self.sample_rate = sample_rate
@@ -126,6 +128,9 @@ class TalkingVideoDataset(Dataset):
         self.audio_type = wav2vec_cfg.audio_type
         self.audio_model = wav2vec_cfg.model_scale
         self.audio_features = wav2vec_cfg.features
+        audio_model_path = "/yuch_ws/DH/EchoMimic/pretrained_weights/audio_processor/whisper_tiny.pt"
+        self.audio_guider = load_audio_model(model_path=audio_model_path,device=device)
+
 
         # loopy features
         self.num_segments = 3
@@ -229,6 +234,17 @@ class TalkingVideoDataset(Dataset):
             audio_path = video_meta["video_path"].replace("videos", "audios")
             audio_path = audio_path.replace(".mp4", ".wav")
             print(f"\n {index} audio path is {audio_path}")
+            fps = 25
+            whisper_feature = self.audio_guider.audio2feat(audio_path)
+            print("whisper feature shape :", whisper_feature.shape)
+            whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            print("whisper_chunks:", whisper_chunks.shape)
+            audio_frame_num = whisper_chunks.shape[0]
+            audio_fea_final = torch.Tensor(whisper_chunks)
+            audio_fea_final = audio_fea_final.unsqueeze(0)
+            print("audio_fea_final:", audio_fea_final.shape)
+
+
             tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
             assert tgt_mask_pil is not None, "Fail to load target mask."
@@ -274,30 +290,33 @@ class TalkingVideoDataset(Dataset):
             audio_tensor = audio_emb[center_indices]
             print(f"\n {index} center_indices are {center_indices}")
 
+            audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
+            # audio_fea_final: torch.Size([1, 243, 50, 384])
+            print("audio tensor whisper shape :", audio_tensor_whisper.shape)
             # whisper log mel
-            if not os.path.exists(audio_path):
-                print(f"\n {index} Audio path does not exist: {audio_path}")
-                mels = np.zeros((80, 3000))
-                audio_start_index = -1
-                audio_end_index = -1
-            else:
-                audio, _ = librosa.load(audio_path, sr=16000)
-                print(f"\n {index} Audio librosa shape is :", audio.shape)
-                # audio_start_index = int(pick_start / 25 * 50)
-                # audio_end_index = audio_start_index + int(random_pick_size / 25 * 50)
-
-                # do not cut here due to long-term audio context
-                # print('audio_start_index=', audio_start_index)
-                # print('audio_end_index=', audio_end_index)
-                # audio = audio[audio_start_index:audio_end_index]
-                # print('audio.shape=', audio.shape)
-
-                audio = whisper.pad_or_trim(
-                    audio.flatten())  # as least 30s. you can slide to your specific duration at the usage.
-
-                print(f"\n {index} After pad or trim audio shape is :", audio.shape)
-                mels = whisper.log_mel_spectrogram(audio)
-                print(f"\n {index} mels shape is :", mels.shape)
+            # if not os.path.exists(audio_path):
+            #     print(f"\n {index} Audio path does not exist: {audio_path}")
+            #     mels = np.zeros((80, 3000))
+            #     audio_start_index = -1
+            #     audio_end_index = -1
+            # else:
+            #     audio, _ = librosa.load(audio_path, sr=16000)
+            #     print(f"\n {index} Audio librosa shape is :", audio.shape)
+            #     # audio_start_index = int(pick_start / 25 * 50)
+            #     # audio_end_index = audio_start_index + int(random_pick_size / 25 * 50)
+            #
+            #     # do not cut here due to long-term audio context
+            #     # print('audio_start_index=', audio_start_index)
+            #     # print('audio_end_index=', audio_end_index)
+            #     # audio = audio[audio_start_index:audio_end_index]
+            #     # print('audio.shape=', audio.shape)
+            #
+            #     audio = whisper.pad_or_trim(
+            #         audio.flatten())  # as least 30s. you can slide to your specific duration at the usage.
+            #
+            #     print(f"\n {index} After pad or trim audio shape is :", audio.shape)
+            #     mels = whisper.log_mel_spectrogram(audio)
+            #     print(f"\n {index} mels shape is :", mels.shape)
 
             ref_img_idx = random.randint(
                 self.total_motion_frames,
@@ -351,13 +370,14 @@ class TalkingVideoDataset(Dataset):
 
             print("\n audio_tensor shape is :", audio_tensor.shape)
             sample = {
+                "start_idx": start_idx,
                 "video_dir": video_path,
                 "pixel_values_vid": pixel_values_vid,
                 "pixel_values_mask": pixel_values_mask,
                 "pixel_values_face_mask": pixel_values_face_mask,
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
-                "audio_tensor": audio_tensor,
+                "audio_tensor": audio_tensor_whisper,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
             }
