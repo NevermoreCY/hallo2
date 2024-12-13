@@ -377,7 +377,7 @@ def log_validation(
                 # The first iteration
                 motion_zeros = source_image_pixels.repeat(
                     cfg.data.n_motion_frames, 1, 1, 1)
-                # mask
+                # zero mask
                 motion_zeros = torch.zeros_like(motion_zeros)
                 motion_zeros = motion_zeros.to(
                     dtype=source_image_pixels.dtype, device=source_image_pixels.device)
@@ -389,7 +389,7 @@ def log_validation(
                 motion_frames = motion_frames[np.array([-13, -11,-9,-7,-5, -4,-3,-2,-1])]
                 motion_frames = motion_frames * 2.0 - 1.0
                 motion_frames_to_pad = source_image_pixels.repeat(3, 1, 1, 1)
-                # mask
+                # zero mask
                 motion_frames_to_pad = torch.zeros_like(motion_frames_to_pad)
                 motion_frames = torch.cat([motion_frames_to_pad, motion_frames], dim=0)
                 pixel_values_ref_img = torch.cat(
