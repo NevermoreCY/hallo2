@@ -345,7 +345,7 @@ def inference_process(args: argparse.Namespace):
         ),
     )
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
-    print("loaded weight from ", os.path.join(audio_ckpt_dir, "net-30000.pth"))
+    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-30000.pth"))
 
     # 5. inference
     pipeline = FaceAnimatePipeline(
@@ -554,7 +554,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--face_expand_ratio", type=float, help="face region", required=False)
     parser.add_argument(
-        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/stage2_long",type=str, help="specific checkpoint dir", required=False)
+        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/stage2_motionfarme_mask",type=str, help="specific checkpoint dir", required=False)
 
 
     command_line_args = parser.parse_args()
