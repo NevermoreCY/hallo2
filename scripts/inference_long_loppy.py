@@ -337,7 +337,7 @@ def inference_process(args: argparse.Namespace):
         image_proj,
         audio_proj,
     )
-
+    print("\n\n\n\n\n **** loading weight from ", os.path.join(audio_ckpt_dir, "net-30000.pth"))
     m,u = net.load_state_dict(
         torch.load(
             os.path.join(audio_ckpt_dir, f"net-30000.pth"),
