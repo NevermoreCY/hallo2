@@ -1178,6 +1178,7 @@ def load_config(config_path: str) -> dict:
     raise ValueError("Unsupported format for config file")
 
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
