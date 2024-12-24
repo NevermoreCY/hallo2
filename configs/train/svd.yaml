@@ -1,5 +1,5 @@
 data:
-  train_bs: 1
+  train_bs: 4
   val_bs: 1
   train_width: 512
   train_height: 512
@@ -9,7 +9,8 @@ data:
   n_sample_frames: 14
   audio_margin: 2
   train_meta_paths:
-    - "./data/test_data_stage2.json"
+    - "./data/hallo_HDTF_stage2.json"
+
 
 wav2vec_config:
   audio_type: "vocals" # audio vocals
