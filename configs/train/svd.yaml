@@ -87,7 +87,7 @@ unet_additional_kwargs:
 
   
 trainable_para:
-  # - audio_modules
+  - audio_modules
   - motion_modules
 
 base_model_path: "./pretrained_models/stable-diffusion-v1-5/"
@@ -118,7 +118,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 500
 
-exp_name: "stage2_motionfarme_mask"
+exp_name: "svd_test"
 output_dir: "./exp_output"
 
 ref_img_path:
