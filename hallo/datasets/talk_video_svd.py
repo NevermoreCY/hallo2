@@ -347,13 +347,14 @@ class TalkingVideoDataset(Dataset):
 
             pixel_values_ref_img = self.augmentation(ref_img, self.pixel_transform, state)
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
-            if self.n_motion_frames > 0:
-                pixel_values_motion = self.augmentation(
-                    motion_list, self.pixel_transform, state
-                )
-                pixel_values_ref_img = torch.cat(
-                    [pixel_values_ref_img, pixel_values_motion], dim=0
-                )
+            # print(pixel_values_ref)
+            # if self.n_motion_frames > 0:
+            #     pixel_values_motion = self.augmentation(
+            #         motion_list, self.pixel_transform, state
+            #     )
+            #     pixel_values_ref_img = torch.cat(
+            #         [pixel_values_ref_img, pixel_values_motion], dim=0
+            #     )
 
             sample = {
                 "video_dir": video_path,

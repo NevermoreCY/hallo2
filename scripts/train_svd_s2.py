@@ -901,7 +901,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     pixel_values_full_mask, weight_dtype
                 )
 
-                print("**debug 12 29 \n\n  pixel_values_vid shape is ", pixel_values_vid.shape)
+                #print("**debug 12 29 \n\n  pixel_values_vid shape is ", pixel_values_vid.shape)
+                # pixel_values_vid shape is  torch.Size([4, 14, 3, 512, 512])
 
                 with torch.no_grad():
                     video_length = pixel_values_vid.shape[1]
@@ -930,7 +931,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     device=latents.device,
                 )
                 timesteps = timesteps.long()
-                print("train_noise_scheduler.num_train_timesteps : ", train_noise_scheduler.num_train_timesteps)
+                #print("train_noise_scheduler.num_train_timesteps : ", train_noise_scheduler.num_train_timesteps)
+                # 1000
 
                 # motion frame stem steps?
                 motion_timesteps = torch.randint(
@@ -963,6 +965,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
 
                 print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
+                # pixel_values_ref_img shape is  torch.Size([4, 13, 3, 512, 512])
                 # initialize the motion frames as zero maps
                 if start_frame:
                     pixel_values_ref_img[:, 1:] = 0.0
