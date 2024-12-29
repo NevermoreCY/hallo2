@@ -60,7 +60,7 @@ from PIL import Image
 import numpy as np
 from pathlib import Path
 
-from hallo.animate.face_animate import FaceAnimatePipeline
+from hallo.animate.face_animate_yu import FaceAnimatePipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.datasets.talk_video_svd import TalkingVideoDataset
@@ -325,7 +325,7 @@ def log_validation(
         torch.Tensor: The tensor result of the validation.
     """
     ori_net = accelerator.unwrap_model(net)
-    reference_unet = ori_net.reference_unet
+    # reference_unet = ori_net.reference_unet
     denoising_unet = ori_net.denoising_unet
     face_locator = ori_net.face_locator
     imageproj = ori_net.imageproj
@@ -337,7 +337,6 @@ def log_validation(
 
     pipeline = FaceAnimatePipeline(
         vae=vae,
-        reference_unet=reference_unet,
         denoising_unet=tmp_denoising_unet,
         face_locator=face_locator,
         image_proj=imageproj,
@@ -968,7 +967,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     dtype=weight_dtype
                 )
 
-                print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
+                # print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
                 # pixel_values_ref_img shape is  torch.Size([4, 13, 3, 512, 512])
                 # initialize the motion frames as zero maps
                 if start_frame:
@@ -1028,18 +1027,21 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
                 noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
                 added_time_ids = _get_add_time_ids(
-                    7,  # fixed
+                    24,  # fixed
                     127,  # motion_bucket_id = 127, fixed
                     noise_aug_strength,  # noise_aug_strength == cond_sigmas
                     image_prompt_embeds.dtype,
                     bsz,
                 )
+                print("**1230\n\n added_time_ids:", added_time_ids)
                 added_time_ids = added_time_ids.to(latents.device)
 
                 # add noise
                 noisy_latents = train_noise_scheduler.add_noise(
                     latents, noise, timesteps
                 )
+
+                print("**1230 \n\n noisy_latents:", noisy_latents.shape)
 
                 # Get the target for loss depending on the prediction type
                 if train_noise_scheduler.prediction_type == "epsilon":
