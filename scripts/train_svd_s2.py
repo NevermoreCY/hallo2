@@ -65,11 +65,7 @@ from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.datasets.talk_video_svd import TalkingVideoDataset
 from hallo.models.audio_proj import AudioProjModel
-from hallo.models.face_locator import FaceLocator
-from hallo.models.image_proj import ImageProjModel
-from hallo.models.mutual_self_attention import ReferenceAttentionControl
-from hallo.models.unet_2d_condition import UNet2DConditionModel
-from hallo.models.unet_3d import UNet3DConditionModel
+
 from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               import_filename, init_output_dir,
                               load_checkpoint, save_checkpoint,
@@ -77,21 +73,22 @@ from hallo.utils.util import (compute_snr, delete_additional_ckpt,
 
 import diffusers
 from diffusers import StableVideoDiffusionPipeline
-from diffusers import AutoencoderKLTemporalDecoder, EulerDiscreteScheduler, UNetSpatioTemporalConditionModel
-
+from diffusers import AutoencoderKLTemporalDecoder, EulerDiscreteScheduler
 from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
 from hallo.animate.face_animate_static import StaticPipeline
 from hallo.datasets.mask_image import FaceMaskDataset
 from hallo.models.face_locator import FaceLocator
 from hallo.models.image_proj import ImageProjModel
-from hallo.models.mutual_self_attention import ReferenceAttentionControl
+from hallo.models.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
 from hallo.models.unet_2d_condition import UNet2DConditionModel
 from hallo.models.unet_3d import UNet3DConditionModel
 from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               import_filename, init_output_dir,
                               load_checkpoint, move_final_checkpoint,
                               save_checkpoint, seed_everything)
+
+
 
 from packaging import version
 
@@ -573,14 +570,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     #     cfg.base_model_path,
     #     subfolder="unet",
     # ).to(device="cuda", dtype=weight_dtype)
-    # denoising_unet = UNet3DConditionModel.from_pretrained_2d(
-    #     cfg.base_model_path,
-    #     cfg.mm_path,
-    #     subfolder="unet",
-    #     unet_additional_kwargs=OmegaConf.to_container(
-    #         cfg.unet_additional_kwargs),
-    #     use_landmark=False
-    # ).to(device="cuda", dtype=weight_dtype)
+
 
     # print("cfg.svd.unet_path" , cfg.svd.unet_path)
     # ./pretrained_models/svd_xt_1_1.safetensors
