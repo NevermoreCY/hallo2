@@ -1041,7 +1041,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     latents, noise, timesteps
                 )
 
-                print("**1230 \n\n noisy_latents:", noisy_latents.shape)
+
 
                 # Get the target for loss depending on the prediction type
                 if train_noise_scheduler.prediction_type == "epsilon":
@@ -1055,6 +1055,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         f"Unknown prediction type {train_noise_scheduler.prediction_type}"
                     )
 
+                print("**1230 \n\n noisy_latents:", noisy_latents.shape)
+                print("**1230 \n\n targe shape :", target.shape)
                 # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
 
                 # ---- Forward!!! -----
