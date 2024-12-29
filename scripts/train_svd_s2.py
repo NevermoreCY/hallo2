@@ -191,12 +191,9 @@ class Net(nn.Module):
         model_pred = self.denoising_unet(
             noisy_latents,
             timesteps,
-            mask_cond_fea=mask_feature,
             encoder_hidden_states=face_emb,
             audio_embedding=audio_emb,
-            full_mask=full_mask,
-            face_mask=face_mask,
-            lip_mask=lip_mask
+            # added_time_ids=added_time_ids,
         ).sample
 
         return model_pred
@@ -666,10 +663,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     #         for params in module.parameters():
     #             params.requires_grad_(True)
 
-    trainable_params = []
-    for name, param in unet.named_parameters():
-            trainable_params.append(param)
-            param.requires_grad = True
 
 
     # reference_control_writer = ReferenceAttentionControl(
@@ -745,9 +738,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     else:
         optimizer_cls = torch.optim.AdamW
 
-    trainable_params = list(
-        filter(lambda p: p.requires_grad, net.parameters()))
-    logger.info(f"Total trainable params {len(trainable_params)}")
+    # trainable_params = list(
+    #     filter(lambda p: p.requires_grad, net.parameters()))
+    # logger.info(f"Total trainable params {len(trainable_params)}")
+
+
+    trainable_params = []
+    for name, param in unet.named_parameters():
+            trainable_params.append(param)
+            param.requires_grad = True
+
+
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
@@ -894,6 +895,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     pixel_values_full_mask, weight_dtype
                 )
 
+                print("**debug 12 29 \n\n  pixel_values_vid shape is ", pixel_values_vid.shape)
 
                 with torch.no_grad():
                     video_length = pixel_values_vid.shape[1]
@@ -953,6 +955,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 pixel_values_ref_img = batch["pixel_values_ref_img"].to(
                     dtype=weight_dtype
                 )
+
+                print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
                 # initialize the motion frames as zero maps
                 if start_frame:
                     pixel_values_ref_img[:, 1:] = 0.0
