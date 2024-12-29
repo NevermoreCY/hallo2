@@ -519,9 +519,9 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
         full_mask: Optional[torch.Tensor] = None,
         face_mask: Optional[torch.Tensor] = None,
         lip_mask: Optional[torch.Tensor] = None,
-        motion_scale: Optional[torch.Tensor] = None,
-        down_block_additional_residuals: Optional[Tuple[torch.Tensor]] = None,
-        mid_block_additional_residual: Optional[torch.Tensor] = None,
+        motion_scale: Optional[torch.Tensor] = None, #None
+        down_block_additional_residuals: Optional[Tuple[torch.Tensor]] = None,  #None
+        mid_block_additional_residual: Optional[torch.Tensor] = None,  #None
         return_dict: bool = True,
         # start: bool = False,
     ) -> Union[UNet3DConditionOutput, Tuple]:
@@ -634,7 +634,7 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
 
             down_block_res_samples += res_samples
 
-        if down_block_additional_residuals is not None:
+        if down_block_additional_residuals is not None:  # None , ignore
             new_down_block_res_samples = ()
 
             for down_block_res_sample, down_block_additional_residual in zip(
