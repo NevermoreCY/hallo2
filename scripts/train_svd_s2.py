@@ -160,6 +160,7 @@ class Net(nn.Module):
         ref_image_latents: torch.Tensor,
         face_emb: torch.Tensor,
         audio_emb: torch.Tensor,
+        added_time_ids,
         uncond_img_fwd: bool = False,
         uncond_audio_fwd: bool = False,
     ):
@@ -199,7 +200,7 @@ class Net(nn.Module):
             timesteps,
             encoder_hidden_states=face_emb,
             audio_embedding=audio_emb,
-            # added_time_ids=added_time_ids,
+            added_time_ids=added_time_ids,
         ).sample
 
         return model_pred
@@ -502,7 +503,10 @@ def log_validation(
 
     return tensor_result
 
-
+def rand_log_normal(shape, loc=0., scale=1., device='cpu', dtype=torch.float32):
+    """Draws samples from an lognormal distribution."""
+    u = torch.rand(shape, dtype=dtype, device=device) * (1 - 2e-7) + 1e-7
+    return torch.distributions.Normal(loc, scale).icdf(u).exp()
 
 def train_stage2_process(cfg: argparse.Namespace) -> None:
     """
@@ -1021,6 +1025,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         dtype=imageproj.dtype, device=imageproj.device
                     )
 
+                cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
+                noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
+                added_time_ids = _get_add_time_ids(
+                    7,  # fixed
+                    127,  # motion_bucket_id = 127, fixed
+                    noise_aug_strength,  # noise_aug_strength == cond_sigmas
+                    image_prompt_embeds.dtype,
+                    bsz,
+                )
+                added_time_ids = added_time_ids.to(latents.device)
+
                 # add noise
                 noisy_latents = train_noise_scheduler.add_noise(
                     latents, noise, timesteps
@@ -1048,6 +1063,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     face_emb=image_prompt_embeds,
                     audio_emb=batch["audio_tensor"].to(
                         dtype=weight_dtype),
+                    added_time_ids=added_time_ids,
                     uncond_img_fwd=uncond_img_fwd,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
