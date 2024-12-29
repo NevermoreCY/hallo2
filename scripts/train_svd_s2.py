@@ -151,9 +151,6 @@ class Net(nn.Module):
         face_emb: torch.Tensor,
         audio_emb: torch.Tensor,
         mask: torch.Tensor,
-        full_mask: torch.Tensor,
-        face_mask: torch.Tensor,
-        lip_mask: torch.Tensor,
         uncond_img_fwd: bool = False,
         uncond_audio_fwd: bool = False,
     ):
@@ -175,13 +172,13 @@ class Net(nn.Module):
                 "b -> (repeat b)",
                 repeat=ref_image_latents.size(0) // ref_timesteps.size(0),
             )
-            self.reference_unet(
-                ref_image_latents,
-                ref_timesteps,
-                encoder_hidden_states=face_emb,
-                return_dict=False,
-            )
-            self.reference_control_reader.update(self.reference_control_writer)
+            # self.reference_unet(
+            #     ref_image_latents,
+            #     ref_timesteps,
+            #     encoder_hidden_states=face_emb,
+            #     return_dict=False,
+            # )
+            # self.reference_control_reader.update(self.reference_control_writer)
 
         if uncond_audio_fwd:
             audio_emb = torch.zeros_like(audio_emb).to(
