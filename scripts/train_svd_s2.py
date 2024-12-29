@@ -143,6 +143,16 @@ class Net(nn.Module):
         self.imageproj = imageproj
         self.audioproj = audioproj
 
+    # model_pred = net(
+    #     noisy_latents=noisy_latents,
+    #     timesteps=timesteps,
+    #     ref_image_latents=ref_image_latents,
+    #     face_emb=image_prompt_embeds,
+    #     audio_emb=batch["audio_tensor"].to(
+    #         dtype=weight_dtype),
+    #     uncond_img_fwd=uncond_img_fwd,
+    #     uncond_audio_fwd=uncond_audio_fwd
+    # )
     def forward(
         self,
         noisy_latents: torch.Tensor,
@@ -150,7 +160,6 @@ class Net(nn.Module):
         ref_image_latents: torch.Tensor,
         face_emb: torch.Tensor,
         audio_emb: torch.Tensor,
-        mask: torch.Tensor,
         uncond_img_fwd: bool = False,
         uncond_audio_fwd: bool = False,
     ):
@@ -158,8 +167,8 @@ class Net(nn.Module):
         simple docstring to prevent pylint error
         """
         face_emb = self.imageproj(face_emb)
-        mask = mask.to(device="cuda")
-        mask_feature = self.face_locator(mask)
+        # mask = mask.to(device="cuda")
+        # mask_feature = self.face_locator(mask)
         audio_emb = audio_emb.to(
             device=self.audioproj.device, dtype=self.audioproj.dtype)
         audio_emb = self.audioproj(audio_emb)
@@ -1034,10 +1043,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     timesteps=timesteps,
                     ref_image_latents=ref_image_latents,
                     face_emb=image_prompt_embeds,
-                    mask=pixel_values_mask,
-                    full_mask=pixel_values_full_mask,
-                    face_mask=pixel_values_face_mask,
-                    lip_mask=pixel_values_lip_mask,
                     audio_emb=batch["audio_tensor"].to(
                         dtype=weight_dtype),
                     uncond_img_fwd=uncond_img_fwd,
