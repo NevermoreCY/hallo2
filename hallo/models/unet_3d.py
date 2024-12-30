@@ -599,11 +599,16 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
             class_emb = self.class_embedding(class_labels).to(dtype=self.dtype)
             emb = emb + class_emb
 
+        print("**1230 \n\n Before conv_in sample shape : ", sample.shape)
         # pre-process
         sample = self.conv_in(sample)
+
+
+
         if mask_cond_fea is not None:
             sample = sample + mask_cond_fea
 
+        print("**1230 \n\n after conv_in sample shape : ", sample.shape)
         # down
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
