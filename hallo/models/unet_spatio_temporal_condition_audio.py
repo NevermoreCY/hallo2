@@ -96,7 +96,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         num_frames: int = 25,
     ):
         super().__init__()
-        print("**24.12.29 \n\n we are at good unet spatio model ")
+        # print("**24.12.29 \n\n we are at good unet spatio model ")
         self.sample_size = sample_size
 
         # Check inputs
@@ -444,10 +444,15 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         time_embeds = time_embeds.to(emb.dtype)
         aug_emb = self.add_embedding(time_embeds)
         emb = emb + aug_emb
-
+        c=0
+        print(f"**1230 \n\n input sample shape {c} : ", sample.shape)
+        c += 1
         # Flatten the batch and frames dimensions
         # sample: [batch, frames, channels, height, width] -> [batch * frames, channels, height, width]
         sample = sample.flatten(0, 1)
+
+        print(f"**1230 \n\n flatten sample shape {c} : ", sample.shape)
+        c += 1
         # Repeat the embeddings num_video_frames times
         # emb: [batch, channels] -> [batch * frames, channels]
         emb = emb.repeat_interleave(num_frames, dim=0)
@@ -456,7 +461,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
         # 2. pre-process
         sample = self.conv_in(sample)
-
+        print(f"**1230 \n\n after conv_in sample shape {c} : ", sample.shape)
+        c += 1
         image_only_indicator = torch.zeros(batch_size, num_frames, dtype=sample.dtype, device=sample.device)
         # down
         down_block_res_samples = (sample,)
@@ -476,7 +482,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                 )
 
             down_block_res_samples += res_samples
-
+            print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
+            c += 1
         # 4. mid
         sample = self.mid_block(
             hidden_states=sample,
@@ -484,7 +491,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
             encoder_hidden_states=encoder_hidden_states,
             image_only_indicator=image_only_indicator,
         )
-
+        print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
+        c += 1
         # 5. up
         for i, upsample_block in enumerate(self.up_blocks):
             is_final_block = i == len(self.up_blocks) - 1
@@ -514,14 +522,20 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                     upsample_size=upsample_size,
                     image_only_indicator=image_only_indicator,
                 )
-
+            print(f"**1230 \n\n up sample shape {c} : ", sample.shape)
+            c += 1
         # 6. post-process
         sample = self.conv_norm_out(sample)
         sample = self.conv_act(sample)
         sample = self.conv_out(sample)
 
+        print(f"**1230 \n\n out sample shape {c} : ", sample.shape)
+        c += 1
         # 7. Reshape back to original shape
         sample = sample.reshape(batch_size, num_frames, *sample.shape[1:])
+
+        print(f"**1230 \n\n out reshape sample shape {c} : ", sample.shape)
+        c += 1
 
         if not return_dict:
             return (sample,)
