@@ -871,6 +871,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     # latents = latents * 0.18215
 
                 noise = torch.randn_like(latents)
+                bsz = latents.shape[0]
 
                 # 向噪声中添加一个小的偏移量来增加训练过程中的多样性或稳定性。
                 if cfg.noise_offset > 0:
@@ -878,8 +879,24 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         (latents.shape[0], latents.shape[1], 1, 1, 1),
                         device=latents.device,
                     )
+                # 生成对数正态分布的条件噪声强度
+                cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
+                noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
+                print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas)
+                print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor)
+                cond_sigmas = cond_sigmas[:, None, None, None, None]
+                print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas.shape)
+                conditional_pixel_values = \
+                    torch.randn_like(conditional_pixel_values) * cond_sigmas + conditional_pixel_values
+                conditional_latents = tensor_to_vae_latent(conditional_pixel_values, vae)
+                print("**debug 12 29 \n\n  conditional_latents  ", conditional_latents .shape)
+                conditional_latents = conditional_latents[:, 0, :, :, :]
+                print("**debug 12 29 \n\n  conditional_latents 2 ", conditional_latents.shape)
+                # 归一化潜在表示
+                conditional_latents = conditional_latents / vae.config.scaling_factor
 
-                bsz = latents.shape[0]
+
+
                 # Sample a random timestep for each video
                 timesteps = torch.randint(
                     0,
@@ -899,8 +916,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     device=latents.device,
                 )
                 motion_timesteps = motion_timesteps.long()
-
-
 
                 uncond_img_fwd = random.random() < cfg.uncond_img_ratio
                 uncond_audio_fwd = random.random() < cfg.uncond_audio_ratio
