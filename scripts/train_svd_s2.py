@@ -585,8 +585,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     unet = UNetSpatioTemporalConditionModel.from_pretrained(
         cfg.svd.pretrain,
         subfolder="unet",
-        low_cpu_mem_usage=True,
-        variant="fp16"
     )
 
     imageproj = ImageProjModel(
@@ -613,7 +611,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         cfg.svd.pretrain, subfolder="image_encoder"
     )
     vae = AutoencoderKLTemporalDecoder.from_pretrained(
-        cfg.svd.pretrain, subfolder="vae", variant="fp16")
+        cfg.svd.pretrain, subfolder="vae")
 
     print("load done ")
 
