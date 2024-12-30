@@ -1005,11 +1005,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
                 print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
 
-                noisy_latents = noisy_latents.to(dtype=weight_dtype)
+                inp_noisy_latents = inp_noisy_latents.to(dtype=weight_dtype)
                 timesteps = timesteps.to(dtype=weight_dtype)
                 # ---- Forward!!! -----
                 model_pred = net(
-                    noisy_latents=noisy_latents,
+                    noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
                     face_emb=image_prompt_embeds,
                     audio_emb= audio_emb,

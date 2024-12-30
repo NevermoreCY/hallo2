@@ -470,7 +470,9 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # emb: [batch, channels] -> [batch * frames, channels]
         emb = emb.repeat_interleave(num_frames, dim=0)
         # encoder_hidden_states: [batch, 1, channels] -> [batch * frames, 1, channels]
+        print("encoder hidden state shape is ", encoder_hidden_states.shape)
         encoder_hidden_states = encoder_hidden_states.repeat_interleave(num_frames, dim=0)
+        print("encoder hidden state shape is ", encoder_hidden_states.shape)
 
         # 2. pre-process
         sample = self.conv_in(sample)
