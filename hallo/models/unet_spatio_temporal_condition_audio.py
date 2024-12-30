@@ -443,8 +443,10 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # `Timesteps` does not contain any weights and will always return f32 tensors
         # but time_embedding might actually be running in fp16. so we need to cast here.
         # there might be better ways to encapsulate this.
-        print("t_emb dtype is ", t_emb.dtype)
-        print("sample dtype is ", sample.dtype)
+        # print("t_emb dtype is ", t_emb.dtype)
+        # print("sample dtype is ", sample.dtype)
+        # t_emb dtype is  torch.float32
+        # sample dtype is  torch.float16
         t_emb = t_emb.to(dtype=sample.dtype)
 
 

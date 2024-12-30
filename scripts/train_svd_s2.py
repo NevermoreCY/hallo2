@@ -974,13 +974,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
                 conditional_latents = conditional_latents.unsqueeze(1)
-                print("**debug 12 29 \n\n  cond latent 1", conditional_latents.shape)
+                # print("**debug 12 29 \n\n  cond latent 1", conditional_latents.shape)
+                #   cond latent 1 torch.Size([4, 1, 4, 64, 64])
                 conditional_latents = conditional_latents.repeat(1, noisy_latents.shape[1], 1, 1, 1)
-                print("**debug 12 29 \n\n  cond latent2", conditional_latents.shape)
+                # print("**debug 12 29 \n\n  cond latent2", conditional_latents.shape)
+                #   cond latent2 torch.Size([4, 14, 4, 64, 64])
 
                 inp_noisy_latents = torch.cat(
                     [inp_noisy_latents, conditional_latents], dim=2)
-                print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
+                # print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
+                #   inp_noisy_latents shape torch.Size([4, 14, 8, 64, 64])
+
 
                 # Get the target for loss depending on the prediction type
                 # if train_noise_scheduler.prediction_type == "epsilon":
@@ -996,14 +1000,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 target = latents
 
-                print("**1230 \n\n noisy_latents:", noisy_latents.shape)
-                print("**1230 \n\n targe shape :", target.shape)
+                # print("**1230 \n\n noisy_latents:", noisy_latents.shape)
+                # print("**1230 \n\n targe shape :", target.shape)
                 # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
 
 
                 audio_emb = batch["audio_tensor"].to(dtype=weight_dtype)
-                print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
-                print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
+                # print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
+                # print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
+                #   audio_embd shape torch.Size([4, 14, 5, 12, 768])
+                #   face_embd shape torch.Size([4, 512])
 
                 inp_noisy_latents = inp_noisy_latents.to(dtype=weight_dtype)
                 timesteps = timesteps.to(dtype=weight_dtype)
