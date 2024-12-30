@@ -157,7 +157,6 @@ class Net(nn.Module):
         self,
         noisy_latents: torch.Tensor,
         timesteps: torch.Tensor,
-        ref_image_latents: torch.Tensor,
         face_emb: torch.Tensor,
         audio_emb: torch.Tensor,
         added_time_ids,
@@ -175,13 +174,13 @@ class Net(nn.Module):
         audio_emb = self.audioproj(audio_emb)
 
         # condition forward
-        if not uncond_img_fwd:
-            ref_timesteps = torch.zeros_like(timesteps)
-            ref_timesteps = repeat(
-                ref_timesteps,
-                "b -> (repeat b)",
-                repeat=ref_image_latents.size(0) // ref_timesteps.size(0),
-            )
+        # if not uncond_img_fwd:
+            # ref_timesteps = torch.zeros_like(timesteps)
+            # ref_timesteps = repeat(
+            #     ref_timesteps,
+            #     "b -> (repeat b)",
+            #     repeat=ref_image_latents.size(0) // ref_timesteps.size(0),
+            # )
             # self.reference_unet(
             #     ref_image_latents,
             #     ref_timesteps,
@@ -858,7 +857,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 pixel_values_vid = batch["pixel_values_vid"].to(weight_dtype)
                 #print("**debug 12 29 \n\n  pixel_values_vid shape is ", pixel_values_vid.shape)
                 # pixel_values_vid shape is  torch.Size([4, 14, 3, 512, 512])
-
                 #
                 conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
                 # print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
@@ -867,9 +865,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # vae scaling factor  0.18215
 
 
-                with torch.no_grad():
-                    latents = tensor_to_vae_latent(pixel_values_vid , vae)
-                    # latents = latents * 0.18215
+                latents = tensor_to_vae_latent(pixel_values_vid , vae)
+
 
                 noise = torch.randn_like(latents)
                 bsz = latents.shape[0]
@@ -883,20 +880,34 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # 生成对数正态分布的条件噪声强度
                 cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
                 noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
-                print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas)
-                print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor)
+                # print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas)
+                # print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor)
                 cond_sigmas = cond_sigmas[:, None, None, None, None]
-                print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas.shape)
+                # print("**debug 12 29 \n\n  cond_sigmasis ", cond_sigmas.shape)
                 conditional_pixel_values = \
                     torch.randn_like(conditional_pixel_values) * cond_sigmas + conditional_pixel_values
                 conditional_latents = tensor_to_vae_latent(conditional_pixel_values, vae)
-                print("**debug 12 29 \n\n  conditional_latents  ", conditional_latents .shape)
+                # print("**debug 12 29 \n\n  conditional_latents  ", conditional_latents .shape)
                 conditional_latents = conditional_latents[:, 0, :, :, :]
-                print("**debug 12 29 \n\n  conditional_latents 2 ", conditional_latents.shape)
+                # print("**debug 12 29 \n\n  conditional_latents 2 ", conditional_latents.shape)
                 # 归一化潜在表示
                 conditional_latents = conditional_latents / vae.config.scaling_factor
+                #   conditional_latents   torch.Size([4, 1, 4, 64, 64])
+                #   conditional_latents 2  torch.Size([4, 4, 64, 64])
 
 
+                # Sample a random timestep for each image
+                # P_mean=0.7 P_std=1.6
+                sigmas = rand_log_normal(shape=[bsz,], loc=0.7, scale=1.6).to(latents.device)
+                # Add noise to the latents according to the noise magnitude at each timestep
+                # (this is the forward diffusion process)
+                sigmas = sigmas[:, None, None, None, None]
+                noisy_latents = latents + noise * sigmas
+                timesteps = torch.Tensor(
+                    [0.25 * sigma.log() for sigma in sigmas]).to(accelerator.device)
+
+                inp_noisy_latents = noisy_latents / ((sigmas**2 + 1) ** 0.5)
+                print("**debug 12 29 \n\n  time steps 1", timesteps)
 
                 # Sample a random timestep for each video
                 timesteps = torch.randint(
@@ -908,80 +919,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 timesteps = timesteps.long()
                 #print("train_noise_scheduler.num_train_timesteps : ", train_noise_scheduler.num_train_timesteps)
                 # 1000
+                print("**debug 12 29 \n\n  time steps 2", timesteps)
 
-                # motion frame stem steps?
-                motion_timesteps = torch.randint(
-                    0,
-                    50,
-                    (bsz,),
-                    device=latents.device,
-                )
-                motion_timesteps = motion_timesteps.long()
 
-                uncond_img_fwd = random.random() < cfg.uncond_img_ratio
                 uncond_audio_fwd = random.random() < cfg.uncond_audio_ratio
-
-                start_frame = random.random() < cfg.start_ratio
-                pixel_values_ref_img = batch["pixel_values_ref_img"].to(
-                    dtype=weight_dtype
-                )
 
                 # print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
                 # pixel_values_ref_img shape is  torch.Size([4, 13, 3, 512, 512])
-                # initialize the motion frames as zero maps
-                if start_frame:
-                    pixel_values_ref_img[:, 1:] = 0.0
 
-                # random mask
-                use_mask = random.random() < cfg.use_mask
-
-                # assert use_mask
-
-                with torch.no_grad():
-
-                    motion_latents = pixel_values_ref_img[:, 1:]
-                    motion_noise = torch.randn_like(motion_latents)
-                    if cfg.noise_offset > 0:
-                        motion_noise += cfg.noise_offset * torch.randn(
-                            (motion_latents.shape[0], motion_latents.shape[1], 1, 1, 1),
-                            device=latents.device,
-                        )
-
-                    # add motion noise
-                    noisy_motion_latents = train_noise_scheduler.add_noise(
-                        motion_latents, motion_noise, motion_timesteps
-                    )
-                    pixel_values_ref_img[:, 1:] = noisy_motion_latents    
-
-
-                    # if use_mask:
-                    #     pixel_motion_values = pixel_values_ref_img[:, 1:]
-                    #
-                    #     b, f, c, h, w = pixel_motion_values.shape
-                    #     rand_mask = torch.rand(h, w).to(device=pixel_motion_values.device)
-                    #     mask = rand_mask > cfg.mask_rate
-                    #     mask = mask.unsqueeze(0).unsqueeze(0).unsqueeze(0)
-                    #     mask = mask.expand(b, f, c, h, w)
-                    #
-                    #     face_mask = pixel_values_mask.transpose(1, 2)[:,:f]
-                    #     assert face_mask.shape == mask.shape
-                    #     mask = mask | face_mask.bool()
-                    #
-                    #     pixel_motion_values = pixel_motion_values * mask
-                    #     pixel_values_ref_img[:, 1:] = pixel_motion_values
-
-
-                    ref_img_and_motion = rearrange(
-                        pixel_values_ref_img, "b f c h w -> (b f) c h w"
-                    )
-
-                    ref_image_latents = vae.encode(
-                        ref_img_and_motion
-                    ).latent_dist.sample()
-                    ref_image_latents = ref_image_latents * 0.18215
-                    image_prompt_embeds = batch["face_emb"].to(
-                        dtype=imageproj.dtype, device=imageproj.device
-                    )
+                image_prompt_embeds = batch["face_emb"].to(
+                    dtype=imageproj.dtype, device=imageproj.device
+                )
 
                 cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
                 noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
@@ -998,6 +946,30 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02]], dtype=torch.float16)
+
+                # Conditioning dropout to support classifier-free guidance during inference. For more details
+                # check out the section 3.2.1 of the original paper https://arxiv.org/abs/2211.09800.
+                if args.conditioning_dropout_prob is not None:
+                    random_p = torch.rand(
+                        bsz, device=latents.device, generator=generator)
+                    # Sample masks for the edit prompts.
+                    prompt_mask = random_p < 2 * args.conditioning_dropout_prob
+                    prompt_mask = prompt_mask.reshape(bsz, 1, 1)
+                    # Final text conditioning.
+                    null_conditioning = torch.zeros_like(encoder_hidden_states)
+                    encoder_hidden_states = torch.where(
+                        prompt_mask, null_conditioning.unsqueeze(1), encoder_hidden_states.unsqueeze(1))
+                    # Sample masks for the original images.
+                    image_mask_dtype = conditional_latents.dtype
+                    image_mask = 1 - (
+                            (random_p >= args.conditioning_dropout_prob).to(
+                                image_mask_dtype)
+                            * (random_p < 3 * args.conditioning_dropout_prob).to(image_mask_dtype)
+                    )
+                    image_mask = image_mask.reshape(bsz, 1, 1, 1)
+                    # Final image conditioning.
+                    conditional_latents = image_mask * conditional_latents
+
                 # add noise
                 noisy_latents = train_noise_scheduler.add_noise(
                     latents, noise, timesteps
@@ -1025,12 +997,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 model_pred = net(
                     noisy_latents=noisy_latents,
                     timesteps=timesteps,
-                    ref_image_latents=ref_image_latents,
                     face_emb=image_prompt_embeds,
                     audio_emb=batch["audio_tensor"].to(
                         dtype=weight_dtype),
                     added_time_ids=added_time_ids,
-                    uncond_img_fwd=uncond_img_fwd,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
 
