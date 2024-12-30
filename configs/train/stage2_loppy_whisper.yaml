@@ -118,7 +118,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 1000
 
-exp_name: "stage2_whisper"
+exp_name: "stage2_whisper_testforward"
 output_dir: "./exp_output"
 
 ref_img_path:
