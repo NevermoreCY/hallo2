@@ -951,26 +951,26 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # Conditioning dropout to support classifier-free guidance during inference. For more details
                 # check out the section 3.2.1 of the original paper https://arxiv.org/abs/2211.09800.
-                if args.conditioning_dropout_prob is not None:
-                    random_p = torch.rand(
-                        bsz, device=latents.device, generator=generator)
-                    # Sample masks for the edit prompts.
-                    prompt_mask = random_p < 2 * args.conditioning_dropout_prob
-                    prompt_mask = prompt_mask.reshape(bsz, 1, 1)
-                    # Final text conditioning.
-                    null_conditioning = torch.zeros_like(encoder_hidden_states)
-                    encoder_hidden_states = torch.where(
-                        prompt_mask, null_conditioning.unsqueeze(1), encoder_hidden_states.unsqueeze(1))
-                    # Sample masks for the original images.
-                    image_mask_dtype = conditional_latents.dtype
-                    image_mask = 1 - (
-                            (random_p >= args.conditioning_dropout_prob).to(
-                                image_mask_dtype)
-                            * (random_p < 3 * args.conditioning_dropout_prob).to(image_mask_dtype)
-                    )
-                    image_mask = image_mask.reshape(bsz, 1, 1, 1)
-                    # Final image conditioning.
-                    conditional_latents = image_mask * conditional_latents
+                # if args.conditioning_dropout_prob is not None:
+                #     random_p = torch.rand(
+                #         bsz, device=latents.device, generator=generator)
+                #     # Sample masks for the edit prompts.
+                #     prompt_mask = random_p < 2 * args.conditioning_dropout_prob
+                #     prompt_mask = prompt_mask.reshape(bsz, 1, 1)
+                #     # Final text conditioning.
+                #     null_conditioning = torch.zeros_like(encoder_hidden_states)
+                #     encoder_hidden_states = torch.where(
+                #         prompt_mask, null_conditioning.unsqueeze(1), encoder_hidden_states.unsqueeze(1))
+                #     # Sample masks for the original images.
+                #     image_mask_dtype = conditional_latents.dtype
+                #     image_mask = 1 - (
+                #             (random_p >= args.conditioning_dropout_prob).to(
+                #                 image_mask_dtype)
+                #             * (random_p < 3 * args.conditioning_dropout_prob).to(image_mask_dtype)
+                #     )
+                #     image_mask = image_mask.reshape(bsz, 1, 1, 1)
+                #     # Final image conditioning.
+                #     conditional_latents = image_mask * conditional_latents
 
                 # add noise
                 noisy_latents = train_noise_scheduler.add_noise(
