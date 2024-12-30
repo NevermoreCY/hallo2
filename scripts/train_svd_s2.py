@@ -507,6 +507,18 @@ def rand_log_normal(shape, loc=0., scale=1., device='cpu', dtype=torch.float32):
     u = torch.rand(shape, dtype=dtype, device=device) * (1 - 2e-7) + 1e-7
     return torch.distributions.Normal(loc, scale).icdf(u).exp()
 
+
+def tensor_to_vae_latent(t, vae):
+    video_length = t.shape[1]
+
+    t = rearrange(t, "b f c h w -> (b f) c h w")
+    latents = vae.encode(t).latent_dist.sample()
+    latents = rearrange(latents, "(b f) c h w -> b f c h w", f=video_length)
+    latents = latents * vae.config.scaling_factor
+
+
+    return latents
+
 def train_stage2_process(cfg: argparse.Namespace) -> None:
     """
     Trains the model using the given configuration (cfg).
@@ -568,16 +580,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             f"Do not support weight dtype: {cfg.weight_dtype} during training"
         )
 
-    # Create Models
-    # vae = AutoencoderKL.from_pretrained(cfg.vae_model_path).to(
-    #     "cuda", dtype=weight_dtype
-    # )
-    # reference_unet = UNet2DConditionModel.from_pretrained(
-    #     cfg.base_model_path,
-    #     subfolder="unet",
-    # ).to(device="cuda", dtype=weight_dtype)
-
-
     # print("cfg.svd.unet_path" , cfg.svd.unet_path)
     # ./pretrained_models/svd_xt_1_1.safetensors
 
@@ -616,44 +618,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
     print("load done ")
 
-    # load module weight from stage 1
-    # stage1_ckpt_dir = cfg.stage1_ckpt_dir
-    # denoising_unet.load_state_dict(
-    #     torch.load(
-    #         os.path.join(stage1_ckpt_dir, "denoising_unet.pth"),
-    #         map_location="cpu",
-    #     ),
-    #     strict=False,
-    # )
-    # reference_unet.load_state_dict(
-    #     torch.load(
-    #         os.path.join(stage1_ckpt_dir, "reference_unet.pth"),
-    #         map_location="cpu",
-    #     ),
-    #     strict=False,
-    # )
-
-
-    # face_locator.load_state_dict(
-    #     torch.load(
-    #         os.path.join(stage1_ckpt_dir, "face_locator.pth"),
-    #         map_location="cpu",
-    #     ),
-    #     strict=False,
-    # )
-    # imageproj.load_state_dict(
-    #     torch.load(
-    #         os.path.join(stage1_ckpt_dir, "imageproj.pth"),
-    #         map_location="cpu",
-    #     ),
-    #     strict=False,
-    # )
-
     # Freeze
-    # vae.requires_grad_(False)
     imageproj.requires_grad_(False)
-    # reference_unet.requires_grad_(False)
-    # denoising_unet.requires_grad_(False)
     face_locator.requires_grad_(False)
     audioproj.requires_grad_(False)
 
@@ -890,35 +856,23 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             with accelerator.accumulate(net):
                 # Convert videos to latent space
                 pixel_values_vid = batch["pixel_values_vid"].to(weight_dtype)
-
-                pixel_values_face_mask = batch["pixel_values_face_mask"]
-                pixel_values_face_mask = get_attention_mask(
-                    pixel_values_face_mask, weight_dtype
-                )
-                pixel_values_lip_mask = batch["pixel_values_lip_mask"]
-                pixel_values_lip_mask = get_attention_mask(
-                    pixel_values_lip_mask, weight_dtype
-                )
-                pixel_values_full_mask = batch["pixel_values_full_mask"]
-                pixel_values_full_mask = get_attention_mask(
-                    pixel_values_full_mask, weight_dtype
-                )
-
                 #print("**debug 12 29 \n\n  pixel_values_vid shape is ", pixel_values_vid.shape)
                 # pixel_values_vid shape is  torch.Size([4, 14, 3, 512, 512])
 
+                #
+                conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
+                print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
+                print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor )
+
+
                 with torch.no_grad():
-                    video_length = pixel_values_vid.shape[1]
-                    pixel_values_vid = rearrange(
-                        pixel_values_vid, "b f c h w -> (b f) c h w"
-                    )
-                    latents = vae.encode(pixel_values_vid).latent_dist.sample()
-                    latents = rearrange(
-                        latents, "(b f) c h w -> b c f h w", f=video_length
-                    )
-                    latents = latents * 0.18215
+                    latents = tensor_to_vae_latent(pixel_values_vid , vae)
+
+                    # latents = latents * 0.18215
 
                 noise = torch.randn_like(latents)
+
+                # 向噪声中添加一个小的偏移量来增加训练过程中的多样性或稳定性。
                 if cfg.noise_offset > 0:
                     noise += cfg.noise_offset * torch.randn(
                         (latents.shape[0], latents.shape[1], 1, 1, 1),
@@ -995,21 +949,21 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     pixel_values_ref_img[:, 1:] = noisy_motion_latents    
 
 
-                    if use_mask:
-                        pixel_motion_values = pixel_values_ref_img[:, 1:]
-
-                        b, f, c, h, w = pixel_motion_values.shape
-                        rand_mask = torch.rand(h, w).to(device=pixel_motion_values.device)
-                        mask = rand_mask > cfg.mask_rate
-                        mask = mask.unsqueeze(0).unsqueeze(0).unsqueeze(0)  
-                        mask = mask.expand(b, f, c, h, w) 
-
-                        face_mask = pixel_values_mask.transpose(1, 2)[:,:f]
-                        assert face_mask.shape == mask.shape
-                        mask = mask | face_mask.bool()
-
-                        pixel_motion_values = pixel_motion_values * mask
-                        pixel_values_ref_img[:, 1:] = pixel_motion_values
+                    # if use_mask:
+                    #     pixel_motion_values = pixel_values_ref_img[:, 1:]
+                    #
+                    #     b, f, c, h, w = pixel_motion_values.shape
+                    #     rand_mask = torch.rand(h, w).to(device=pixel_motion_values.device)
+                    #     mask = rand_mask > cfg.mask_rate
+                    #     mask = mask.unsqueeze(0).unsqueeze(0).unsqueeze(0)
+                    #     mask = mask.expand(b, f, c, h, w)
+                    #
+                    #     face_mask = pixel_values_mask.transpose(1, 2)[:,:f]
+                    #     assert face_mask.shape == mask.shape
+                    #     mask = mask | face_mask.bool()
+                    #
+                    #     pixel_motion_values = pixel_motion_values * mask
+                    #     pixel_values_ref_img[:, 1:] = pixel_motion_values
 
 
                     ref_img_and_motion = rearrange(
