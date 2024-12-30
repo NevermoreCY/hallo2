@@ -447,15 +447,15 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         print("sample dtype is ", sample.dtype)
         t_emb = t_emb.to(dtype=sample.dtype)
 
-        for name, param in self.time_embedding.named_parameters():
-            print(f"Parameter: {name}, dtype: {param.dtype}")
 
         emb = self.time_embedding(t_emb)
 
         # myabe use a fixed added time ids first
 
         time_embeds = self.add_time_proj(added_time_ids.flatten())
+        print("time_emb shape  is ", time_embeds.shape)
         time_embeds = time_embeds.reshape((batch_size, -1))
+        print("time_emb shape  is ", time_embeds.shape)
         time_embeds = time_embeds.to(emb.dtype)
         aug_emb = self.add_embedding(time_embeds)
         emb = emb + aug_emb

@@ -721,6 +721,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             param.requires_grad = True
 
 
+
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
@@ -1004,7 +1005,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
                 print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
 
-
+                noisy_latents = noisy_latents.to(dtype=weight_dtype)
+                timesteps = timesteps.to(dtype=weight_dtype)
                 # ---- Forward!!! -----
                 model_pred = net(
                     noisy_latents=noisy_latents,
