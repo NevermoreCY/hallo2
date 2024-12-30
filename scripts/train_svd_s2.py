@@ -900,18 +900,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
                 motion_timesteps = motion_timesteps.long()
 
-                # mask for face locator
-                pixel_values_mask = (
-                    batch["pixel_values_mask"].unsqueeze(
-                        1).to(dtype=weight_dtype)
-                )
-                pixel_values_mask = repeat(
-                    pixel_values_mask,
-                    "b f c h w -> b (repeat f) c h w",
-                    repeat=video_length,
-                )
-                pixel_values_mask = pixel_values_mask.transpose(
-                    1, 2)
+
 
                 uncond_img_fwd = random.random() < cfg.uncond_img_ratio
                 uncond_audio_fwd = random.random() < cfg.uncond_audio_ratio
