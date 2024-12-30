@@ -987,16 +987,18 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
 
                 # Get the target for loss depending on the prediction type
-                if train_noise_scheduler.prediction_type == "epsilon":
-                    target = noise
-                elif train_noise_scheduler.prediction_type == "v_prediction":
-                    target = train_noise_scheduler.get_velocity(
-                        latents, noise, timesteps
-                    )
-                else:
-                    raise ValueError(
-                        f"Unknown prediction type {train_noise_scheduler.prediction_type}"
-                    )
+                # if train_noise_scheduler.prediction_type == "epsilon":
+                #     target = noise
+                # elif train_noise_scheduler.prediction_type == "v_prediction":
+                #     target = train_noise_scheduler.get_velocity(
+                #         latents, noise, timesteps
+                #     )
+                # else:
+                #     raise ValueError(
+                #         f"Unknown prediction type {train_noise_scheduler.prediction_type}"
+                #     )
+
+                target = latents
 
                 print("**1230 \n\n noisy_latents:", noisy_latents.shape)
                 print("**1230 \n\n targe shape :", target.shape)
@@ -1018,32 +1020,49 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     uncond_audio_fwd=uncond_audio_fwd
                 )
 
-                if cfg.snr_gamma == 0:
-                    loss = F.mse_loss(
-                        model_pred.float(),
-                        target.float(),
-                        reduction="mean",
-                    )
-                else:
-                    snr = compute_snr(train_noise_scheduler, timesteps)
-                    if train_noise_scheduler.config.prediction_type == "v_prediction":
-                        # Velocity objective requires that we add one to SNR values before we divide by them.
-                        snr = snr + 1
-                    mse_loss_weights = (
-                        torch.stack(
-                            [snr, cfg.snr_gamma * torch.ones_like(timesteps)], dim=1
-                        ).min(dim=1)[0]
-                        / snr
-                    )
-                    loss = F.mse_loss(
-                        model_pred.float(),
-                        target.float(),
-                        reduction="mean",
-                    )
-                    loss = (
-                        loss.mean(dim=list(range(1, len(loss.shape))))
-                        * mse_loss_weights
-                    ).mean()
+                # Denoise the latents
+                c_out = -sigmas / ((sigmas ** 2 + 1) ** 0.5)
+                c_skip = 1 / (sigmas ** 2 + 1)
+                denoised_latents = model_pred * c_out + c_skip * noisy_latents
+                weighing = (1 + sigmas ** 2) * (sigmas ** -2.0)
+
+                # MSE loss
+                loss = torch.mean(
+                    (weighing.float() * (denoised_latents.float() -
+                                         target.float()) ** 2).reshape(target.shape[0], -1),
+                    dim=1,
+                )
+                loss = loss.mean()
+
+
+
+                #
+                # if cfg.snr_gamma == 0:
+                #     loss = F.mse_loss(
+                #         model_pred.float(),
+                #         target.float(),
+                #         reduction="mean",
+                #     )
+                # else:
+                #     snr = compute_snr(train_noise_scheduler, timesteps)
+                #     if train_noise_scheduler.config.prediction_type == "v_prediction":
+                #         # Velocity objective requires that we add one to SNR values before we divide by them.
+                #         snr = snr + 1
+                #     mse_loss_weights = (
+                #         torch.stack(
+                #             [snr, cfg.snr_gamma * torch.ones_like(timesteps)], dim=1
+                #         ).min(dim=1)[0]
+                #         / snr
+                #     )
+                #     loss = F.mse_loss(
+                #         model_pred.float(),
+                #         target.float(),
+                #         reduction="mean",
+                #     )
+                #     loss = (
+                #         loss.mean(dim=list(range(1, len(loss.shape))))
+                #         * mse_loss_weights
+                #     ).mean()
 
                 # Gather the losses across all processes for logging (if we use distributed training).
                 avg_loss = accelerator.gather(
