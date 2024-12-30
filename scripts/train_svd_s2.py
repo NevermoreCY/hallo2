@@ -931,8 +931,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     dtype=imageproj.dtype, device=imageproj.device
                 )
 
-                cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
-                noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
+
                 added_time_ids = _get_add_time_ids(
                     24,  # fixed
                     127,  # motion_bucket_id = 127, fixed
@@ -975,7 +974,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     latents, noise, timesteps
                 )
 
-
+                conditional_latents = conditional_latents.unsqueeze(1)
+                print("**debug 12 29 \n\n  cond latent 1", conditional_latents.shape)
+                conditional_latents = conditional_latents.repeat(1, noisy_latents.shape[1], 1, 1, 1)
+                print("**debug 12 29 \n\n  cond latent2", conditional_latents.shape)
 
                 # Get the target for loss depending on the prediction type
                 if train_noise_scheduler.prediction_type == "epsilon":
@@ -993,13 +995,18 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("**1230 \n\n targe shape :", target.shape)
                 # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
 
+
+                audio_emb = batch["audio_tensor"].to(dtype=weight_dtype)
+                print("**debug 12 29 \n\n  audio_embd shape", audio_emb)
+                print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds)
+
+
                 # ---- Forward!!! -----
                 model_pred = net(
                     noisy_latents=noisy_latents,
                     timesteps=timesteps,
                     face_emb=image_prompt_embeds,
-                    audio_emb=batch["audio_tensor"].to(
-                        dtype=weight_dtype),
+                    audio_emb= audio_emb,
                     added_time_ids=added_time_ids,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
