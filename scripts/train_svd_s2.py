@@ -907,16 +907,19 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     [0.25 * sigma.log() for sigma in sigmas]).to(accelerator.device)
 
                 inp_noisy_latents = noisy_latents / ((sigmas**2 + 1) ** 0.5)
-                print("**debug 12 29 \n\n  time steps 1", timesteps)
+                # print("**debug 12 29 \n\n  time steps 1", timesteps)
+                ##   time steps 1 tensor([0.2014, 0.3099, 0.0070, 0.7441], device='cuda:0')
 
                 # Sample a random timestep for each video
-                timesteps = torch.randint(
-                    0,
-                    train_noise_scheduler.num_train_timesteps,
-                    (bsz,),
-                    device=latents.device,
-                )
-                timesteps = timesteps.long()
+                # timesteps = torch.randint(
+                #     0,
+                #     train_noise_scheduler.num_train_timesteps,
+                #     (bsz,),
+                #     device=latents.device,
+                # )
+                # timesteps = timesteps.long()
+                ##  time steps 2 tensor([ 47, 463, 255, 706], device='cuda:0')
+
                 #print("train_noise_scheduler.num_train_timesteps : ", train_noise_scheduler.num_train_timesteps)
                 # 1000
                 print("**debug 12 29 \n\n  time steps 2", timesteps)
@@ -978,6 +981,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("**debug 12 29 \n\n  cond latent 1", conditional_latents.shape)
                 conditional_latents = conditional_latents.repeat(1, noisy_latents.shape[1], 1, 1, 1)
                 print("**debug 12 29 \n\n  cond latent2", conditional_latents.shape)
+
+                inp_noisy_latents = torch.cat(
+                    [inp_noisy_latents, conditional_latents], dim=2)
+                print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
 
                 # Get the target for loss depending on the prediction type
                 if train_noise_scheduler.prediction_type == "epsilon":
