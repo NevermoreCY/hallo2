@@ -435,9 +435,16 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         print(timesteps,timesteps.shape)
         t_emb = self.time_proj(timesteps)
         print("t_emb shape is ", t_emb.shape)
+        # input sample shape 0 :  torch.Size([4, 14, 4, 64, 64])
+        # time steps shape :  torch.Size([4]) False
+        # tensor([0.2014, 0.3099, 0.0070, 0.7441], device='cuda:0') torch.Size([4])
+        # t_emb shape is  torch.Size([4, 320])
+
         # `Timesteps` does not contain any weights and will always return f32 tensors
         # but time_embedding might actually be running in fp16. so we need to cast here.
         # there might be better ways to encapsulate this.
+        print("t_emb dtype is ", t_emb.dtype)
+        print("sample dtype is ", sample.dtype)
         t_emb = t_emb.to(dtype=sample.dtype)
 
         emb = self.time_embedding(t_emb)
