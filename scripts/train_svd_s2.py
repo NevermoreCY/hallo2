@@ -972,10 +972,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 #     # Final image conditioning.
                 #     conditional_latents = image_mask * conditional_latents
 
-                # add noise
-                noisy_latents = train_noise_scheduler.add_noise(
-                    latents, noise, timesteps
-                )
+
 
                 conditional_latents = conditional_latents.unsqueeze(1)
                 print("**debug 12 29 \n\n  cond latent 1", conditional_latents.shape)
