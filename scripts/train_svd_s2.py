@@ -1003,8 +1003,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
                 audio_emb = batch["audio_tensor"].to(dtype=weight_dtype)
-                print("**debug 12 29 \n\n  audio_embd shape", audio_emb)
-                print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds)
+                print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
+                print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
 
 
                 # ---- Forward!!! -----
