@@ -607,8 +607,9 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
 
         if mask_cond_fea is not None:
             sample = sample + mask_cond_fea
-
-        print("**1230 \n\n after conv_in sample shape : ", sample.shape)
+        c = 0
+        print(f"**1230 \n\n sample shape {c} : ", sample.shape)
+        c+=1
         # down
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
@@ -636,7 +637,8 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
                     # audio_embedding=audio_embedding,
                 )
                 # print("")
-
+            print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
+            c+=1
             down_block_res_samples += res_samples
 
         if down_block_additional_residuals is not None:  # None , ignore
@@ -664,6 +666,9 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
             audio_embedding=audio_embedding,
             motion_scale=motion_scale,
         )
+
+        print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
+        c += 1
 
         if mid_block_additional_residual is not None:
             sample = sample + mid_block_additional_residual
@@ -708,12 +713,14 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
                     encoder_hidden_states=encoder_hidden_states,
                     # audio_embedding=audio_embedding,
                 )
-
+            print(f"**1230 \n\n up sample shape {c} : ", sample.shape)
+            c += 1
         # post-process
         sample = self.conv_norm_out(sample)
         sample = self.conv_act(sample)
         sample = self.conv_out(sample)
-
+        print(f"**1230 \n\n out sample shape {c} : ", sample.shape)
+        c += 1
         if not return_dict:
             return (sample,)
 
