@@ -861,13 +861,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 #
                 conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
-                print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
-                print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor )
+                # print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
+                # conditional_pixel_values shape is  torch.Size([4, 1, 3, 512, 512])
+                # print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor )
+                # vae scaling factor  0.18215
 
 
                 with torch.no_grad():
                     latents = tensor_to_vae_latent(pixel_values_vid , vae)
-
                     # latents = latents * 0.18215
 
                 noise = torch.randn_like(latents)
@@ -991,9 +992,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     image_prompt_embeds.dtype,
                     bsz,
                 )
-                print("**1230\n\n added_time_ids:", added_time_ids)
+                # print("**1230\n\n added_time_ids:", added_time_ids)
                 added_time_ids = added_time_ids.to(latents.device)
-
+                #  added_time_ids: tensor([[2.4000e+01, 1.2700e+02, 4.0161e-02],
+                #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
+                #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
+                #         [2.4000e+01, 1.2700e+02, 4.0161e-02]], dtype=torch.float16)
                 # add noise
                 noisy_latents = train_noise_scheduler.add_noise(
                     latents, noise, timesteps
