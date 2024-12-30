@@ -375,7 +375,15 @@ def log_validation(
         tensor_result = []
         generator = torch.manual_seed(42)
 
+
         # save_path = os.path.join(save_dir, f"{global_step}_{Path(ref_img_path).name}")
+        whisper_feature = audio_guider.audio2feat(audio_path)
+        # print("whisper feature shape :", whisper_feature.shape)
+        whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=25)
+        audio_frame_num = whisper_chunks.shape[0]
+        audio_fea_final = torch.Tensor(whisper_chunks)
+        # print("audio_fea_final shape ", audio_fea_final.shape)
+        audio_length = audio_fea_final.shape[0] - 1
 
         for t in range(times):
             print(f"[{t+1}/{times}]")
@@ -451,14 +459,8 @@ def log_validation(
 
             # audio_tensor = audioproj(audio_tensor)
 
-            whisper_feature = audio_guider.audio2feat(audio_path)
-            # print("whisper feature shape :", whisper_feature.shape)
-            whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=25)
             # print("whisper_chunks:", whisper_chunks.shape)
-            audio_frame_num = whisper_chunks.shape[0]
-            audio_fea_final = torch.Tensor(whisper_chunks)
-            # print("audio_fea_final shape ", audio_fea_final.shape)
-            audio_length = audio_fea_final.shape[0] - 1
+
             audio_tensor = audio_fea_final[t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
                            ]
             audio_tensor = audio_tensor.unsqueeze(0)
@@ -904,6 +906,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 pixel_values_ref_img = batch["pixel_values_ref_img"].to(
                     dtype=weight_dtype
                 )
+
+                print()
+
                 # initialize the motion frames as zero maps
                 if start_frame:
                     pixel_values_ref_img[:, 1:] = 0.0
@@ -976,7 +981,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         f"Unknown prediction type {train_noise_scheduler.prediction_type}"
                     )
 
-                # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
+                # print("**1230\n batch audio tensor shape is :", batch["audio_tensor"].shape)
+                print("**1230\n\n noisy_latents shape is :", noisy_latents.shape)
 
                 # ---- Forward!!! -----
                 model_pred = net(
