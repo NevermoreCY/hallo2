@@ -412,7 +412,9 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
         # 1. time
         timesteps = timestep
-
+        c = 0
+        print(f"**1230 \n\n input sample shape {c} : ", sample.shape)
+        c += 1
         print("time steps shape : ", timesteps.shape)
         if not torch.is_tensor(timesteps):
             # TODO: this requires sync between CPU and GPU. So try to pass timesteps as tensors if you can
@@ -446,9 +448,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         time_embeds = time_embeds.to(emb.dtype)
         aug_emb = self.add_embedding(time_embeds)
         emb = emb + aug_emb
-        c=0
-        print(f"**1230 \n\n input sample shape {c} : ", sample.shape)
-        c += 1
+
         # Flatten the batch and frames dimensions
         # sample: [batch, frames, channels, height, width] -> [batch * frames, channels, height, width]
         sample = sample.flatten(0, 1)
