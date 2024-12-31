@@ -23,7 +23,7 @@ from diffusers.models.activations import GEGLU, GELU, ApproximateGELU
 
 from diffusers.models.embeddings import SinusoidalPositionalEmbedding
 from diffusers.models.normalization import AdaLayerNorm, AdaLayerNormContinuous, AdaLayerNormZero, RMSNorm
-from diffusers.models.attention_processor import Attention, JointAttnProcessor2_0
+from diffusers.models.attention_processor import Attention
 
 
 logger = logging.get_logger(__name__)
