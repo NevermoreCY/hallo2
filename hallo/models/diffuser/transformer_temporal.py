@@ -19,10 +19,12 @@ from torch import nn
 
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.utils import BaseOutput
-from diffusers.models.attention import BasicTransformerBlock, TemporalBasicTransformerBlock
 from diffusers.models.embeddings import TimestepEmbedding, Timesteps
 from diffusers.models.modeling_utils import ModelMixin
+
+
 from .resnet import AlphaBlender
+from .attention import BasicTransformerBlock, TemporalBasicTransformerBlock
 
 
 @dataclass
