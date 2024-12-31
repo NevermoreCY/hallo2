@@ -1279,6 +1279,9 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         image_only_indicator: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, ...]]:
         output_states = ()
+        print("**1231\n\n unet downblock hiddent states: ", hidden_states.shape)
+        print("**1231\n\n unet downblock temb : ", temb.shape)
+
 
         blocks = list(zip(self.resnets, self.attentions))
         for resnet, attn in blocks:
