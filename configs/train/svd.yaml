@@ -1,5 +1,5 @@
 data:
-  train_bs: 4
+  train_bs: 1
   val_bs: 1
   train_width: 512
   train_height: 512
@@ -27,7 +27,7 @@ svd:
 solver:
   gradient_accumulation_steps: 1
   mixed_precision: "no"
-  enable_xformers_memory_efficient_attention: False
+  enable_xformers_memory_efficient_attention: True
   gradient_checkpointing: True
   max_train_steps: 30000
   max_grad_norm: 1.0
