@@ -3,6 +3,14 @@ from typing import Dict, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
+from diffusers.models.unets.unet_3d_blocks import UNetMidBlockSpatioTemporal, get_down_block, get_up_block
+
+from diffusers.configuration_utils import ConfigMixin, register_to_config
+from diffusers.loaders import UNet2DConditionLoadersMixin
+from diffusers.models.attention_processor import CROSS_ATTENTION_PROCESSORS, AttentionProcessor, AttnProcessor
+from diffusers.models.embeddings import TimestepEmbedding, Timesteps
+from diffusers.models.modeling_utils import ModelMixin
+from diffusers.utils import BaseOutput, logging
 
 from ...configuration_utils import ConfigMixin, register_to_config
 from ...loaders import UNet2DConditionLoadersMixin
