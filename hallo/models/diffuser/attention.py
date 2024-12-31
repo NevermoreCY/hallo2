@@ -23,9 +23,10 @@ from diffusers.models.activations import GEGLU, GELU, ApproximateGELU
 
 from diffusers.models.embeddings import SinusoidalPositionalEmbedding
 from diffusers.models.normalization import AdaLayerNorm, AdaLayerNormContinuous, AdaLayerNormZero, RMSNorm
-from diffusers.models.attention_processor import Attention
 
 
+from diffusers.models.attention import (AdaLayerNorm, AdaLayerNormZero,
+                                        Attention, FeedForward)
 logger = logging.get_logger(__name__)
 
 
@@ -521,6 +522,8 @@ class TemporalBasicTransformerBlock(nn.Module):
             hidden_states = hidden_states + residual
 
         norm_hidden_states = self.norm1(hidden_states)
+
+        print("norm_hidden_states shape is ", norm_hidden_states)
         attn_output = self.attn1(norm_hidden_states, encoder_hidden_states=None)
         hidden_states = attn_output + hidden_states
 
