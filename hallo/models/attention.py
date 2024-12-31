@@ -24,7 +24,8 @@ from diffusers.models.attention import (AdaLayerNorm, AdaLayerNormZero,
 from diffusers.models.embeddings import SinusoidalPositionalEmbedding
 from einops import rearrange
 from torch import nn
-
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 class GatedSelfAttentionDense(nn.Module):
     """
