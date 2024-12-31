@@ -359,7 +359,8 @@ class TransformerSpatioTemporalModel(nn.Module):
 
             hidden_states_mix = hidden_states
             hidden_states_mix = hidden_states_mix + emb
-
+            print(" hidden_states_mix shape is ", hidden_states_mix.shape)
+            print(" time_context shape ", time_context.shape)
             hidden_states_mix = temporal_block(
                 hidden_states_mix,
                 num_frames=num_frames,
