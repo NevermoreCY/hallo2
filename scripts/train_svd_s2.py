@@ -92,7 +92,7 @@ from hallo.utils.util import (compute_snr, delete_additional_ckpt,
 
 from packaging import version
 
-
+os.environ['TORCH_USE_CUDA_DSA'] = "1"
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 warnings.filterwarnings("ignore")
 

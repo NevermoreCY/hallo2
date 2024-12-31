@@ -42,7 +42,8 @@ from diffusers.models.unets.unet_motion_model import (
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
-
+os.environ['TORCH_USE_CUDA_DSA'] = "1"
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 class DownBlockMotion(DownBlockMotion):
     def __init__(self, *args, **kwargs):
@@ -1304,7 +1305,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
-                print("**1231\n\n resenet downblock gradient checkpoint ")
+                print("**1231\n\n resnet downblock gradient checkpoint ")
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
