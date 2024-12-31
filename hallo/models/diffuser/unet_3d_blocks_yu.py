@@ -1282,12 +1282,13 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         output_states = ()
         print("**1231\n\n unet downblock hiddent states: ", hidden_states.shape)
         print("**1231\n\n unet downblock temb : ", temb.shape)
+        print("**1231\n\n initial face_embd shape : ", encoder_hidden_states.shape)
 
 
         blocks = list(zip(self.resnets, self.attentions))
         for resnet, attn in blocks:
             if torch.is_grad_enabled() and self.gradient_checkpointing:  # TODO
-                print("**1231\n\n unet downblock gradient checkpoint ")
+                # print("**1231\n\n unet downblock gradient checkpoint ")
                 def create_custom_forward(module, return_dict=None):
                     def custom_forward(*inputs):
                         if return_dict is not None:
@@ -1305,7 +1306,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
-                print("**1231\n\n resnet downblock gradient checkpoint ")
+                # print("**1231\n\n resnet downblock gradient checkpoint ")
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
@@ -1313,7 +1314,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     return_dict=False,
                 )[0]
             else:
-                print("**1231\n\n unet downblock else  ")
+                # print("**1231\n\n unet downblock else  ")
                 hidden_states = resnet(
                     hidden_states,
                     temb,
