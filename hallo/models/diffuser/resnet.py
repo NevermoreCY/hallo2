@@ -690,12 +690,12 @@ class SpatioTemporalResBlock(nn.Module):
         image_only_indicator: Optional[torch.Tensor] = None,
     ):
         num_frames = image_only_indicator.shape[-1]
-        print("**1231 \n\n spatiotemporal residual block")
-        print("image_only_indicator is ", image_only_indicator)
+        # print("**1231 \n\n spatiotemporal residual block")
+        # print("image_only_indicator is ", image_only_indicator)
 
-        print("hidden state shape before renet2D is ", hidden_states.shape)
+        # print("hidden state shape before renet2D is ", hidden_states.shape)
         hidden_states = self.spatial_res_block(hidden_states, temb)
-        print("hidden state shape after renet2D is ", hidden_states.shape)
+        # print("hidden state shape after renet2D is ", hidden_states.shape)
         batch_frames, channels, height, width = hidden_states.shape
         batch_size = batch_frames // num_frames
 
@@ -703,30 +703,30 @@ class SpatioTemporalResBlock(nn.Module):
             hidden_states[None, :].reshape(batch_size, num_frames, channels, height, width).permute(0, 2, 1, 3, 4)
         )
 
-        print("hidden_states_mix shape is ", hidden_states_mix.shape)
+        # print("hidden_states_mix shape is ", hidden_states_mix.shape)
 
         hidden_states = (
             hidden_states[None, :].reshape(batch_size, num_frames, channels, height, width).permute(0, 2, 1, 3, 4)
         )
 
-        print("hidden_states_mix shape is ", hidden_states_mix.shape)
+        # print("hidden_states_mix shape is ", hidden_states_mix.shape)
 
-        print("temb shape is ", temb.shape)
+        # print("temb shape is ", temb.shape)
         if temb is not None:
             temb = temb.reshape(batch_size, num_frames, -1)
-        print("temb shape is ", temb.shape)
+        # print("temb shape is ", temb.shape)
 
         hidden_states = self.temporal_res_block(hidden_states, temb)
-        print("11hidden_states after temporal res block shape is ", hidden_states.shape)
+        # print("11hidden_states after temporal res block shape is ", hidden_states.shape)
         hidden_states = self.time_mixer(
             x_spatial=hidden_states_mix,
             x_temporal=hidden_states,
             image_only_indicator=image_only_indicator,
         )
-        print("22hidden_states after mixer  shape is ", hidden_states.shape)
+        # print("22hidden_states after mixer  shape is ", hidden_states.shape)
         hidden_states = hidden_states.permute(0, 2, 1, 3, 4).reshape(batch_frames, channels, height, width)
 
-        print("33hidden_states output shape is ", hidden_states.shape)
+        # print("33hidden_states output shape is ", hidden_states.shape)
         return hidden_states
 
 
