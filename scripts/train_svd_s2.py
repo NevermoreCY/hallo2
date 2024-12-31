@@ -80,7 +80,7 @@ from hallo.animate.face_animate_static import StaticPipeline
 from hallo.datasets.mask_image import FaceMaskDataset
 from hallo.models.face_locator import FaceLocator
 from hallo.models.image_proj import ImageProjModel
-from hallo.models.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
+from hallo.diffusers.models.unets.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
 from hallo.models.unet_2d_condition import UNet2DConditionModel
 from hallo.models.unet_3d import UNet3DConditionModel
 from hallo.utils.util import (compute_snr, delete_additional_ckpt,
