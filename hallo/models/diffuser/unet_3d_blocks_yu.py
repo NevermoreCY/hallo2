@@ -20,7 +20,7 @@ from torch import nn
 from diffusers.utils import deprecate, is_torch_version, logging
 from diffusers.utils.torch_utils import apply_freeu
 from diffusers.models.attention import Attention
-from diffusers.models.resnet import (
+from .resnet import (
     Downsample2D,
     ResnetBlock2D,
     SpatioTemporalResBlock,
@@ -28,7 +28,7 @@ from diffusers.models.resnet import (
     Upsample2D,
 )
 from diffusers.models.transformers.transformer_2d import Transformer2DModel
-from diffusers.models.transformers.transformer_temporal import (
+from .transformer_temporal import (
     TransformerSpatioTemporalModel,
     TransformerTemporalModel,
 )
