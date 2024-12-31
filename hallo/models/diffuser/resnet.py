@@ -717,16 +717,16 @@ class SpatioTemporalResBlock(nn.Module):
         print("temb shape is ", temb.shape)
 
         hidden_states = self.temporal_res_block(hidden_states, temb)
-        print("hidden_states after temporal res block shape is ", hidden_states.shape)
+        print("11hidden_states after temporal res block shape is ", hidden_states.shape)
         hidden_states = self.time_mixer(
             x_spatial=hidden_states_mix,
             x_temporal=hidden_states,
             image_only_indicator=image_only_indicator,
         )
-        print("hidden_states after mixer  shape is ", hidden_states.shape)
+        print("22hidden_states after mixer  shape is ", hidden_states.shape)
         hidden_states = hidden_states.permute(0, 2, 1, 3, 4).reshape(batch_frames, channels, height, width)
 
-        print("hidden_states output shape is ", hidden_states.shape)
+        print("33hidden_states output shape is ", hidden_states.shape)
         return hidden_states
 
 
