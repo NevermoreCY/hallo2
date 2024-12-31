@@ -43,8 +43,7 @@ from diffusers.models.unets.unet_motion_model import (
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 import os
-os.environ['TORCH_USE_CUDA_DSA'] = "1"
-os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+
 
 class DownBlockMotion(DownBlockMotion):
     def __init__(self, *args, **kwargs):
