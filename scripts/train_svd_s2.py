@@ -194,6 +194,8 @@ class Net(nn.Module):
                 device=audio_emb.device, dtype=audio_emb.dtype
             )
 
+        print("**0101\n\n face_emb ", face_emb.shape)
+        print("**0101\n\n audio_emb ", audio_emb.shape)
         model_pred = self.denoising_unet(
             noisy_latents,
             timesteps,
