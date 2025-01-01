@@ -586,10 +586,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     # print("cfg.svd.unet_path" , cfg.svd.unet_path)
     # ./pretrained_models/svd_xt_1_1.safetensors
 
-    unet = UNetSpatioTemporalConditionModel.from_pretrained(
-        cfg.svd.pretrain,
-        subfolder="unet",
+    unet = UNetSpatioTemporalConditionModel(
+        sample_size = 96
     )
+
+    from safetensors.torch import load_file
+    pretrained_path = cfg.svd.pretrain + "/unet/diffusion_pytorch_model.fp16.safetensors"
+    state_dict = load_file(pretrained_path)
+    m,u = unet.load_state_dict(state_dict, strict=False)
+    print("** missing keys : \n\n", m)
+    print("** unexpected keys : \n\n", u)
 
     imageproj = ImageProjModel(
         cross_attention_dim=unet.config.cross_attention_dim,
