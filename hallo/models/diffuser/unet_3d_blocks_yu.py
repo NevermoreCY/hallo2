@@ -1299,6 +1299,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         print("initial hiddent states: ", hidden_states.shape)
         print("unet downblock temb : ", temb.shape)
         print("initial face_embd shape : ", encoder_hidden_states.shape)
+        print("iniital audio embedding shape : ", audio_embedding.shape)
 
 
         blocks = list(zip(self.resnets, self.attentions, self.audio_modules))
@@ -1332,7 +1333,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                 print(" hidden_states after attn ", hidden_states.shape)
                 hidden_states = audio_module(
                     hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
+                    encoder_hidden_states=audio_embedding,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
