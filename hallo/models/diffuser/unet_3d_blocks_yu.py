@@ -40,7 +40,7 @@ from diffusers.models.unets.unet_motion_model import (
     UpBlockMotion,
 )
 
-
+from einops import rearrange
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 import os
 
@@ -1300,7 +1300,10 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         print("unet downblock temb : ", temb.shape)
         print("initial face_embd shape : ", encoder_hidden_states.shape)
         print("iniital audio embedding shape : ", audio_embedding.shape)
+        print("\n")
 
+        audio_embedding = rearrange(audio_embedding, 'bz f l c -> (bz f) l c')
+        print("rearranged audio embedding shape : ", audio_embedding.shape)
 
         blocks = list(zip(self.resnets, self.attentions, self.audio_modules))
         for resnet, attn , audio_module in blocks:
