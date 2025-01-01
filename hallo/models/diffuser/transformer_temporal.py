@@ -307,38 +307,58 @@ class TransformerSpatioTemporalModel(nn.Module):
                 `tuple` where the first element is the sample tensor.
         """
         # 1. Input
+        print("**1231 \n\n TransformerSpatioTemporalModel  ")
         batch_frames, _, height, width = hidden_states.shape
         num_frames = image_only_indicator.shape[-1]
         batch_size = batch_frames // num_frames
+        print("hidden_states shape is ", hidden_states.shape)
+        print("encoder_hidden_states shape is ", encoder_hidden_states.shape)
+        print("image_only_indicator shape is ", image_only_indicator.shape)
 
         time_context = encoder_hidden_states
         time_context_first_timestep = time_context[None, :].reshape(
             batch_size, num_frames, -1, time_context.shape[-1]
         )[:, 0]
+
+        print("time_context_first_timestep shape is ", time_context_first_timestep.shape)
+
         time_context = time_context_first_timestep[:, None].broadcast_to(
             batch_size, height * width, time_context.shape[-2], time_context.shape[-1]
         )
+
+        print("1time_context shape is ", time_context .shape)
         time_context = time_context.reshape(batch_size * height * width, -1, time_context.shape[-1])
+
+        print("2time_context  shape is ", time_context.shape)
 
         residual = hidden_states
 
+        print("1hidden_states shape is ", hidden_states.shape)
         hidden_states = self.norm(hidden_states)
         inner_dim = hidden_states.shape[1]
+
         hidden_states = hidden_states.permute(0, 2, 3, 1).reshape(batch_frames, height * width, inner_dim)
+        print("2hidden_states shape is ", hidden_states.shape)
         hidden_states = self.proj_in(hidden_states)
+        print("3hidden_states shape is ", hidden_states.shape)
 
         num_frames_emb = torch.arange(num_frames, device=hidden_states.device)
+        print("1num_frames_emb shape is ", num_frames_emb.shape)
         num_frames_emb = num_frames_emb.repeat(batch_size, 1)
+        print("2num_frames_emb shape is ", num_frames_emb.shape)
         num_frames_emb = num_frames_emb.reshape(-1)
+        print("3num_frames_emb shape is ", num_frames_emb.shape)
         t_emb = self.time_proj(num_frames_emb)
-
+        print("t_emb shape is ", t_emb.shape)
         # `Timesteps` does not contain any weights and will always return f32 tensors
         # but time_embedding might actually be running in fp16. so we need to cast here.
         # there might be better ways to encapsulate this.
         t_emb = t_emb.to(dtype=hidden_states.dtype)
 
         emb = self.time_pos_embed(t_emb)
+        print("1t_emb shape is ", t_emb.shape)
         emb = emb[:, None, :]
+        print("2t_emb shape is ", t_emb.shape)
 
         # 2. Blocks
         for block, temporal_block in zip(self.transformer_blocks, self.temporal_transformer_blocks):
@@ -360,12 +380,15 @@ class TransformerSpatioTemporalModel(nn.Module):
             hidden_states_mix = hidden_states
             hidden_states_mix = hidden_states_mix + emb
             print(" hidden_states_mix shape is ", hidden_states_mix.shape)
-            print(" time_context shape ", time_context.shape)
+
             hidden_states_mix = temporal_block(
                 hidden_states_mix,
                 num_frames=num_frames,
                 encoder_hidden_states=time_context,
             )
+
+            print(" hidden_states_mix shape after temporal_block is ", hidden_states_mix.shape)
+
             hidden_states = self.time_mixer(
                 x_spatial=hidden_states,
                 x_temporal=hidden_states_mix,
@@ -377,6 +400,8 @@ class TransformerSpatioTemporalModel(nn.Module):
         hidden_states = hidden_states.reshape(batch_frames, height, width, inner_dim).permute(0, 3, 1, 2).contiguous()
 
         output = hidden_states + residual
+
+        print(" hidden_states_mix output shape is ", hidden_states.shape)
 
         if not return_dict:
             return (output,)
