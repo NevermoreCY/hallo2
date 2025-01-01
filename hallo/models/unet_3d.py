@@ -549,7 +549,10 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
         # print(f"added time ids shape : ", added_time_ids.shape)
         print(f"audio_embedding shape : ", audio_embedding.shape)
 
-        # 
+        #   sample shape :  torch.Size([4, 4, 14, 64, 64])
+        # timestep shape :  torch.Size([4])
+        # encoder hiddent states shape :  torch.Size([4, 4, 768])
+        # audio_embedding shape :  torch.Size([4, 14, 32, 768])
 
         default_overall_up_factor = 2**self.num_upsamplers
 

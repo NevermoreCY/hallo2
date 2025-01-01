@@ -1226,6 +1226,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         super().__init__()
         resnets = []
         attentions = []
+        audio_modules = []
 
         self.has_cross_attention = True
         self.num_attention_heads = num_attention_heads
@@ -1243,6 +1244,16 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                 )
             )
             attentions.append(
+                TransformerSpatioTemporalModel(
+                    num_attention_heads,
+                    out_channels // num_attention_heads,
+                    in_channels=out_channels,
+                    num_layers=transformer_layers_per_block[i],
+                    cross_attention_dim=cross_attention_dim,
+                )
+            )
+
+            audio_modules.append(
                 TransformerSpatioTemporalModel(
                     num_attention_heads,
                     out_channels // num_attention_heads,

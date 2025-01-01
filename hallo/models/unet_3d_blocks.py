@@ -545,6 +545,7 @@ class CrossAttnDownBlock3D(nn.Module):
         audio_modules = []
         motion_modules = []
 
+        print("** 0101\n\n audio cross dimension shape : ", audio_attention_dim, "cross dimension shape is ", cross_attention_dim)
         self.has_cross_attention = True
         self.attn_num_head_channels = attn_num_head_channels
 

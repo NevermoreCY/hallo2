@@ -179,6 +179,7 @@ class Transformer3DModel(ModelMixin, ConfigMixin):
         video_length = hidden_states.shape[2]
         hidden_states = rearrange(hidden_states, "b c f h w -> (b f) c h w")
 
+
         print("Transformer3DModel encoder_hidden_states", encoder_hidden_states.shape)
 
         # TODO
@@ -187,12 +188,13 @@ class Transformer3DModel(ModelMixin, ConfigMixin):
                 encoder_hidden_states,
                 "bs f margin dim -> (bs f) margin dim",
             )
+            # 4,14,32,768  -> 64,32,768
         else:
             if encoder_hidden_states.shape[0] != hidden_states.shape[0]:
                 encoder_hidden_states = repeat(
                     encoder_hidden_states, "b n c -> (b f) n c", f=video_length
                 )
-
+        print("Transformer3DModel encoder_hidden_states after reshape ", encoder_hidden_states.shape)
         batch, _, height, weight = hidden_states.shape
         residual = hidden_states
 
