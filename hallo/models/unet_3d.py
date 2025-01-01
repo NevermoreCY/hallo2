@@ -542,6 +542,15 @@ class UNet3DConditionModel(ModelMixin, ConfigMixin):
         # The overall upsampling factor is equal to 2 ** (# num of upsampling layears).
         # However, the upsampling interpolation output size can be forced to fit any upsampling size
         # on the fly if necessary.
+
+        print(f"**0101 \n\n  sample shape : ", sample.shape)
+        print(f"timestep shape : ", timestep.shape)
+        print(f"encoder hiddent states shape : ", encoder_hidden_states.shape)
+        # print(f"added time ids shape : ", added_time_ids.shape)
+        print(f"audio_embedding shape : ", audio_embedding.shape)
+
+        # 
+
         default_overall_up_factor = 2**self.num_upsamplers
 
         # upsample size should be forwarded when sample is not a multiple of `default_overall_up_factor`

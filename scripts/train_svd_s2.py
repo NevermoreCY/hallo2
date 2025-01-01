@@ -196,6 +196,8 @@ class Net(nn.Module):
 
         print("**0101\n\n face_emb ", face_emb.shape)
         print("**0101\n\n audio_emb ", audio_emb.shape)
+        #  face_emb  torch.Size([2, 4, 1024])
+        #  audio_emb  torch.Size([2, 14, 32, 768])
         model_pred = self.denoising_unet(
             noisy_latents,
             timesteps,

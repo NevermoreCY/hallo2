@@ -420,12 +420,16 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         #         audio_embedding: Optional[torch.Tensor] = None,
 
         print(f"**0101 \n\n  sample shape : ", sample.shape)
-        print(f"timestep shape : ", timestep.shape)
+        print(f"timestep shape : ", timestep.shape, timestep)
         print(f"encoder hiddent states shape : ", encoder_hidden_states.shape)
         print(f"added time ids shape : ", added_time_ids.shape)
         print(f"audio_embedding shape : ", audio_embedding.shape)
 
-
+        #   sample shape :  torch.Size([2, 14, 8, 64, 64])
+        # timestep shape :  torch.Size([2])
+        # encoder hiddent states shape :  torch.Size([2, 4, 1024])
+        # added time ids shape :  torch.Size([2, 3])
+        # audio_embedding shape :  torch.Size([2, 14, 32, 768])
 
         c = 0
 
