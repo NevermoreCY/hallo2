@@ -1019,6 +1019,7 @@ class UNetMidBlockSpatioTemporal(nn.Module):
         transformer_layers_per_block: Union[int, Tuple[int]] = 1,
         num_attention_heads: int = 1,
         cross_attention_dim: int = 1280,
+        audio_attention_dim=768,
     ):
         super().__init__()
 
@@ -1039,6 +1040,7 @@ class UNetMidBlockSpatioTemporal(nn.Module):
             )
         ]
         attentions = []
+        audio_modules = []
 
         for i in range(num_layers):
             attentions.append(
@@ -1051,6 +1053,17 @@ class UNetMidBlockSpatioTemporal(nn.Module):
                 )
             )
 
+            audio_modules.append(
+                TransformerSpatioTemporalModel(
+                    num_attention_heads,
+                    in_channels // num_attention_heads,
+                    in_channels=in_channels,
+                    num_layers=transformer_layers_per_block[i],
+                    cross_attention_dim=audio_attention_dim,
+                    use_audio_module=True,
+                )
+            )
+
             resnets.append(
                 SpatioTemporalResBlock(
                     in_channels=in_channels,
@@ -1060,8 +1073,10 @@ class UNetMidBlockSpatioTemporal(nn.Module):
                 )
             )
 
+
         self.attentions = nn.ModuleList(attentions)
         self.resnets = nn.ModuleList(resnets)
+        self.audio_modules = nn.ModuleList(audio_modules)
 
         self.gradient_checkpointing = False
 
@@ -1069,6 +1084,7 @@ class UNetMidBlockSpatioTemporal(nn.Module):
         self,
         hidden_states: torch.Tensor,
         temb: Optional[torch.Tensor] = None,
+        audio_embedding=None,
         encoder_hidden_states: Optional[torch.Tensor] = None,
         image_only_indicator: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
@@ -1078,7 +1094,7 @@ class UNetMidBlockSpatioTemporal(nn.Module):
             image_only_indicator=image_only_indicator,
         )
 
-        for attn, resnet in zip(self.attentions, self.resnets[1:]):
+        for attn, resnet , audio_module in zip(self.attentions, self.resnets[1:], self.audio_modules):
             if torch.is_grad_enabled() and self.gradient_checkpointing:  # TODO
 
                 def create_custom_forward(module, return_dict=None):
@@ -1097,6 +1113,12 @@ class UNetMidBlockSpatioTemporal(nn.Module):
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
+                hidden_states = audio_module(
+                    hidden_states,
+                    encoder_hidden_states=audio_embedding,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
                 hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(resnet),
                     hidden_states,
@@ -1104,11 +1126,18 @@ class UNetMidBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
+
             else:
 
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
+                hidden_states = audio_module(
+                    hidden_states,
+                    encoder_hidden_states=audio_embedding,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
@@ -1302,8 +1331,8 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         print("iniital audio embedding shape : ", audio_embedding.shape)
         print("\n")
 
-        audio_embedding = rearrange(audio_embedding, 'bz f l c -> (bz f) l c')
-        print("rearranged audio embedding shape : ", audio_embedding.shape)
+        # audio_embedding = rearrange(audio_embedding, 'bz f l c -> (bz f) l c')
+        # print()
 
         blocks = list(zip(self.resnets, self.attentions, self.audio_modules))
         for resnet, attn , audio_module in blocks:
@@ -1477,11 +1506,13 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
         resnet_eps: float = 1e-6,
         num_attention_heads: int = 1,
         cross_attention_dim: int = 1280,
+        audio_attention_dim=768,
         add_upsample: bool = True,
     ):
         super().__init__()
         resnets = []
         attentions = []
+        audio_modules = []
 
         self.has_cross_attention = True
         self.num_attention_heads = num_attention_heads
@@ -1511,8 +1542,20 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                 )
             )
 
+            audio_modules.append(
+                TransformerSpatioTemporalModel(
+                    num_attention_heads,
+                    out_channels // num_attention_heads,
+                    in_channels=out_channels,
+                    num_layers=transformer_layers_per_block[i],
+                    cross_attention_dim=audio_attention_dim,
+                    use_audio_module=True,
+                )
+            )
+
         self.attentions = nn.ModuleList(attentions)
         self.resnets = nn.ModuleList(resnets)
+        self.audio_modules = nn.ModuleList(audio_modules)
 
         if add_upsample:
             self.upsamplers = nn.ModuleList([Upsample2D(out_channels, use_conv=True, out_channels=out_channels)])
@@ -1528,10 +1571,11 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
         res_hidden_states_tuple: Tuple[torch.Tensor, ...],
         temb: Optional[torch.Tensor] = None,
         encoder_hidden_states: Optional[torch.Tensor] = None,
+        audio_embedding=None,
         image_only_indicator: Optional[torch.Tensor] = None,
         upsample_size: Optional[int] = None,
     ) -> torch.Tensor:
-        for resnet, attn in zip(self.resnets, self.attentions):
+        for resnet, attn, audio_module in zip(self.resnets, self.attentions, self.audio_modules):
             # pop res hidden states
             res_hidden_states = res_hidden_states_tuple[-1]
             res_hidden_states_tuple = res_hidden_states_tuple[:-1]
@@ -1563,6 +1607,12 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
+                hidden_states = audio_module(
+                    hidden_states,
+                    encoder_hidden_states=audio_embedding,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
             else:
                 hidden_states = resnet(
                     hidden_states,
@@ -1572,6 +1622,12 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
+                hidden_states = audio_module(
+                    hidden_states,
+                    encoder_hidden_states=audio_embedding,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]

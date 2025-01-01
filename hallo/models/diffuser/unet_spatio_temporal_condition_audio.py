@@ -12,7 +12,7 @@ from diffusers.models.embeddings import TimestepEmbedding, Timesteps
 from diffusers.models.modeling_utils import ModelMixin
 from diffusers.utils import BaseOutput, logging
 
-
+from einops import rearrange
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -430,6 +430,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # encoder hiddent states shape :  torch.Size([2, 4, 1024])
         # added time ids shape :  torch.Size([2, 3])
         # audio_embedding shape :  torch.Size([2, 14, 32, 768])
+
+        audio_embedding = rearrange(audio_embedding, 'bz f l c -> (bz f) l c')
 
         c = 0
 
