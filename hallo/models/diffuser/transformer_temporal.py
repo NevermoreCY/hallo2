@@ -314,51 +314,64 @@ class TransformerSpatioTemporalModel(nn.Module):
         print("hidden_states shape is ", hidden_states.shape)
         print("encoder_hidden_states shape is ", encoder_hidden_states.shape)
         print("image_only_indicator shape is ", image_only_indicator.shape)
-
+        # hidden_states shape is  torch.Size([28, 320, 64, 64])
+        # encoder_hidden_states shape is  torch.Size([28, 4, 1024])
+        # image_only_indicator shape is  torch.Size([2, 14])
         time_context = encoder_hidden_states
         time_context_first_timestep = time_context[None, :].reshape(
             batch_size, num_frames, -1, time_context.shape[-1]
         )[:, 0]
 
         print("time_context_first_timestep shape is ", time_context_first_timestep.shape)
+        # time_context_first_timestep shape is  torch.Size([2, 4, 1024])
 
         time_context = time_context_first_timestep[:, None].broadcast_to(
             batch_size, height * width, time_context.shape[-2], time_context.shape[-1]
         )
-
         print("1time_context shape is ", time_context .shape)
-        time_context = time_context.reshape(batch_size * height * width, -1, time_context.shape[-1])
+        # 1time_context shape is  torch.Size([2, 4096, 4, 1024])
 
+
+        time_context = time_context.reshape(batch_size * height * width, -1, time_context.shape[-1])
         print("2time_context  shape is ", time_context.shape)
+        # 2time_context  shape is  torch.Size([8192, 4, 1024])
 
         residual = hidden_states
 
         print("1hidden_states shape is ", hidden_states.shape)
+        # 1hidden_states shape is  torch.Size([28, 320, 64, 64])
         hidden_states = self.norm(hidden_states)
         inner_dim = hidden_states.shape[1]
 
         hidden_states = hidden_states.permute(0, 2, 3, 1).reshape(batch_frames, height * width, inner_dim)
         print("2hidden_states shape is ", hidden_states.shape)
+        # 2hidden_states shape is  torch.Size([28, 4096, 320])
+
         hidden_states = self.proj_in(hidden_states)
         print("3hidden_states shape is ", hidden_states.shape)
+        # 3hidden_states shape is  torch.Size([28, 4096, 320])
 
         num_frames_emb = torch.arange(num_frames, device=hidden_states.device)
         print("1num_frames_emb shape is ", num_frames_emb.shape)
+        # 1num_frames_emb shape is  torch.Size([14])
         num_frames_emb = num_frames_emb.repeat(batch_size, 1)
         print("2num_frames_emb shape is ", num_frames_emb.shape)
+        # 2num_frames_emb shape is  torch.Size([2, 14])
         num_frames_emb = num_frames_emb.reshape(-1)
         print("3num_frames_emb shape is ", num_frames_emb.shape)
+        # 3num_frames_emb shape is  torch.Size([28])
         t_emb = self.time_proj(num_frames_emb)
         print("t_emb shape is ", t_emb.shape)
+        # t_emb shape is  torch.Size([28, 320])
         # `Timesteps` does not contain any weights and will always return f32 tensors
         # but time_embedding might actually be running in fp16. so we need to cast here.
         # there might be better ways to encapsulate this.
         t_emb = t_emb.to(dtype=hidden_states.dtype)
 
         emb = self.time_pos_embed(t_emb)
-        print("1t_emb shape is ", t_emb.shape)
+        print("1t_emb shape is ", emb.shape)
         emb = emb[:, None, :]
-        print("2t_emb shape is ", t_emb.shape)
+        print("2t_emb shape is ", emb.shape)
 
         # 2. Blocks
         for block, temporal_block in zip(self.transformer_blocks, self.temporal_transformer_blocks):
@@ -380,7 +393,7 @@ class TransformerSpatioTemporalModel(nn.Module):
             hidden_states_mix = hidden_states
             hidden_states_mix = hidden_states_mix + emb
             print(" hidden_states_mix shape is ", hidden_states_mix.shape)
-
+            #  hidden_states_mix shape is  torch.Size([28, 4096, 320])
             hidden_states_mix = temporal_block(
                 hidden_states_mix,
                 num_frames=num_frames,
@@ -388,7 +401,7 @@ class TransformerSpatioTemporalModel(nn.Module):
             )
 
             print(" hidden_states_mix shape after temporal_block is ", hidden_states_mix.shape)
-
+            #  hidden_states_mix shape after temporal_block is  torch.Size([28, 4096, 320])
             hidden_states = self.time_mixer(
                 x_spatial=hidden_states,
                 x_temporal=hidden_states_mix,
@@ -402,7 +415,7 @@ class TransformerSpatioTemporalModel(nn.Module):
         output = hidden_states + residual
 
         print(" hidden_states_mix output shape is ", hidden_states.shape)
-
+        #  hidden_states_mix output shape is  torch.Size([28, 320, 64, 64])
         if not return_dict:
             return (output,)
 
