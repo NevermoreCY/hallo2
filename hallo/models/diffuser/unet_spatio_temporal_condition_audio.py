@@ -412,8 +412,25 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
         # 1. time
         timesteps = timestep
+
+        #         sample: torch.Tensor,
+        #         timestep: Union[torch.Tensor, float, int],
+        #         encoder_hidden_states: torch.Tensor,
+        #         added_time_ids: torch.Tensor,
+        #         audio_embedding: Optional[torch.Tensor] = None,
+
+        print(f"**0101 \n\n  sample shape : ", sample.shape)
+        print(f"timestep shape : ", timestep.shape)
+        print(f"encoder hiddent states shape : ", encoder_hidden_states.shape)
+        print(f"added time ids shape : ", added_time_ids.shape)
+        print(f"audio_embedding shape : ", audio_embedding.shape)
+
+
+
         c = 0
-        print(f"**1230 \n\n input sample shape {c} : ", sample.shape)
+
+
+
         c += 1
         print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
 
