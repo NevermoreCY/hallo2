@@ -426,7 +426,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         print(f"audio_embedding shape : ", audio_embedding.shape)
 
         #   sample shape :  torch.Size([2, 14, 8, 64, 64])
-        # timestep shape :  torch.Size([2])
+        # timestep shape :  torch.Size([2]) #  tensor([0.8569, 0.5146]
         # encoder hiddent states shape :  torch.Size([2, 4, 1024])
         # added time ids shape :  torch.Size([2, 3])
         # audio_embedding shape :  torch.Size([2, 14, 32, 768])
@@ -494,8 +494,10 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         emb = emb.repeat_interleave(num_frames, dim=0)
         # encoder_hidden_states: [batch, 1, channels] -> [batch * frames, 1, channels]
         print("encoder hidden state shape is ", encoder_hidden_states.shape)
+        # encoder hidden state shape is  torch.Size([2, 4, 1024])
         encoder_hidden_states = encoder_hidden_states.repeat_interleave(num_frames, dim=0)
         print("encoder hidden state shape is ", encoder_hidden_states.shape)
+        # encoder hidden state shape is  torch.Size([28, 4, 1024])
 
         # 2. pre-process
         sample = self.conv_in(sample)

@@ -673,7 +673,7 @@ class CrossAttnDownBlock3D(nn.Module):
             The output tensor from the block.
         """
         output_states = ()
-
+        print("crossattndown , audio_embedding :", audio_embedding.shape)
         for _, (resnet, attn, audio_module, motion_module) in enumerate(
             zip(self.resnets, self.attentions, self.audio_modules, self.motion_modules)
         ):

@@ -179,6 +179,8 @@ class Transformer3DModel(ModelMixin, ConfigMixin):
         video_length = hidden_states.shape[2]
         hidden_states = rearrange(hidden_states, "b c f h w -> (b f) c h w")
 
+        print("Transformer3DModel encoder_hidden_states", encoder_hidden_states.shape)
+
         # TODO
         if self.use_audio_module:
             encoder_hidden_states = rearrange(
