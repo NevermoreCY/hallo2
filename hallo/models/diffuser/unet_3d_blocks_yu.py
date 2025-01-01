@@ -1221,6 +1221,7 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         transformer_layers_per_block: Union[int, Tuple[int]] = 1,
         num_attention_heads: int = 1,
         cross_attention_dim: int = 1280,
+        audio_attention_dim=768,
         add_downsample: bool = True,
     ):
         super().__init__()
@@ -1259,12 +1260,14 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     out_channels // num_attention_heads,
                     in_channels=out_channels,
                     num_layers=transformer_layers_per_block[i],
-                    cross_attention_dim=cross_attention_dim,
+                    cross_attention_dim=audio_attention_dim,
+                    use_audio_module=True,
                 )
             )
 
         self.attentions = nn.ModuleList(attentions)
         self.resnets = nn.ModuleList(resnets)
+        self.audio_modules = nn.ModuleList(audio_modules)
 
         if add_downsample:
             self.downsamplers = nn.ModuleList(
@@ -1288,16 +1291,18 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         hidden_states: torch.Tensor,
         temb: Optional[torch.Tensor] = None,
         encoder_hidden_states: Optional[torch.Tensor] = None,
+        audio_embedding=None,
         image_only_indicator: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, ...]]:
         output_states = ()
-        print("**1231\n\n unet downblock hiddent states: ", hidden_states.shape)
-        print("**1231\n\n unet downblock temb : ", temb.shape)
-        print("**1231\n\n initial face_embd shape : ", encoder_hidden_states.shape)
+        print("**0101\n\n unet downblock ")
+        print("initial hiddent states: ", hidden_states.shape)
+        print("unet downblock temb : ", temb.shape)
+        print("initial face_embd shape : ", encoder_hidden_states.shape)
 
 
-        blocks = list(zip(self.resnets, self.attentions))
-        for resnet, attn in blocks:
+        blocks = list(zip(self.resnets, self.attentions, self.audio_modules))
+        for resnet, attn , audio_module in blocks:
             if torch.is_grad_enabled() and self.gradient_checkpointing:  # TODO
                 # print("**1231\n\n unet downblock gradient checkpoint ")
                 def create_custom_forward(module, return_dict=None):
@@ -1317,13 +1322,22 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
-                # print("**1231\n\n resnet downblock gradient checkpoint ")
+                print(" hidden_states after resnet ", hidden_states.shape)
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
+                print(" hidden_states after attn ", hidden_states.shape)
+                hidden_states = audio_module(
+                    hidden_states,
+                    encoder_hidden_states=encoder_hidden_states,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
+                print(" hidden_states after audio module ", hidden_states.shape)
+
             else:
                 # print("**1231\n\n unet downblock else  ")
                 hidden_states = resnet(
@@ -1332,6 +1346,13 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     image_only_indicator=image_only_indicator,
                 )
                 hidden_states = attn(
+                    hidden_states,
+                    encoder_hidden_states=encoder_hidden_states,
+                    image_only_indicator=image_only_indicator,
+                    return_dict=False,
+                )[0]
+
+                hidden_states = audio_module(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
                     image_only_indicator=image_only_indicator,

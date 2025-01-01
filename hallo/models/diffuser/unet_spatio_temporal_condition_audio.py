@@ -513,6 +513,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                     temb=emb,
                     encoder_hidden_states=encoder_hidden_states,
                     image_only_indicator=image_only_indicator,
+                    audio_embedding = audio_embedding,
                 )
             else:
                 sample, res_samples = downsample_block(
@@ -530,6 +531,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
             temb=emb,
             encoder_hidden_states=encoder_hidden_states,
             image_only_indicator=image_only_indicator,
+            audio_embedding=audio_embedding,
         )
         print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
         c += 1
@@ -553,6 +555,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                     encoder_hidden_states=encoder_hidden_states,
                     upsample_size=upsample_size,
                     image_only_indicator=image_only_indicator,
+                    audio_embedding=audio_embedding,
                 )
             else:
                 sample = upsample_block(
@@ -561,6 +564,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                     res_hidden_states_tuple=res_samples,
                     upsample_size=upsample_size,
                     image_only_indicator=image_only_indicator,
+
                 )
             print(f"**1230 \n\n up sample shape {c} : ", sample.shape)
             c += 1

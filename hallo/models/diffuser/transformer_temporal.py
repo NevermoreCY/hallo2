@@ -225,6 +225,7 @@ class TransformerSpatioTemporalModel(nn.Module):
         out_channels: Optional[int] = None,
         num_layers: int = 1,
         cross_attention_dim: Optional[int] = None,
+        use_audio_module: bool = False,
     ):
         super().__init__()
         self.num_attention_heads = num_attention_heads
@@ -232,6 +233,7 @@ class TransformerSpatioTemporalModel(nn.Module):
 
         inner_dim = num_attention_heads * attention_head_dim
         self.inner_dim = inner_dim
+        self.use_audio_module = use_audio_module
 
         # 2. Define input layers
         self.in_channels = in_channels
