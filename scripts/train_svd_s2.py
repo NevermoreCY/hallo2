@@ -1031,7 +1031,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     added_time_ids=added_time_ids,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
-
+                print("idx", idx , "denoising latents" )
                 # Denoise the latents
                 c_out = -sigmas / ((sigmas ** 2 + 1) ** 0.5)
                 c_skip = 1 / (sigmas ** 2 + 1)
@@ -1046,7 +1046,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
                 loss = loss.mean()
 
-
+                print("idx", idx, "MSE Loss")
 
                 #
                 # if cfg.snr_gamma == 0:
@@ -1080,7 +1080,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 avg_loss = accelerator.gather(
                     loss.repeat(cfg.data.train_bs)).mean()
                 train_loss += avg_loss.item() / cfg.solver.gradient_accumulation_steps
-
+                print("idx", idx, "denoising latents")
                 # Backpropagate
                 accelerator.backward(loss)
                 if accelerator.sync_gradients:
@@ -1092,6 +1092,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 lr_scheduler.step()
                 optimizer.zero_grad()
 
+            print("idx", idx, "sync grad", accelerator.sync_gradients)
             if accelerator.sync_gradients:
                 progress_bar.update(1)
                 global_step += 1
@@ -1117,7 +1118,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         #     times=cfg.single_inference_times if cfg.single_inference_times is not None else None,
                         #     face_analysis_model_path=cfg.face_analysis_model_path
                         # )
-
+            print("idx", idx, "logs")
             logs = {
                 "step_loss": loss.detach().item(),
                 "lr": lr_scheduler.get_last_lr()[0],
@@ -1131,6 +1132,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 or global_step == cfg.solver.max_train_steps
             ):
                 # save model
+                print("idx", idx, "save")
                 save_path = os.path.join(
                     checkpoint_dir, f"checkpoint-{global_step}")
                 if accelerator.is_main_process:

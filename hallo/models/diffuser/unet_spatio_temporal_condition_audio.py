@@ -580,7 +580,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # 7. Reshape back to original shape
         sample = sample.reshape(batch_size, num_frames, *sample.shape[1:])
 
-        # print(f"**1230 \n\n out reshape sample shape {c} : ", sample.shape)
+        print(f"**1230 \n\n out reshape sample shape {c} : ", sample.shape)
         c += 1
 
         if not return_dict:
