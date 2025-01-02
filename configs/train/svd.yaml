@@ -38,7 +38,7 @@ solver:
   lr_scheduler: "constant"
 
   # optimizer
-  use_8bit_adam: True
+  use_8bit_adam: False
   adam_beta1: 0.9
   adam_beta2: 0.999
   adam_weight_decay: 1.0e-2
