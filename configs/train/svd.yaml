@@ -26,7 +26,7 @@ svd:
 
 solver:
   gradient_accumulation_steps: 1
-  mixed_precision: "no"
+  mixed_precision: "fp16" # no
   enable_xformers_memory_efficient_attention: True
   gradient_checkpointing: True
   max_train_steps: 30000
