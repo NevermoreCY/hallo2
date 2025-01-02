@@ -747,16 +747,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         weight_decay=cfg.solver.adam_weight_decay,
         eps=cfg.solver.adam_epsilon,
     )
-    if accelerator.is_main_process:
-        rec_txt1 = open('params_freeze.txt', 'w')
-        rec_txt2 = open('params_train.txt', 'w')
-        for name, para in unet.named_parameters():
-            if para.requires_grad is False:
-                rec_txt1.write(f'{name}\n')
-            else:
-                rec_txt2.write(f'{name}\n')
-        rec_txt1.close()
-        rec_txt2.close()
+    # if accelerator.is_main_process:
+    #     rec_txt1 = open('params_freeze.txt', 'w')
+    #     rec_txt2 = open('params_train.txt', 'w')
+    #     for name, para in unet.named_parameters():
+    #         if para.requires_grad is False:
+    #             rec_txt1.write(f'{name}\n')
+    #         else:
+    #             rec_txt2.write(f'{name}\n')
+    #     rec_txt1.close()
+    #     rec_txt2.close()
 
     # Scheduler
     lr_scheduler = get_scheduler(
