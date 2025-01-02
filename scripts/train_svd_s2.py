@@ -194,8 +194,8 @@ class Net(nn.Module):
                 device=audio_emb.device, dtype=audio_emb.dtype
             )
 
-        print("**0101\n\n face_emb ", face_emb.shape)
-        print("**0101\n\n audio_emb ", audio_emb.shape)
+        # print("**0101\n\n face_emb ", face_emb.shape)
+        # print("**0101\n\n audio_emb ", audio_emb.shape)
         #  face_emb  torch.Size([2, 4, 1024])
         #  audio_emb  torch.Size([2, 14, 32, 768])
         model_pred = self.denoising_unet(
@@ -930,7 +930,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 #print("train_noise_scheduler.num_train_timesteps : ", train_noise_scheduler.num_train_timesteps)
                 # 1000
-                print("**debug 12 29 \n\n  time steps 2", timesteps)
+                # print("**debug 12 29 \n\n  time steps 2", timesteps)
 
 
                 uncond_audio_fwd = random.random() < cfg.uncond_audio_ratio
