@@ -810,6 +810,12 @@ class AudioTemporalBasicTransformerBlock(nn.Module):
         Returns:
             torch.FloatTensor: The output tensor after passing through the AudioTemporalBasicTransformerBlock.
         """
+
+
+        print("AudioTemporalBasicTransformerBlock")
+
+
+
         norm_hidden_states = (
             self.norm1(hidden_states, timestep)
             if self.use_ada_layer_norm

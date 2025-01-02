@@ -495,7 +495,7 @@ def inference_process(args: argparse.Namespace):
             assert pixel_motion_values.shape[0] == 1
 
             audio_tensor = audio_fea_final[
-                t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0])
+                t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
             ]
             audio_tensor = audio_tensor.unsqueeze(0)
             audio_tensor = audio_tensor.to(

@@ -313,9 +313,9 @@ class TransformerSpatioTemporalModel(nn.Module):
         batch_frames, _, height, width = hidden_states.shape
         num_frames = image_only_indicator.shape[-1]
         batch_size = batch_frames // num_frames
-        print("hidden_states shape is ", hidden_states.shape)
-        print("encoder_hidden_states shape is ", encoder_hidden_states.shape)
-        print("image_only_indicator shape is ", image_only_indicator.shape)
+        # print("hidden_states shape is ", hidden_states.shape)
+        # print("encoder_hidden_states shape is ", encoder_hidden_states.shape)
+        # print("image_only_indicator shape is ", image_only_indicator.shape)
         # hidden_states shape is  torch.Size([28, 320, 64, 64])
         # encoder_hidden_states shape is  torch.Size([28, 4, 1024])
         # image_only_indicator shape is  torch.Size([2, 14])

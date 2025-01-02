@@ -1324,12 +1324,12 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
         image_only_indicator: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, ...]]:
         output_states = ()
-        print("**0101\n\n unet downblock ")
-        print("initial hiddent states: ", hidden_states.shape)
-        print("unet downblock temb : ", temb.shape)
-        print("initial face_embd shape : ", encoder_hidden_states.shape)
-        print("iniital audio embedding shape : ", audio_embedding.shape)
-        print("\n")
+        # print("**0101\n\n unet downblock ")
+        # print("initial hiddent states: ", hidden_states.shape)
+        # print("unet downblock temb : ", temb.shape)
+        # print("initial face_embd shape : ", encoder_hidden_states.shape)
+        # print("iniital audio embedding shape : ", audio_embedding.shape)
+        # print("\n")
 
         # audio_embedding = rearrange(audio_embedding, 'bz f l c -> (bz f) l c')
         # print()
@@ -1355,21 +1355,21 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
-                print(" hidden_states after resnet ", hidden_states.shape)
+                # print(" hidden_states after resnet ", hidden_states.shape)
                 hidden_states = attn(
                     hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
-                print(" hidden_states after attn ", hidden_states.shape)
+                # print(" hidden_states after attn ", hidden_states.shape)
                 hidden_states = audio_module(
                     hidden_states,
                     encoder_hidden_states=audio_embedding,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
-                print(" hidden_states after audio module ", hidden_states.shape)
+                # print(" hidden_states after audio module ", hidden_states.shape)
 
             else:
                 # print("**1231\n\n unet downblock else  ")

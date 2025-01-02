@@ -523,7 +523,7 @@ class TemporalBasicTransformerBlock(nn.Module):
 
         norm_hidden_states = self.norm1(hidden_states)
 
-        print("norm_hidden_states shape is ", norm_hidden_states.shape)
+        # print("norm_hidden_states shape is ", norm_hidden_states.shape)
         attn_output = self.attn1(norm_hidden_states, encoder_hidden_states=None)
         hidden_states = attn_output + hidden_states
 

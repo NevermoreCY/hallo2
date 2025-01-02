@@ -419,11 +419,11 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         #         added_time_ids: torch.Tensor,
         #         audio_embedding: Optional[torch.Tensor] = None,
 
-        print(f"**0101 \n\n  sample shape : ", sample.shape)
-        print(f"timestep shape : ", timestep.shape, timestep)
-        print(f"encoder hiddent states shape : ", encoder_hidden_states.shape)
-        print(f"added time ids shape : ", added_time_ids.shape)
-        print(f"audio_embedding shape : ", audio_embedding.shape)
+        # print(f"**0101 \n\n  sample shape : ", sample.shape)
+        # print(f"timestep shape : ", timestep.shape, timestep)
+        # print(f"encoder hiddent states shape : ", encoder_hidden_states.shape)
+        # print(f"added time ids shape : ", added_time_ids.shape)
+        # print(f"audio_embedding shape : ", audio_embedding.shape)
 
         #   sample shape :  torch.Size([2, 14, 8, 64, 64])
         # timestep shape :  torch.Size([2]) #  tensor([0.8569, 0.5146]
@@ -438,7 +438,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
 
         c += 1
-        print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
+        # print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
 
         if not torch.is_tensor(timesteps):
             # TODO: this requires sync between CPU and GPU. So try to pass timesteps as tensors if you can
@@ -455,9 +455,9 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
         batch_size, num_frames = sample.shape[:2]
         timesteps = timesteps.expand(batch_size)
-        print(timesteps,timesteps.shape)
+        # print(timesteps,timesteps.shape)
         t_emb = self.time_proj(timesteps)
-        print("t_emb shape is ", t_emb.shape)
+        # print("t_emb shape is ", t_emb.shape)
         # input sample shape 0 :  torch.Size([4, 14, 4, 64, 64])
         # time steps shape :  torch.Size([4]) False
         # tensor([0.2014, 0.3099, 0.0070, 0.7441], device='cuda:0') torch.Size([4])
@@ -478,32 +478,32 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # myabe use a fixed added time ids first
 
         time_embeds = self.add_time_proj(added_time_ids.flatten())
-        print("time_emb shape  is ", time_embeds.shape)
+        # print("time_emb shape  is ", time_embeds.shape)
         time_embeds = time_embeds.reshape((batch_size, -1))
-        print("time_emb shape  is ", time_embeds.shape)
+        # print("time_emb shape  is ", time_embeds.shape)
         time_embeds = time_embeds.to(emb.dtype)
         aug_emb = self.add_embedding(time_embeds)
         emb = emb + aug_emb
-        print("emb shape  is ", emb.shape)
+        # print("emb shape  is ", emb.shape)
         # Flatten the batch and frames dimensions
         # sample: [batch, frames, channels, height, width] -> [batch * frames, channels, height, width]
         sample = sample.flatten(0, 1)
 
-        print(f"**1230 \n\n flatten sample shape {c} : ", sample.shape)
+        # print(f"**1230 \n\n flatten sample shape {c} : ", sample.shape)
         c += 1
         # Repeat the embeddings num_video_frames times
         # emb: [batch, channels] -> [batch * frames, channels]
         emb = emb.repeat_interleave(num_frames, dim=0)
         # encoder_hidden_states: [batch, 1, channels] -> [batch * frames, 1, channels]
-        print("encoder hidden state shape is ", encoder_hidden_states.shape)
+        # print("encoder hidden state shape is ", encoder_hidden_states.shape)
         # encoder hidden state shape is  torch.Size([2, 4, 1024])
         encoder_hidden_states = encoder_hidden_states.repeat_interleave(num_frames, dim=0)
-        print("encoder hidden state shape is ", encoder_hidden_states.shape)
+        # print("encoder hidden state shape is ", encoder_hidden_states.shape)
         # encoder hidden state shape is  torch.Size([28, 4, 1024])
 
         # 2. pre-process
         sample = self.conv_in(sample)
-        print(f"**1230 \n\n after conv_in sample shape {c} : ", sample.shape)
+        # print(f"**1230 \n\n after conv_in sample shape {c} : ", sample.shape)
         c += 1
         image_only_indicator = torch.zeros(batch_size, num_frames, dtype=sample.dtype, device=sample.device)
         # down
@@ -525,7 +525,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                 )
 
             down_block_res_samples += res_samples
-            print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
+            # print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
             c += 1
         # 4. mid
         sample = self.mid_block(
@@ -535,7 +535,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
             image_only_indicator=image_only_indicator,
             audio_embedding=audio_embedding,
         )
-        print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
+        # print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
         c += 1
         # 5. up
         for i, upsample_block in enumerate(self.up_blocks):
@@ -568,19 +568,19 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
                     image_only_indicator=image_only_indicator,
 
                 )
-            print(f"**1230 \n\n up sample shape {c} : ", sample.shape)
+            # print(f"**1230 \n\n up sample shape {c} : ", sample.shape)
             c += 1
         # 6. post-process
         sample = self.conv_norm_out(sample)
         sample = self.conv_act(sample)
         sample = self.conv_out(sample)
 
-        print(f"**1230 \n\n out sample shape {c} : ", sample.shape)
+        # print(f"**1230 \n\n out sample shape {c} : ", sample.shape)
         c += 1
         # 7. Reshape back to original shape
         sample = sample.reshape(batch_size, num_frames, *sample.shape[1:])
 
-        print(f"**1230 \n\n out reshape sample shape {c} : ", sample.shape)
+        # print(f"**1230 \n\n out reshape sample shape {c} : ", sample.shape)
         c += 1
 
         if not return_dict:

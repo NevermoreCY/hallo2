@@ -21,7 +21,7 @@ from torch import nn
 
 from diffusers.image_processor import IPAdapterMaskProcessor
 from diffusers.utils import deprecate, is_torch_xla_available, logging
-from diffusers.utils.import_utils import is_torch_npu_available, is_torch_xla_version, is_xformers_available
+from diffusers.utils.import_utils import is_torch_npu_available, is_xformers_available
 from diffusers.utils.torch_utils import is_torch_version, maybe_allow_in_graph
 
 
@@ -36,14 +36,7 @@ if is_xformers_available():
 else:
     xformers = None
 
-if is_torch_xla_available():
-    # flash attention pallas kernel is introduced in the torch_xla 2.3 release.
-    if is_torch_xla_version(">", "2.2"):
-        from torch_xla.experimental.custom_kernel import flash_attention
-        from torch_xla.runtime import is_spmd
-    XLA_AVAILABLE = True
-else:
-    XLA_AVAILABLE = False
+XLA_AVAILABLE = False
 
 
 @maybe_allow_in_graph
@@ -138,7 +131,7 @@ class Attention(nn.Module):
         super().__init__()
 
         # To prevent circular import.
-        from .normalization import FP32LayerNorm, LpNorm, RMSNorm
+        from diffusers.models.normalization import FP32LayerNorm, LpNorm, RMSNorm
 
         self.inner_dim = out_dim if out_dim is not None else dim_head * heads
         self.inner_kv_dim = self.inner_dim if kv_heads is None else dim_head * kv_heads
