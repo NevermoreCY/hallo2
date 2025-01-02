@@ -118,7 +118,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 500
 
-exp_name: "svd_test2"
+exp_name: "svd_test_3"
 output_dir: "./exp_output"
 
 ref_img_path:
