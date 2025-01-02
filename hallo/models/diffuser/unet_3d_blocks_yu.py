@@ -1107,18 +1107,35 @@ class UNetMidBlockSpatioTemporal(nn.Module):
                     return custom_forward
 
                 ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
-                hidden_states = attn(
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(attn, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    encoder_hidden_states,
+                    image_only_indicator,
                 )[0]
-                hidden_states = audio_module(
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=audio_embedding,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    audio_embedding,
+                    image_only_indicator,
                 )[0]
+
+
+                # hidden_states = attn(
+                #     hidden_states,
+                #     encoder_hidden_states=encoder_hidden_states,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
+                # hidden_states = audio_module(
+                #     hidden_states,
+                #     encoder_hidden_states=audio_embedding,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
+
                 hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(resnet),
                     hidden_states,
@@ -1356,19 +1373,35 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     **ckpt_kwargs,
                 )
                 # print(" hidden_states after resnet ", hidden_states.shape)
-                hidden_states = attn(
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(attn, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    encoder_hidden_states,
+                    image_only_indicator,
                 )[0]
-                # print(" hidden_states after attn ", hidden_states.shape)
-                hidden_states = audio_module(
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=audio_embedding,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    audio_embedding,
+                    image_only_indicator,
                 )[0]
+
+                #
+                # hidden_states = attn(
+                #     hidden_states,
+                #     encoder_hidden_states=encoder_hidden_states,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
+                # # print(" hidden_states after attn ", hidden_states.shape)
+                # hidden_states = audio_module(
+                #     hidden_states,
+                #     encoder_hidden_states=audio_embedding,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
                 # print(" hidden_states after audio module ", hidden_states.shape)
 
             else:
@@ -1532,6 +1565,10 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                     eps=resnet_eps,
                 )
             )
+
+
+
+
             attentions.append(
                 TransformerSpatioTemporalModel(
                     num_attention_heads,
@@ -1601,18 +1638,35 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                     image_only_indicator,
                     **ckpt_kwargs,
                 )
-                hidden_states = attn(
+
+
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(attn, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    encoder_hidden_states,
+                    image_only_indicator,
                 )[0]
-                hidden_states = audio_module(
+
+                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                    create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
-                    encoder_hidden_states=audio_embedding,
-                    image_only_indicator=image_only_indicator,
-                    return_dict=False,
+                    audio_embedding,
+                    image_only_indicator,
                 )[0]
+
+                # hidden_states = attn(
+                #     hidden_states,
+                #     encoder_hidden_states=encoder_hidden_states,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
+                # hidden_states = audio_module(
+                #     hidden_states,
+                #     encoder_hidden_states=audio_embedding,
+                #     image_only_indicator=image_only_indicator,
+                #     return_dict=False,
+                # )[0]
             else:
                 hidden_states = resnet(
                     hidden_states,
