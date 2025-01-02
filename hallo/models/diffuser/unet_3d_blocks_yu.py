@@ -1108,14 +1108,14 @@ class UNetMidBlockSpatioTemporal(nn.Module):
 
                 ckpt_kwargs: Dict[str, Any] = {"use_reentrant": False} if is_torch_version(">=", "1.11.0") else {}
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states= torch.utils.checkpoint.checkpoint(
                     create_custom_forward(attn, return_dict=False),
                     hidden_states,
                     encoder_hidden_states,
                     image_only_indicator,
                 )[0]
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
                     audio_embedding,
@@ -1374,14 +1374,14 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                 )
                 # print(" hidden_states after resnet ", hidden_states.shape)
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(attn, return_dict=False),
                     hidden_states,
                     encoder_hidden_states,
                     image_only_indicator,
                 )[0]
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
                     audio_embedding,
@@ -1641,14 +1641,14 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
 
 
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(attn, return_dict=False),
                     hidden_states,
                     encoder_hidden_states,
                     image_only_indicator,
                 )[0]
 
-                hidden_states, motion_frame = torch.utils.checkpoint.checkpoint(
+                hidden_states= torch.utils.checkpoint.checkpoint(
                     create_custom_forward(audio_module, return_dict=False),
                     hidden_states,
                     audio_embedding,
