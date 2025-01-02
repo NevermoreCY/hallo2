@@ -328,7 +328,6 @@ def log_validation(
         torch.Tensor: The tensor result of the validation.
     """
     ori_net = accelerator.unwrap_model(net)
-    # reference_unet = ori_net.reference_unet
     denoising_unet = ori_net.denoising_unet
     face_locator = ori_net.face_locator
     imageproj = ori_net.imageproj
@@ -1104,20 +1103,20 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         generator = torch.Generator(device=accelerator.device)
                         generator.manual_seed(cfg.seed)
 
-                        log_validation(
-                            accelerator=accelerator,
-                            vae=vae,
-                            net=net,
-                            scheduler=val_noise_scheduler,
-                            width=cfg.data.train_width,
-                            height=cfg.data.train_height,
-                            clip_length=cfg.data.n_sample_frames,
-                            cfg=cfg,
-                            save_dir=validation_dir,
-                            global_step=global_step,
-                            times=cfg.single_inference_times if cfg.single_inference_times is not None else None,
-                            face_analysis_model_path=cfg.face_analysis_model_path
-                        )
+                        # log_validation(
+                        #     accelerator=accelerator,
+                        #     vae=vae,
+                        #     net=net,
+                        #     scheduler=val_noise_scheduler,
+                        #     width=cfg.data.train_width,
+                        #     height=cfg.data.train_height,
+                        #     clip_length=cfg.data.n_sample_frames,
+                        #     cfg=cfg,
+                        #     save_dir=validation_dir,
+                        #     global_step=global_step,
+                        #     times=cfg.single_inference_times if cfg.single_inference_times is not None else None,
+                        #     face_analysis_model_path=cfg.face_analysis_model_path
+                        # )
 
             logs = {
                 "step_loss": loss.detach().item(),
