@@ -725,17 +725,21 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
     trainable_params = []
+    train_param_names= []
     for name, param in unet.named_parameters():
         if "audio_modules" in name:
             trainable_params.append(param)
+            train_param_names.append(name)
             param.requires_grad = True
     for name, param in audioproj.named_parameters():
             trainable_params.append(param)
+            train_param_names.append(name)
             param.requires_grad = True
     for name, param in imageproj.named_parameters():
             trainable_params.append(param)
+            train_param_names.append(name)
             param.requires_grad = True
-    print("**Trainable params: " , trainable_params)
+    print("**Trainable params: " , train_param_names)
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
