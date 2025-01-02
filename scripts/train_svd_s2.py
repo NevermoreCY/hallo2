@@ -991,7 +991,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 inp_noisy_latents = torch.cat(
                     [inp_noisy_latents, conditional_latents], dim=2)
-                # print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
+                print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
                 #   inp_noisy_latents shape torch.Size([4, 14, 8, 64, 64])
 
 
