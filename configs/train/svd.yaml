@@ -6,7 +6,7 @@ data:
   fps: 25
   sample_rate: 16000
   n_motion_frames: 2
-  n_sample_frames: 8
+  n_sample_frames: 4
   audio_margin: 2
   train_meta_paths:
     - "./data/hallo_HDTF_stage2.json"
