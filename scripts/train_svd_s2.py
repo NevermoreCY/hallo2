@@ -726,11 +726,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
     trainable_params = []
     for name, param in unet.named_parameters():
+        if "audio_modules" in name:
             trainable_params.append(param)
             param.requires_grad = True
-
-
-
+    for name, param in audioproj.named_parameters():
+            trainable_params.append(param)
+            param.requires_grad = True
+    for name, param in imageproj.named_parameters():
+            trainable_params.append(param)
+            param.requires_grad = True
+    print("**Trainable params: " , trainable_params)
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
@@ -738,6 +743,16 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         weight_decay=cfg.solver.adam_weight_decay,
         eps=cfg.solver.adam_epsilon,
     )
+    if accelerator.is_main_process:
+        rec_txt1 = open('params_freeze.txt', 'w')
+        rec_txt2 = open('params_train.txt', 'w')
+        for name, para in unet.named_parameters():
+            if para.requires_grad is False:
+                rec_txt1.write(f'{name}\n')
+            else:
+                rec_txt2.write(f'{name}\n')
+        rec_txt1.close()
+        rec_txt2.close()
 
     # Scheduler
     lr_scheduler = get_scheduler(
@@ -880,11 +895,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 bsz = latents.shape[0]
 
                 # 向噪声中添加一个小的偏移量来增加训练过程中的多样性或稳定性。
-                if cfg.noise_offset > 0:
-                    noise += cfg.noise_offset * torch.randn(
-                        (latents.shape[0], latents.shape[1], 1, 1, 1),
-                        device=latents.device,
-                    )
+                # if cfg.noise_offset > 0:
+                #     noise += cfg.noise_offset * torch.randn(
+                #         (latents.shape[0], latents.shape[1], 1, 1, 1),
+                #         device=latents.device,
+                #     )
                 # 生成对数正态分布的条件噪声强度
                 cond_sigmas = rand_log_normal(shape=[bsz, ], loc=-3.0, scale=0.5).to(latents)
                 noise_aug_strength = cond_sigmas[0]  # TODO: support batch > 1
@@ -1030,7 +1045,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     audio_emb= audio_emb,
                     added_time_ids=added_time_ids,
                     uncond_audio_fwd=uncond_audio_fwd
-                )
+                ).sample
                 print("idx", idx , "denoising latents" )
                 # Denoise the latents
                 c_out = -sigmas / ((sigmas ** 2 + 1) ** 0.5)
@@ -1110,10 +1125,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 accelerator.log({"train_loss": train_loss}, step=global_step)
                 train_loss = 0.0
 
-                if global_step % cfg.val.validation_steps == 0 or global_step==1:
-                    if accelerator.is_main_process:
-                        generator = torch.Generator(device=accelerator.device)
-                        generator.manual_seed(cfg.seed)
+                # if global_step % cfg.val.validation_steps == 0 or global_step==1:
+                #     if accelerator.is_main_process:
+                #         generator = torch.Generator(device=accelerator.device)
+                #         generator.manual_seed(cfg.seed)
 
                         # log_validation(
                         #     accelerator=accelerator,
@@ -1130,6 +1145,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         #     face_analysis_model_path=cfg.face_analysis_model_path
                         # )
             print("idx", idx, "logs")
+            torch.cuda.empty_cache()
             logs = {
                 "step_loss": loss.detach().item(),
                 "lr": lr_scheduler.get_last_lr()[0],
