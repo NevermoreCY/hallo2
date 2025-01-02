@@ -1080,10 +1080,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 avg_loss = accelerator.gather(
                     loss.repeat(cfg.data.train_bs)).mean()
                 train_loss += avg_loss.item() / cfg.solver.gradient_accumulation_steps
-                print("idx", idx, "denoising latents")
+                print("idx", idx, "train loss")
                 # Backpropagate
                 accelerator.backward(loss)
+                print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
+                    print("idx", idx, "clip grad norm")
                     accelerator.clip_grad_norm_(
                         trainable_params,
                         cfg.solver.max_grad_norm,
@@ -1091,9 +1093,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
+                print("idx", idx, "step done")
 
-            print("idx", idx, "sync grad", accelerator.sync_gradients)
+
             if accelerator.sync_gradients:
+                print("idx", idx, "progress_bar")
                 progress_bar.update(1)
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
