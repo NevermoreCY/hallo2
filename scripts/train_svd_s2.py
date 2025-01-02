@@ -1082,7 +1082,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 train_loss += avg_loss.item() / cfg.solver.gradient_accumulation_steps
                 print("idx", idx, "train loss")
                 # Backpropagate
-                accelerator.backward(loss)
+                # accelerator.backward(loss)
+                try:
+                    accelerator.backward(loss)
+                except Exception as e:
+                    import traceback
+                    print("Exception in backward pass:", e)
+                    print(traceback.format_exc())
+
                 print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
                     print("idx", idx, "clip grad norm")
