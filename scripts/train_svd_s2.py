@@ -1045,7 +1045,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     audio_emb= audio_emb,
                     added_time_ids=added_time_ids,
                     uncond_audio_fwd=uncond_audio_fwd
-                ).sample
+                )
                 print("idx", idx , "denoising latents" )
                 # Denoise the latents
                 c_out = -sigmas / ((sigmas ** 2 + 1) ** 0.5)
@@ -1098,6 +1098,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("idx", idx, "train loss")
                 # Backpropagate
                 # accelerator.backward(loss)
+                print(f"Loss requires_grad: {loss.requires_grad}, Loss grad_fn: {loss.grad_fn}")
                 try:
                     accelerator.backward(loss)
                 except Exception as e:
