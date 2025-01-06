@@ -128,7 +128,7 @@ class TalkingVideoDataset(Dataset):
         self.audio_type = wav2vec_cfg.audio_type
         self.audio_model = wav2vec_cfg.model_scale
         self.audio_features = wav2vec_cfg.features
-        audio_model_path = "/yuch_ws/DH/EchoMimic/pretrained_weights/audio_processor/whisper_tiny.pt"
+        audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
         self.audio_guider = load_audio_model(model_path=audio_model_path,device=device)
 
 
