@@ -339,12 +339,12 @@ def inference_process(args: argparse.Namespace):
     )
 
     from safetensors.torch import load_file
-    modle_path = "exp_output/svd_test_3/net-21500.pth"
-    state_dict = torch.load(modle_path)
-
-    m,u = unet.load_state_dict(state_dict, strict=False)
-    print("** missing keys : \n\n", m)
-    print("** unexpected keys : \n\n", u)
+    # modle_path = "exp_output/svd_test_3/net-21500.pth"
+    # state_dict = torch.load(modle_path)
+    #
+    # m,u = unet.load_state_dict(state_dict, strict=False)
+    # print("** missing keys : \n\n", m)
+    # print("** unexpected keys : \n\n", u)
 
     # denoising_unet.set_attn_processor()
 
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--face_expand_ratio", type=float, help="face region", required=False)
     parser.add_argument(
-        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/stage2_whisper",type=str, help="specific checkpoint dir", required=False)
+        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/svd_test_3",type=str, help="specific checkpoint dir", required=False)
 
 
     command_line_args = parser.parse_args()
