@@ -401,7 +401,7 @@ def inference_process(args: argparse.Namespace):
         ),
     )
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
-    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-30000.pth"))
+    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-21500.pth"))
 
     # 5. inference
     pipeline = FaceAnimatePipeline(
