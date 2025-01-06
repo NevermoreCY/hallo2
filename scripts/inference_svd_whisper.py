@@ -55,7 +55,6 @@ from hallo.models.unet_3d import UNet3DConditionModel
 from hallo.utils.config import filter_non_none
 from hallo.utils.util import tensor_to_video_batch, merge_videos
 from hallo.utils.util import tensor_to_video
-from icecream import ic
 
 from hallo.models.whisper_local.audio2feature import load_audio_model
 from hallo.models.diffuser.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
