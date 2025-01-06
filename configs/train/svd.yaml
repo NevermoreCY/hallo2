@@ -116,7 +116,7 @@ mask_rate: 0.25
 
 seed: 42
 resume_from_checkpoint: "latest"
-checkpointing_steps: 500
+checkpointing_steps: 100
 
 exp_name: "svd_whisper_test"
 output_dir: "./exp_output"
