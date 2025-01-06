@@ -1,5 +1,5 @@
 data:
-  train_bs: 1
+  train_bs: 2
   val_bs: 1
   train_width: 512
   train_height: 512
@@ -26,7 +26,7 @@ svd:
 
 solver:
   gradient_accumulation_steps: 1
-  mixed_precision: "fp16" # no
+  mixed_precision: "no"
   enable_xformers_memory_efficient_attention: True
   gradient_checkpointing: True
   max_train_steps: 30000
@@ -118,7 +118,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 500
 
-exp_name: "svd_test_3"
+exp_name: "svd_whisper_test"
 output_dir: "./exp_output"
 
 ref_img_path:
