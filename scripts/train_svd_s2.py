@@ -63,8 +63,10 @@ from pathlib import Path
 from hallo.animate.face_animate_yu import FaceAnimatePipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
-from hallo.datasets.talk_video_svd import TalkingVideoDataset
-from hallo.models.audio_proj import AudioProjModel
+# from hallo.datasets.talk_video_svd import TalkingVideoDataset
+from hallo.datasets.talk_video_loopy_whisper import TalkingVideoDataset
+# from hallo.models.audio_proj import AudioProjModel
+from hallo.models.audio_proj_whisper import AudioProjModel
 
 from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               import_filename, init_output_dir,
@@ -88,7 +90,7 @@ from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               load_checkpoint, move_final_checkpoint,
                               save_checkpoint, seed_everything)
 
-
+from hallo.models.whisper_local.audio2feature import load_audio_model
 
 from packaging import version
 
@@ -172,22 +174,6 @@ class Net(nn.Module):
         audio_emb = audio_emb.to(
             device=self.audioproj.device, dtype=self.audioproj.dtype)
         audio_emb = self.audioproj(audio_emb)
-
-        # condition forward
-        # if not uncond_img_fwd:
-            # ref_timesteps = torch.zeros_like(timesteps)
-            # ref_timesteps = repeat(
-            #     ref_timesteps,
-            #     "b -> (repeat b)",
-            #     repeat=ref_image_latents.size(0) // ref_timesteps.size(0),
-            # )
-            # self.reference_unet(
-            #     ref_image_latents,
-            #     ref_timesteps,
-            #     encoder_hidden_states=face_emb,
-            #     return_dict=False,
-            # )
-            # self.reference_control_reader.update(self.reference_control_writer)
 
         if uncond_audio_fwd:
             audio_emb = torch.zeros_like(audio_emb).to(
@@ -604,14 +590,22 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     face_locator = FaceLocator(
         conditioning_embedding_channels=320,
     ).to(device="cuda", dtype=weight_dtype)
+    # audioproj = AudioProjModel(
+    #     seq_len=5,
+    #     blocks=12,
+    #     channels=768,
+    #     intermediate_dim=512,
+    #     output_dim=768,
+    #     context_tokens=32,
+    # ).to(device="cuda", dtype=weight_dtype)
     audioproj = AudioProjModel(
-        seq_len=5,
-        blocks=12,
-        channels=768,
+        window=50,
+        channels=384,
         intermediate_dim=512,
         output_dim=768,
         context_tokens=32,
     ).to(device="cuda", dtype=weight_dtype)
+
 
     feature_extractor = CLIPImageProcessor.from_pretrained(
         cfg.svd.pretrain, subfolder="feature_extractor"
@@ -739,6 +733,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
+
     print("**Trainable params: " , train_param_names)
     optimizer = optimizer_cls(
         trainable_params,
