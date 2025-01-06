@@ -396,7 +396,7 @@ def inference_process(args: argparse.Namespace):
 
     m,u = net.load_state_dict(
         torch.load(
-            os.path.join(audio_ckpt_dir, f"net-30000.pth"),
+            os.path.join(audio_ckpt_dir, f"net-21500.pth"),
             map_location="cpu",
         ),
     )
