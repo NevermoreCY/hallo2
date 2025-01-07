@@ -582,7 +582,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
                     print("new context 2 is ", new_context)
-                    print("latents shape is ", latents)
+                    print("latents shape is ", latents.shape)
                     latent_model_input = (
                         torch.cat([latents[:, :, c] for c in new_context])
                         .to(device)
