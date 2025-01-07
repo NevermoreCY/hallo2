@@ -551,12 +551,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 context_overlap,
             )
         )
-
+        print("***\n\n\n context_queue:", len(context_queue), context_queue)
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
 
                 # context
-
+                print("***\n\n\n i.t:", i,t )
                 num_context_batches = math.ceil(len(context_queue) / context_batch_size)
 
                 global_context = []
@@ -566,7 +566,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         j * context_batch_size: (j + 1) * context_batch_size
                         ]
                     )
-
+                print("global_context:", len(global_context), global_context)
                 for context in global_context:
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
                     for c_j in range(len(context)):
