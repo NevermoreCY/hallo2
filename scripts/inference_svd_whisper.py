@@ -579,7 +579,7 @@ def inference_process(args: argparse.Namespace):
             #     ):
 
             pipeline_output = pipeline(
-                image=pixel_values_ref_img,
+                image=source_image_pixels,
                 face_emb=source_image_face_emb,
                 audio_path = driving_audio_path,
                 video_length = 1200,
