@@ -484,7 +484,7 @@ def inference_process(args: argparse.Namespace):
         # for each time clip
         for t in range(times):
             print(f"[{t+1}/{times}]")
-            print("\n wihout motion frame, reference image shape :", source_image_pixels)
+            print("\n wihout motion frame, reference image shape :", source_image_pixels.shape)
             if len(tensor_result) == 0:
                 # The first iteration
                 motion_zeros = source_image_pixels.repeat(
