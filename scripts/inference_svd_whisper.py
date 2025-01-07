@@ -584,7 +584,7 @@ def inference_process(args: argparse.Namespace):
                 width=img_size[0],
                 height=img_size[1],
                 num_inference_steps=config.inference_steps,
-                guidance_scale=config.cfg_scale,
+                max_guidance_scale=config.cfg_scale,
                 generator=generator,
             )
 
