@@ -413,7 +413,7 @@ def inference_process(args: argparse.Namespace):
     # 5. inference
     pipeline = StableVideoDiffusionPipeline(
         vae=vae,
-        unet=net.unet,
+        unet=net.denoising_unet,
         scheduler=val_noise_scheduler,
         audio_guider=audio_guider,
         image_proj=net.imageproj,
