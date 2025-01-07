@@ -44,7 +44,7 @@ from pydub import AudioSegment
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hallo.animate.face_animate import FaceAnimatePipeline
+from hallo.animate.pipeline_svd_whisper import StableVideoDiffusionPipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.models.audio_proj_whisper import AudioProjModel
@@ -316,7 +316,7 @@ def inference_process(args: argparse.Namespace):
         os.path.join(save_path, "audio_preprocess")
     )
 
-    audio_model_path = "/yuch_ws/DH/EchoMimic/pretrained_weights/audio_processor/whisper_tiny.pt"
+    audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
     audio_guider = load_audio_model(model_path=audio_model_path, device='cuda')
 
 
@@ -403,19 +403,26 @@ def inference_process(args: argparse.Namespace):
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
     print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-21500.pth"))
 
+    # vae: AutoencoderKLTemporalDecoder,
+    # unet: UNetSpatioTemporalConditionModel,
+    # scheduler: EulerDiscreteScheduler,
+    # feature_extractor: CLIPImageProcessor,
+    # audio_guider,
+    # image_proj,
+
     # 5. inference
-    pipeline = FaceAnimatePipeline(
+    pipeline = StableVideoDiffusionPipeline(
         vae=vae,
-        reference_unet=net.reference_unet,
-        denoising_unet=net.denoising_unet,
-        face_locator=net.face_locator,
+        unet=net.unet,
         scheduler=val_noise_scheduler,
+        audio_guider=audio_guider,
         image_proj=net.imageproj,
+
     )
     pipeline.to(device=device, dtype=weight_dtype)
 
 
-
+    # for each reference image exmaple
     for idx, source_image_path in enumerate(source_image_paths):
 
         source_image_name = os.path.basename(source_image_path)[:-4]
@@ -436,11 +443,11 @@ def inference_process(args: argparse.Namespace):
         audio_emb = process_audio_emb(audio_emb)
 
         whisper_feature = audio_guider.audio2feat(driving_audio_path)
-        # print("whisper feature shape :", whisper_feature.shape)
+        print("whisper feature shape :", whisper_feature.shape)
         whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=25)
         audio_frame_num = whisper_chunks.shape[0]
         audio_fea_final = torch.Tensor(whisper_chunks)
-        # print("audio_fea_final shape ", audio_fea_final.shape)
+        print("audio_fea_final shape ", audio_fea_final.shape)
         audio_length = audio_fea_final.shape[0] - 1
 
 
@@ -474,6 +481,7 @@ def inference_process(args: argparse.Namespace):
         batch_size = 60
         start = 0
 
+        # for each time clip
         for t in range(times):
             print(f"[{t+1}/{times}]")
 
@@ -540,24 +548,46 @@ def inference_process(args: argparse.Namespace):
                 device=net.audioproj.device, dtype=net.audioproj.dtype)
             audio_tensor = net.audioproj(audio_tensor)
 
+            print("\n\n start run pipeline ")
+
+            #         self,
+            #         image: Union[PIL.Image.Image, List[PIL.Image.Image], torch.FloatTensor],
+            #         face_emb,
+            #         audio_path,
+            #         video_length,
+            #         height: int = 576,
+            #         width: int = 1024,
+            #         num_frames: Optional[int] = None,
+            #         num_inference_steps: int = 25,
+            #         min_guidance_scale: float = 1.0,
+            #         max_guidance_scale: float = 3.0,
+            #         fps: int = 7,
+            #         motion_bucket_id: int = 127,
+            #         noise_aug_strength: float = 0.02,
+            #         decode_chunk_size: Optional[int] = None,
+            #         num_videos_per_prompt: Optional[int] = 1,
+            #         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+            #         latents: Optional[torch.FloatTensor] = None,
+            #         output_type: Optional[str] = "pil",
+            #         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
+            #         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
+            #         return_dict: bool = True,
+            #         context_schedule="uniform",
+            #
+            #     ):
+
             pipeline_output = pipeline(
                 ref_image=pixel_values_ref_img,
-                audio_tensor=audio_tensor,
                 face_emb=source_image_face_emb,
-                face_mask=source_image_face_region,
-                pixel_values_full_mask=source_image_full_mask,
-                pixel_values_face_mask=source_image_face_mask,
-                pixel_values_lip_mask=source_image_lip_mask,
+                audio_path = driving_audio_path,
+                video_length = 1200,
                 width=img_size[0],
                 height=img_size[1],
-                video_length=clip_length,
                 num_inference_steps=config.inference_steps,
                 guidance_scale=config.cfg_scale,
                 generator=generator,
-                motion_scale=motion_scale,
             )
 
-            ic(pipeline_output.videos.shape)
             tensor_result.append(pipeline_output.videos)
 
         tensor_result = torch.cat(tensor_result, dim=2)
