@@ -575,17 +575,20 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     )
                 print("global_context:", len(global_context), global_context)
                 for context in global_context:
+                    print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
+                    print("new context is ", new_context)
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
+                    print("new context 2 is ", new_context)
 
                     latent_model_input = (
                         torch.cat([latents[:, :, c] for c in new_context])
                         .to(device)
                         .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
                     )
-
+                print("end global context")
 
                 # expand the latents if we are doing classifier free guidance
                 latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
