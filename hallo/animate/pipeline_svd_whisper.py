@@ -472,7 +472,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             context_scheduler(
                 0,
                 num_inference_steps,
-                latents.shape[2],
+                video_length,#latents.shape[2],
                 context_frames,
                 context_stride,
                 context_overlap,
