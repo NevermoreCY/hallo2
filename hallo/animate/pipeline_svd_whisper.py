@@ -361,7 +361,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         context_schedule="uniform",
         context_frames=12,
         context_stride=1,
-        context_overlap=0,
+        context_overlap=3,
         context_batch_size=1,
 
     ):
@@ -564,6 +564,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 # context
                 print("***\n\n\n i.t:", i,t )
                 num_context_batches = math.ceil(len(context_queue) / context_batch_size)
+                # should be same as context_queue
 
                 global_context = []
                 for j in range(num_context_batches):
