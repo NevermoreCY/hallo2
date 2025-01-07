@@ -122,7 +122,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         vae: AutoencoderKLTemporalDecoder,
         unet: UNetSpatioTemporalConditionModel,
         scheduler: EulerDiscreteScheduler,
-        feature_extractor: CLIPImageProcessor,
+        # feature_extractor: CLIPImageProcessor,
         audio_guider,
         image_proj,
 
@@ -133,7 +133,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             vae=vae,
             unet=unet,
             scheduler=scheduler,
-            feature_extractor=feature_extractor,
+            # feature_extractor=feature_extractor,
             audio_guider = audio_guider,
             image_proj = image_proj,
         )
@@ -466,7 +466,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
         # 3. Encode input image
-        image_embeddings = self._encode_image(image, device, num_videos_per_prompt, self.do_classifier_free_guidance)
+        image_embeddings = face_emb
 
         # NOTE: Stable Video Diffusion was conditioned on fps - 1, which is why it is reduced here.
         # See: https://github.com/Stability-AI/generative-models/blob/ed0997173f98eaf8f4edf7ba5fe8f15c6b877fd3/scripts/sampling/simple_video_sample.py#L188
