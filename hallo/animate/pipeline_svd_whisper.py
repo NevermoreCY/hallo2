@@ -456,14 +456,29 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
 
         print("\n whisper_chunks:", whisper_chunks.shape)
+        # whisper_chunks: (189, 50, 384)
+
         audio_frame_num = whisper_chunks.shape[0]
         audio_fea_final = torch.Tensor(whisper_chunks).to(dtype=self.vae.dtype, device=self.vae.device)
         audio_fea_final = audio_fea_final.unsqueeze(0)
         print("\n audio_fea_final:", audio_fea_final.shape)
+        #  audio_fea_final: torch.Size([1, 189, 50, 384])
         video_length = min(video_length, audio_frame_num)
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
 
+        context_scheduler = get_context_scheduler(context_schedule)
+        context_queue = list(
+            context_scheduler(
+                0,
+                num_inference_steps,
+                latents.shape[2],
+                context_frames,
+                context_stride,
+                context_overlap,
+            )
+        )
+        print("***\n\n\n context_queue:", len(context_queue), context_queue)
 
         # 3. Encode input image
         image_embeddings = face_emb
@@ -473,7 +488,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         fps = fps - 1
 
         # 4. Encode input image using VAE
-        image = self.image_processor.preprocess(image, height=height, width=width).to(device)
+        # image = self.image_processor.preprocess(image, height=height, width=width).to(device)
         noise = randn_tensor(image.shape, generator=generator, device=device, dtype=image.dtype)
         image = image + noise_aug_strength * noise
 
@@ -540,18 +555,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         self._num_timesteps = len(timesteps)
 
 
-        context_scheduler = get_context_scheduler(context_schedule)
-        context_queue = list(
-            context_scheduler(
-                0,
-                num_inference_steps,
-                latents.shape[2],
-                context_frames,
-                context_stride,
-                context_overlap,
-            )
-        )
-        print("***\n\n\n context_queue:", len(context_queue), context_queue)
+
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
 
