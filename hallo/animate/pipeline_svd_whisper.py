@@ -445,6 +445,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         else:
             batch_size = image.shape[0]
         device = self._execution_device
+        print("device is :", device)
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
         # corresponds to doing no classifier free guidance.
@@ -490,6 +491,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # 4. Encode input image using VAE
         # image = self.image_processor.preprocess(image, height=height, width=width).to(device)
         noise = randn_tensor(image.shape, generator=generator, device=device, dtype=image.dtype)
+        image = image.to( device=device)
         image = image + noise_aug_strength * noise
 
         needs_upcasting = self.vae.dtype == torch.float16 and self.vae.config.force_upcast
