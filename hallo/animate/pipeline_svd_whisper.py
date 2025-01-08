@@ -512,7 +512,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # Repeat the image latents for each frame so we can concatenate them with the noise
         # image_latents [batch, channels, height, width] ->[batch, num_frames, channels, height, width]
-        image_latents = image_latents.unsqueeze(1).repeat(1, num_frames, 1, 1, 1)
+        image_latents = image_latents.unsqueeze(1).repeat(1, video_length, 1, 1, 1)
 
         # 5. Get Added Time IDs
         added_time_ids = self._get_add_time_ids(
@@ -621,28 +621,45 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     )
 
                     print("latent_model_input shape is :", latent_model_input.shape)
-
+                    # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
                     print("c_audio_latents shape is :", c_audio_latents.shape)
+                    # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
                     audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
                     print("audio_latents shape is :", audio_latents.shape)
+                    # audio_latents shape is : torch.Size([2, 25, 50, 384])
                     # expand the latents if we are doing classifier free guidance
                     latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
                     latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
                     print("latent_model_input shape is ", latent_model_input.shape)
+                    # latent_model_input shape is  torch.Size([2, 189, 4, 64, 64])
                     print("image_latest shape is ", image_latents.shape)
-                    # Concatenate image_latents over channels dimension
-                    latent_model_input = torch.cat([latent_model_input, image_latents], dim=2)
+                    # image_latest shape is  torch.Size([2, 25, 4, 64, 64])
 
+                    # Concatenate image_latents over channels dimension
+                    latent_model_input = torch.cat([latent_model_input, image_latents], dim=1)
+
+                    print("image_embeddings shape is ", image_embeddings)
+                    image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
+                    print("image_embeddings cfg shape is ", image_embeddings)
                     # predict the noise residual
                     noise_pred = self.unet(
                         latent_model_input,
                         t,
-                        encoder_hidden_states=image_embeddings,
+                        encoder_hidden_states=image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings,
+                        audio_embedding=audio_latents if self.do_classifier_free_guidance else c_audio_latents,
                         added_time_ids=added_time_ids,
                         return_dict=False,
                     )[0]
+
+                    # model_pred = self.denoising_unet(
+                    #     noisy_latents,
+                    #     timesteps,
+                    #     encoder_hidden_states=face_emb,
+                    #     audio_embedding=audio_emb,
+                    #     added_time_ids=added_time_ids,
+                    # ).sample
 
                 # perform guidance
                 if self.do_classifier_free_guidance:
