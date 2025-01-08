@@ -363,6 +363,7 @@ class TalkingVideoDataset(Dataset):
             print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
             print("pixel_values_ref_img shape is 3", pixel_values_ref_img.shape)
+            print("self.n_motion_frames is ", self.n_motion_frames   )
             if self.n_motion_frames > 0:
                 pixel_values_motion = self.augmentation(
                     motion_list, self.pixel_transform, state
