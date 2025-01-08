@@ -433,7 +433,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         num_frames = num_frames if num_frames is not None else self.unet.config.num_frames
         decode_chunk_size = decode_chunk_size if decode_chunk_size is not None else num_frames
-        print(num_frames)
+        print("num_frames ", num_frames)
         # 1. Check inputs. Raise error if not correct
         self.check_inputs(image, height, width)
 
@@ -534,7 +534,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         num_channels_latents = self.unet.config.in_channels
         latents = self.prepare_latents(
             batch_size * num_videos_per_prompt,
-            num_frames,
+            video_length,
             num_channels_latents,
             height,
             width,
@@ -551,8 +551,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         guidance_scale = _append_dims(guidance_scale, latents.ndim)
 
         print("guidance scale")
-        print(guidance_scale.shape)
-        print(guidance_scale)
+        # print(guidance_scale.shape)
+        # [1,25,1,1,1]
+        # print(guidance_scale)
+        # 1,1.2,1.31,1.41,1.52.....3.39,3.5
         self._guidance_scale = guidance_scale
 
         # 9. Denoising loop
@@ -580,6 +582,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                 print("**\n\n noise pred shape is :", noise_pred.shape)
                 print("counter shape is : ", counter.shape)
+                #  noise pred shape is : torch.Size([2, 25, 4, 64, 64])
+                #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
 
                 # context
                 print("***\n\n\n i.t:", i,t )
@@ -593,21 +597,29 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         j * context_batch_size: (j + 1) * context_batch_size
                         ]
                     )
+                # TODO add shift count here
+
+
                 print("global_context:", len(global_context), global_context)
                 for context in global_context:
                     print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
-                    print("new context is ", new_context)
+                    print("new context is ", new_context) # all zeros
+
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
                     print("new context 2 is ", new_context)
                     print("latents shape is ", latents.shape)
+                    # latents shape is  torch.Size([1, 25, 4, 64, 64])
+
                     latent_model_input = (
-                        torch.cat([latents[:, :, c] for c in new_context])
+                        torch.cat([latents[:, c, :] for c in new_context])
                         .to(device)
                         .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
                     )
+
+                    print("latent_model_input shape is :", latent_model_input)
                 print("end global context")
 
                 # expand the latents if we are doing classifier free guidance
