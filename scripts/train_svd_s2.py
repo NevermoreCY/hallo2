@@ -520,7 +520,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         - The training progress is logged and tracked using the accelerator.
         - The trained model is saved after the training is completed.
     """
-    config = ProjectConfiguration(project_dir=".", logging_dir="log")
+
+    print(f"Current working directory: {os.getcwd()}")
+
+    # 可选：手动创建日志目录
+    log_dir = "log"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        print(f"Created log directory: {log_dir}")
+
+    # 配置项目和日志目录
+    config = ProjectConfiguration(project_dir=".", logging_dir=log_dir)
     accelerator = Accelerator(
         gradient_accumulation_steps=cfg.solver.gradient_accumulation_steps,
         mixed_precision=cfg.solver.mixed_precision,
@@ -810,12 +820,27 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             exp_name,
 
             init_kwargs={"tensorboard": {
-                    "log_dir": "./log",
+                    # "log_dir": save_dir,
                     "flush_secs": 60
 
                 }
             },
         )
+        # 打印日志目录
+        print(f"TensorBoard logs are saved in: {config.logging_dir}")
+
+        # 查找并打印实际的日志位置（如果需要）
+        def find_tensorboard_logs(base_dir='.'):
+            for root, dirs, files in os.walk(base_dir):
+                if any(file.startswith("events.out.tfevents") for file in files):
+                    return os.path.abspath(root)
+            return None
+
+        log_dir_found = find_tensorboard_logs(config.logging_dir)
+        if log_dir_found:
+            print(f"Found TensorBoard logs in: {log_dir_found}")
+        else:
+            print("No TensorBoard logs found yet.")
 
         logger.info(f"save config to {save_dir}")
         OmegaConf.save(
