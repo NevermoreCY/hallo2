@@ -886,8 +886,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 #
                 # conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
 
-                print("\n pixel_values_vid shape is ", pixel_values_vid.shape)
-                print("condi shape : ", conditional_pixel_values.shape)
+                print("\n pixel_values_vid shape is ", pixel_values_vid.shape , torch.max(pixel_values_vid), torch.min(pixel_values_vid) )
+                print("condi shape : ", conditional_pixel_values.shape, torch.max(conditional_pixel_values) , torch.min(conditional_pixel_values))
 
 
                 # print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
