@@ -118,7 +118,7 @@ seed: 42
 resume_from_checkpoint: "latest"
 checkpointing_steps: 500
 
-exp_name: "svd_whisper_test2"
+exp_name: "svd_whisper_train0"
 output_dir: "./exp_output"
 
 ref_img_path:
