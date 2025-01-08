@@ -551,6 +551,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         guidance_scale = _append_dims(guidance_scale, latents.ndim)
 
         print("guidance scale")
+        print("do CFG", self.do_classifier_free_guidance)
         # print(guidance_scale.shape)
         # [1,25,1,1,1]
         # print(guidance_scale)
@@ -611,7 +612,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
                     print("new context 2 is ", new_context)
                     print("latents shape is ", latents.shape)
-                    # latents shape is  torch.Size([1, 25, 4, 64, 64])
+                    # latents shape is  torch.Size([1, 189, 4, 64, 64])
 
                     latent_model_input = (
                         torch.cat([latents[:, c, :] for c in new_context])
@@ -619,24 +620,29 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
                     )
 
-                    print("latent_model_input shape is :", latent_model_input)
-                print("end global context")
+                    print("latent_model_input shape is :", latent_model_input.shape)
 
-                # expand the latents if we are doing classifier free guidance
-                latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
-                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+                    c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
+                    print("c_audio_latents shape is :", c_audio_latents.shape)
+                    audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
+                    print("audio_latents shape is :", audio_latents.shape)
+                    # expand the latents if we are doing classifier free guidance
+                    latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
+                    latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
-                # Concatenate image_latents over channels dimension
-                latent_model_input = torch.cat([latent_model_input, image_latents], dim=2)
+                    print("latent_model_input shape is ", latent_model_input.shape)
+                    print("image_latest shape is ", image_latents.shape)
+                    # Concatenate image_latents over channels dimension
+                    latent_model_input = torch.cat([latent_model_input, image_latents], dim=2)
 
-                # predict the noise residual
-                noise_pred = self.unet(
-                    latent_model_input,
-                    t,
-                    encoder_hidden_states=image_embeddings,
-                    added_time_ids=added_time_ids,
-                    return_dict=False,
-                )[0]
+                    # predict the noise residual
+                    noise_pred = self.unet(
+                        latent_model_input,
+                        t,
+                        encoder_hidden_states=image_embeddings,
+                        added_time_ids=added_time_ids,
+                        return_dict=False,
+                    )[0]
 
                 # perform guidance
                 if self.do_classifier_free_guidance:
