@@ -358,11 +358,11 @@ class TalkingVideoDataset(Dataset):
                 self.augmentation(full_masks_list, self.attn_transform_16, state),
                 self.augmentation(full_masks_list, self.attn_transform_8, state),
             ]
-            print("pixel_values_ref_img shape is 1", ref_img.shape)
+            # print("pixel_values_ref_img shape is 1", ref_img.shape)
             pixel_values_ref_img = self.augmentation(ref_img, self.pixel_transform, state)
-            print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
+            # print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
-            print("pixel_values_ref_img shape is 3", pixel_values_ref_img.shape)
+            # print("pixel_values_ref_img shape is 3", pixel_values_ref_img.shape)
             print("self.n_motion_frames is ", self.n_motion_frames   )
             if self.n_motion_frames > 0:
                 pixel_values_motion = self.augmentation(
