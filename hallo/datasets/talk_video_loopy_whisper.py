@@ -363,7 +363,7 @@ class TalkingVideoDataset(Dataset):
             # print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
             # print("pixel_values_ref_img shape is 3", pixel_values_ref_img.shape)
-            print("self.n_motion_frames is ", self.n_motion_frames   )
+            # print("self.n_motion_frames is ", self.n_motion_frames   )
             if self.n_motion_frames > 0:
                 pixel_values_motion = self.augmentation(
                     motion_list, self.pixel_transform, state
@@ -373,9 +373,9 @@ class TalkingVideoDataset(Dataset):
                 )
 
             audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
-            print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
-            print("pixel_values_vid shape is :", pixel_values_vid.shape)
-            print("pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
+            # print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
+            # print("pixel_values_vid shape is :", pixel_values_vid.shape)
+            # print("pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
 
             sample = {
                 "start_idx": start_idx,

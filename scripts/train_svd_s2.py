@@ -886,9 +886,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 #
                 # conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
 
-                print("\n pixel_values_vid shape is ", pixel_values_vid.shape , torch.max(pixel_values_vid), torch.min(pixel_values_vid) )
-                print("condi shape : ", conditional_pixel_values.shape, torch.max(conditional_pixel_values) , torch.min(conditional_pixel_values))
-
+                # print("\n pixel_values_vid shape is ", pixel_values_vid.shape , torch.max(pixel_values_vid), torch.min(pixel_values_vid) )
+                # print("condi shape : ", conditional_pixel_values.shape, torch.max(conditional_pixel_values) , torch.min(conditional_pixel_values))
+                # ([2, 25, 3, 512, 512])   -1 , 1
+                # ([2, 1, 3, 512, 512])   -1 ,1
 
                 # print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
                 # conditional_pixel_values shape is  torch.Size([4, 1, 3, 512, 512])
@@ -1014,7 +1015,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 inp_noisy_latents = torch.cat(
                     [inp_noisy_latents, conditional_latents], dim=2)
-                print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
+                # print("**debug 12 29 \n\n  inp_noisy_latents shape", inp_noisy_latents.shape)
                 #   inp_noisy_latents shape torch.Size([4, 14, 8, 64, 64])
 
 
@@ -1054,7 +1055,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     added_time_ids=added_time_ids,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
-                print("idx", idx , "denoising latents" )
+                # print("idx", idx , "denoising latents" )
                 # Denoise the latents
                 c_out = -sigmas / ((sigmas ** 2 + 1) ** 0.5)
                 c_skip = 1 / (sigmas ** 2 + 1)
@@ -1069,7 +1070,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
                 loss = loss.mean()
 
-                print("idx", idx, "MSE Loss")
+                # print("idx", idx, "MSE Loss")
 
                 #
                 # if cfg.snr_gamma == 0:
@@ -1103,10 +1104,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 avg_loss = accelerator.gather(
                     loss.repeat(cfg.data.train_bs)).mean()
                 train_loss += avg_loss.item() / cfg.solver.gradient_accumulation_steps
-                print("idx", idx, "train loss")
+                # print("idx", idx, "train loss")
                 # Backpropagate
                 # accelerator.backward(loss)
-                print(f"Loss requires_grad: {loss.requires_grad}, Loss grad_fn: {loss.grad_fn}")
+                # print(f"Loss requires_grad: {loss.requires_grad}, Loss grad_fn: {loss.grad_fn}")
                 try:
                     accelerator.backward(loss)
                 except Exception as e:
@@ -1116,7 +1117,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
-                    print("idx", idx, "clip grad norm")
+                    # print("idx", idx, "clip grad norm")
                     accelerator.clip_grad_norm_(
                         trainable_params,
                         cfg.solver.max_grad_norm,
@@ -1124,11 +1125,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                print("idx", idx, "step done")
+                # print("idx", idx, "step done")
 
 
             if accelerator.sync_gradients:
-                print("idx", idx, "progress_bar")
+                # print("idx", idx, "progress_bar")
                 progress_bar.update(1)
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
@@ -1153,7 +1154,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         #     times=cfg.single_inference_times if cfg.single_inference_times is not None else None,
                         #     face_analysis_model_path=cfg.face_analysis_model_path
                         # )
-            print("idx", idx, "logs")
+            # print("idx", idx, "logs")
             torch.cuda.empty_cache()
             logs = {
                 "step_loss": loss.detach().item(),
@@ -1168,7 +1169,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 or global_step == cfg.solver.max_train_steps
             ):
                 # save model
-                print("idx", idx, "save")
+                # print("idx", idx, "save")
                 save_path = os.path.join(
                     checkpoint_dir, f"checkpoint-{global_step}")
                 if accelerator.is_main_process:
@@ -1184,7 +1185,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         module_dir,
                         "net",
                         global_step,
-                        total_limit=30,
+                        total_limit=3,
                     )
             if global_step >= cfg.solver.max_train_steps:
                 break
