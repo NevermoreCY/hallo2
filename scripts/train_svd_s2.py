@@ -1115,7 +1115,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     print("Exception in backward pass:", e)
                     print(traceback.format_exc())
 
-                print("idx", idx, "backward done")
+                # print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
                     # print("idx", idx, "clip grad norm")
                     accelerator.clip_grad_norm_(
