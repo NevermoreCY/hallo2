@@ -528,10 +528,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         project_config=config
     )
 
-    if accelerator.is_main_process:
-        log_dir = accelerator.get_tracker("tensorboard").log_dir
-        print(f"**tensorboard \n\n TensorBoard logs are saved in: {log_dir}")
-    # Make one log on every process with the configuration for debugging.
+    # if accelerator.is_main_process:
+    #     log_dir = accelerator.get_tracker("tensorboard").log_dir
+    #     print(f"**tensorboard \n\n TensorBoard logs are saved in: {log_dir}")
+    # # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
@@ -810,7 +810,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             exp_name,
 
             init_kwargs={"tensorboard": {
-                    "log_dir": "./logs",
+                    "log_dir": "./log",
                     "flush_secs": 60
 
                 }
