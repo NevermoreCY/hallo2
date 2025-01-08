@@ -583,6 +583,7 @@ def inference_process(args: argparse.Namespace):
                 face_emb=source_image_face_emb,
                 audio_path = driving_audio_path,
                 video_length = 1200,
+                num_frames=25,
                 width=img_size[0],
                 height=img_size[1],
                 num_inference_steps=config.inference_steps,

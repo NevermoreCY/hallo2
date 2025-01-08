@@ -359,9 +359,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         return_dict: bool = True,
         context_schedule="uniform",
-        context_frames=12,
+        context_frames=25,
         context_stride=1,
-        context_overlap=3,
+        context_overlap=0,
         context_batch_size=1,
 
     ):
