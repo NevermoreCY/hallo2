@@ -881,11 +881,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # pixel_values_vid shape is  torch.Size([4, 14, 3, 512, 512])
                 #
 
-                reference_pixel_vaules = batch["pixel_values_ref_img"].to(weight_dtype)
+                conditional_pixel_values = batch["pixel_values_ref_img"].to(weight_dtype)
+                # reference_pixel_values = batch["pixel_values_ref_img"].to(weight_dtype)
+                #
+                # conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
 
-                conditional_pixel_values = pixel_values_vid[:, 0:1, :, :, :]
+                print("\n pixel_values_vid shape is ", pixel_values_vid.shape)
+                print("condi shape : ", conditional_pixel_values.shape)
 
-                print("\n ref shape, condi shape : ", reference_pixel_vaules.shape , conditional_pixel_values.shape)
 
                 # print("**debug 12 29 \n\n  conditional_pixel_values shape is ", conditional_pixel_values.shape)
                 # conditional_pixel_values shape is  torch.Size([4, 1, 3, 512, 512])
