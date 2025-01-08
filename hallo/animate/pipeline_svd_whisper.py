@@ -433,7 +433,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         num_frames = num_frames if num_frames is not None else self.unet.config.num_frames
         decode_chunk_size = decode_chunk_size if decode_chunk_size is not None else num_frames
-
+        print(num_frames)
         # 1. Check inputs. Raise error if not correct
         self.check_inputs(image, height, width)
 
@@ -550,6 +550,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         guidance_scale = guidance_scale.repeat(batch_size * num_videos_per_prompt, 1)
         guidance_scale = _append_dims(guidance_scale, latents.ndim)
 
+        print("guidance scale")
+        print(guidance_scale.shape)
+        print(guidance_scale)
         self._guidance_scale = guidance_scale
 
         # 9. Denoising loop
@@ -560,6 +563,23 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
+
+                noise_pred = torch.zeros(
+                    (
+                        latents.shape[0] * (2 if self.do_classifier_free_guidance else 1),
+                        *latents.shape[1:],
+                    ),
+                    device=latents.device,
+                    dtype=latents.dtype,
+                )
+                counter = torch.zeros(
+                    (1, 1, latents.shape[2], 1, 1),
+                    device=latents.device,
+                    dtype=latents.dtype,
+                )
+
+                print("**\n\n noise pred shape is :", noise_pred.shape)
+                print("counter shape is : ", counter.shape)
 
                 # context
                 print("***\n\n\n i.t:", i,t )
