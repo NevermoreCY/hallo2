@@ -477,6 +477,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         print("t_emb dtype is ", t_emb.dtype)
 
 
+
+
         emb = self.time_embedding(t_emb)
 
         # myabe use a fixed added time ids first
