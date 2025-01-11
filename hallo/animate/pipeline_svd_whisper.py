@@ -640,9 +640,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # Concatenate image_latents over channels dimension
                     latent_model_input = torch.cat([latent_model_input, image_latents], dim=1)
 
-                    print("image_embeddings shape is ", image_embeddings)
+                    print("image_embeddings shape is ", image_embeddings.shape)
                     image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
-                    print("image_embeddings cfg shape is ", image_embeddings)
+                    print("image_embeddings cfg shape is ", image_embeddings.shape)
+                    print("do cfg: ", self.do_classifier_free_guidance)
                     # predict the noise residual
                     noise_pred = self.unet(
                         latent_model_input,
