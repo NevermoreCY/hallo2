@@ -422,6 +422,7 @@ def inference_process(args: argparse.Namespace):
     pipeline.to(device=device, dtype=weight_dtype)
 
 
+
     # for each reference image exmaple
     for idx, source_image_path in enumerate(source_image_paths):
 
@@ -589,6 +590,7 @@ def inference_process(args: argparse.Namespace):
                 num_inference_steps=config.inference_steps,
                 max_guidance_scale=config.cfg_scale,
                 generator=generator,
+                weight_dtype = weight_dtype,
             )
 
             tensor_result.append(pipeline_output.videos)

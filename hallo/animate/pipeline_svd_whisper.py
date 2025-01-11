@@ -363,6 +363,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         context_stride=1,
         context_overlap=0,
         context_batch_size=1,
+        weight_dtype = torch.float16,
 
     ):
         r"""
@@ -538,7 +539,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             num_channels_latents,
             height,
             width,
-            image_embeddings.dtype,
+            weight_dtype,
             device,
             generator,
             latents,
@@ -644,6 +645,13 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
                     print("image_embeddings cfg shape is ", image_embeddings.shape)
                     print("do cfg: ", self.do_classifier_free_guidance)
+
+                    print("**01,11\n\n dtype check before entering unet:")
+                    print("latent model", latent_model_input.dtype)
+                    # print("t", t.dtype)
+                    print("audio latents", audio_latents.dtype)
+                    print("image_embeddings_cfg",image_embeddings_cfg.dtype)
+
                     # predict the noise residual
                     noise_pred = self.unet(
                         latent_model_input,
