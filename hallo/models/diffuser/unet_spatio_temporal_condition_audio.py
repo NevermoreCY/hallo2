@@ -438,7 +438,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
 
         c += 1
-        # print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
+        print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
 
         if not torch.is_tensor(timesteps):
             # TODO: this requires sync between CPU and GPU. So try to pass timesteps as tensors if you can
@@ -455,7 +455,8 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
         batch_size, num_frames = sample.shape[:2]
         timesteps = timesteps.expand(batch_size)
-        print(timesteps,timesteps.shape)
+        print("sample shape ",sample.shape)
+        print("timesteps shape", timesteps,timesteps.shape)
         t_emb = self.time_proj(timesteps)
         print("t_emb shape is ", t_emb.shape)
         # input sample shape 0 :  torch.Size([4, 14, 4, 64, 64])
