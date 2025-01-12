@@ -308,12 +308,15 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             )
 
         if latents is None:
+            print("111")
             latents = randn_tensor(shape, generator=generator, device=device, dtype=dtype)
         else:
-            latents = latents.to(device)
+            print("222")
+            latents = latents.to(device=device,dtype=dtype)
 
         # scale the initial noise by the standard deviation required by the scheduler
         latents = latents * self.scheduler.init_noise_sigma
+        print("return latents d type ", latents.dtype)
         return latents
 
     @property
