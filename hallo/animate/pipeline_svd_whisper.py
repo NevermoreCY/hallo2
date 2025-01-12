@@ -29,6 +29,7 @@ from diffusers.utils import BaseOutput, logging, replace_example_docstring
 from diffusers.utils.torch_utils import is_compiled_module, randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from .context import get_context_scheduler
+from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import retrieve_timesteps
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -569,6 +570,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         self._num_timesteps = len(timesteps)
 
 
+        print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
+
+        timesteps2, num_inference_steps2 = retrieve_timesteps(self.scheduler, num_inference_steps, device, None)
+        print("\n timesteps new", len(timesteps2), num_inference_steps2, timesteps2)
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
