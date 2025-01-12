@@ -494,7 +494,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # 4. Encode input image using VAE
         # image = self.image_processor.preprocess(image, height=height, width=width).to(device)
-        noise = randn_tensor(image.shape, generator=generator, device=device, dtype=image.dtype)
+        noise = randn_tensor(image.shape, generator=generator, device=device, dtype=weight_dtype)
         image = image.to( device=device)
         image = image + noise_aug_strength * noise
 
@@ -549,7 +549,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             generator,
             latents,
         )
-
+        print("latents d type is ", latents.dtype)
         # 8. Prepare guidance scale
         guidance_scale = torch.linspace(min_guidance_scale, max_guidance_scale, num_frames).unsqueeze(0)
         guidance_scale = guidance_scale.to(device, latents.dtype)
@@ -622,11 +622,11 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                     latent_model_input = (
                         torch.cat([latents[:, c, :] for c in new_context])
-                        .to(device)
+                        .to(device=device,dtype=latents.dtype)
                         .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
                     )
 
-                    print("latent_model_input shape is :", latent_model_input.shape)
+                    print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
                     print("c_audio_latents shape is :", c_audio_latents.shape)
