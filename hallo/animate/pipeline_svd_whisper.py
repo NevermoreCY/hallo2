@@ -534,6 +534,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # 7. Prepare latent variables
         num_channels_latents = self.unet.config.in_channels
         print("ww\n\n weight_dtype is ", weight_dtype)
+        print(" vae_dtype is ", self.vae.dtype)
         latents = self.prepare_latents(
             batch_size * num_videos_per_prompt,
             video_length,
