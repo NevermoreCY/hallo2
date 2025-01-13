@@ -573,7 +573,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
         timesteps = timesteps.to(dtype=weight_dtype)
-        print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
+        print("DEBUG\n\n timesteps old", len(timesteps), timesteps.dtype, timesteps)
 
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -599,7 +599,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
 
                 # context
-                print("***\n\n\n i.t:", i,t )
+                print("***\n\n\n i.t:", i,t, t.dtype )
                 num_context_batches = math.ceil(len(context_queue) / context_batch_size)
                 # should be same as context_queue
 
