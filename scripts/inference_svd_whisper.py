@@ -33,7 +33,7 @@ import os
 import sys
 
 import torch
-from diffusers import AutoencoderKL, DDIMScheduler
+from diffusers import AutoencoderKL, DDIMScheduler , EulerDiscreteScheduler
 from omegaconf import OmegaConf
 from torch import nn
 from pathlib import Path
@@ -44,7 +44,7 @@ from pydub import AudioSegment
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hallo.animate.pipeline_svd_whisper import StableVideoDiffusionPipeline
+from hallo.animate.pipeline_svd_whisper_test import StableVideoDiffusionPipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.models.audio_proj_whisper import AudioProjModel
@@ -331,6 +331,8 @@ def inference_process(args: argparse.Namespace):
     val_noise_scheduler = DDIMScheduler(**sched_kwargs)
     sched_kwargs.update({"beta_schedule": "scaled_linear"})
 
+    eul_noise_scheduler = EulerDiscreteScheduler.from_pretrained("pretrained_models", subfolder="scheduler")
+
     vae = AutoencoderKL.from_pretrained(config.vae.model_path)
 
 
@@ -414,7 +416,7 @@ def inference_process(args: argparse.Namespace):
     pipeline = StableVideoDiffusionPipeline(
         vae=vae,
         unet=net.denoising_unet,
-        scheduler=val_noise_scheduler,
+        scheduler=eul_noise_scheduler,
         audio_guider=audio_guider,
         image_proj=net.imageproj,
 
