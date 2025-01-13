@@ -570,9 +570,11 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         self._num_timesteps = len(timesteps)
 
 
-        print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
+
 
         timesteps = timesteps.to(dtype=weight_dtype)
+        print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
+
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
