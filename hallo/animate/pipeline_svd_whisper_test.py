@@ -572,8 +572,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
 
-        timesteps2, num_inference_steps2 = retrieve_timesteps(self.scheduler, num_inference_steps, device, None)
-        print("\n timesteps new", len(timesteps2), num_inference_steps2, timesteps2)
+        timesteps = timesteps.to(dtype=weight_dtype)
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(timesteps):
@@ -613,91 +612,91 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
                 print("global_context:", len(global_context), global_context)
-                for context in global_context:
-                    print("context is ", context)
-                    new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
-                    print("new context is ", new_context) # all zeros
+                context = global_context[0]
+                print("context is ", context)
+                new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
+                print("new context is ", new_context)  # all zeros
 
-                    for c_j in range(len(context)):
-                        for c_i in range(len(context[c_j])):
-                            new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
-                    print("new context 2 is ", new_context)
-                    print("latents shape is ", latents.shape)
-                    # latents shape is  torch.Size([1, 189, 4, 64, 64])
+                for c_j in range(len(context)):
+                    for c_i in range(len(context[c_j])):
+                        new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
+                print("new context 2 is ", new_context)
+                print("latents shape is ", latents.shape)
+                # latents shape is  torch.Size([1, 189, 4, 64, 64])
 
-                    latent_model_input = (
-                        torch.cat([latents[:, c, :] for c in new_context])
-                        .to(device=device,dtype=latents.dtype)
-                        .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
-                    )
+                latent_model_input = (
+                    torch.cat([latents[:, c, :] for c in new_context])
+                    .to(device=device, dtype=latents.dtype)
+                    .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
+                )
 
-                    print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
-                    # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
-                    c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
-                    print("c_audio_latents shape is :", c_audio_latents.shape)
-                    # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
-                    audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
-                    print("audio_latents shape is :", audio_latents.shape)
-                    # audio_latents shape is : torch.Size([2, 25, 50, 384])
-                    # expand the latents if we are doing classifier free guidance
-                    latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
-                    latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+                print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
+                # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
+                c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
+                print("c_audio_latents shape is :", c_audio_latents.shape)
+                # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
+                audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
+                print("audio_latents shape is :", audio_latents.shape)
+                # audio_latents shape is : torch.Size([2, 25, 50, 384])
+                # expand the latents if we are doing classifier free guidance
+                latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
+                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
-                    print("latent_model_input shape is ", latent_model_input.shape)
-                    # latent_model_input shape is  torch.Size([2, 189, 4, 64, 64])
-                    print("image_latest shape is ", image_latents.shape)
-                    # image_latest shape is  torch.Size([2, 25, 4, 64, 64])
+                print("latent_model_input shape is ", latent_model_input.shape)
+                # latent_model_input shape is  torch.Size([2, 189, 4, 64, 64])
+                print("image_latest shape is ", image_latents.shape)
+                # image_latest shape is  torch.Size([2, 25, 4, 64, 64])
 
-                    # Concatenate image_latents over channels dimension
-                    latent_model_input = torch.cat([latent_model_input, image_latents], dim=1)
+                # Concatenate image_latents over channels dimension
+                latent_model_input = torch.cat([latent_model_input, image_latents], dim=1)
 
-                    print("image_embeddings shape is ", image_embeddings.shape)
-                    image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
-                    print("image_embeddings cfg shape is ", image_embeddings.shape)
-                    print("do cfg: ", self.do_classifier_free_guidance)
+                print("image_embeddings shape is ", image_embeddings.shape)
+                image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
+                print("image_embeddings cfg shape is ", image_embeddings.shape)
+                print("do cfg: ", self.do_classifier_free_guidance)
 
-                    print("**01,11\n\n dtype check before entering unet:")
-                    print("latent model", latent_model_input.dtype)
-                    # print("t", t.dtype)
-                    print("audio latents", audio_latents.dtype)
-                    print("image_embeddings_cfg",image_embeddings_cfg.dtype)
+                print("**01,11\n\n dtype check before entering unet:")
+                print("latent model", latent_model_input.dtype)
+                # print("t", t.dtype)
+                print("audio latents", audio_latents.dtype)
+                print("image_embeddings_cfg", image_embeddings_cfg.dtype)
 
-                    # predict the noise residual
-                    noise_pred = self.unet(
-                        latent_model_input,
-                        t,
-                        encoder_hidden_states=image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings,
-                        audio_embedding=audio_latents if self.do_classifier_free_guidance else c_audio_latents,
-                        added_time_ids=added_time_ids,
-                        return_dict=False,
-                    )[0]
+                # predict the noise residual
+                noise_pred = self.unet(
+                    latent_model_input,
+                    t,
+                    encoder_hidden_states=image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings,
+                    audio_embedding=audio_latents if self.do_classifier_free_guidance else c_audio_latents,
+                    added_time_ids=added_time_ids,
+                    return_dict=False,
+                )[0]
 
-                    # model_pred = self.denoising_unet(
-                    #     noisy_latents,
-                    #     timesteps,
-                    #     encoder_hidden_states=face_emb,
-                    #     audio_embedding=audio_emb,
-                    #     added_time_ids=added_time_ids,
-                    # ).sample
+                # model_pred = self.denoising_unet(
+                #     noisy_latents,
+                #     timesteps,
+                #     encoder_hidden_states=face_emb,
+                #     audio_embedding=audio_emb,
+                #     added_time_ids=added_time_ids,
+                # ).sample
 
                 # perform guidance
-                if self.do_classifier_free_guidance:
-                    noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
-                    noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_cond - noise_pred_uncond)
+            if self.do_classifier_free_guidance:
+                noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
+                noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_cond - noise_pred_uncond)
 
                 # compute the previous noisy sample x_t -> x_t-1
-                latents = self.scheduler.step(noise_pred, t, latents).prev_sample
+            latents = self.scheduler.step(noise_pred, t, latents).prev_sample
 
-                if callback_on_step_end is not None:
-                    callback_kwargs = {}
-                    for k in callback_on_step_end_tensor_inputs:
-                        callback_kwargs[k] = locals()[k]
-                    callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
+            if callback_on_step_end is not None:
+                callback_kwargs = {}
+                for k in callback_on_step_end_tensor_inputs:
+                    callback_kwargs[k] = locals()[k]
+                callback_outputs = callback_on_step_end(self, i, t, callback_kwargs)
 
-                    latents = callback_outputs.pop("latents", latents)
+                latents = callback_outputs.pop("latents", latents)
 
-                if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
-                    progress_bar.update()
+            if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
+                progress_bar.update()
 
         if not output_type == "latent":
             # cast back to fp16 if needed
