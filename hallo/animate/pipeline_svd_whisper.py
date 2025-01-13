@@ -571,6 +571,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
         print("DEBUG\n\n timesteps old", len(timesteps), timesteps)
+        #  timesteps old 40 40 tensor([999, 974, 949, 924, 899, 874, 849, 824, 799, 774, 749, 724, 699, 674,
+        #         649, 624, 599, 574, 549, 524, 499, 474, 449, 424, 399, 374, 349, 324,
+        #         299, 274, 249, 224, 199, 174, 149, 124,  99,  74,  49,  24],
+        #        device='cuda:0')
 
         timesteps2, num_inference_steps2 = retrieve_timesteps(self.scheduler, num_inference_steps, device, None)
         print("\n timesteps new", len(timesteps2), num_inference_steps2, timesteps2)
