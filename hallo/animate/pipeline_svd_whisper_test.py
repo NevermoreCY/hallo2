@@ -532,8 +532,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         added_time_ids = added_time_ids.to(device)
 
         # 6. Prepare timesteps
-        self.scheduler.set_timesteps(num_inference_steps, device=device)
-        timesteps = self.scheduler.timesteps
+        # self.scheduler.set_timesteps(num_inference_steps, device=device)
+        # timesteps = self.scheduler.timesteps
+        timesteps, num_inference_steps = retrieve_timesteps(self.scheduler, num_inference_steps, device, None)
 
         # 7. Prepare latent variables
         num_channels_latents = self.unet.config.in_channels
@@ -641,7 +642,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("audio_latents shape is :", audio_latents.shape)
                 # audio_latents shape is : torch.Size([2, 25, 50, 384])
                 # expand the latents if we are doing classifier free guidance
-                latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
+                # latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
                 print("latent_model_input shape is ", latent_model_input.shape)
