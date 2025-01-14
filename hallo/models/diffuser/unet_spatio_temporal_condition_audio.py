@@ -514,6 +514,14 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         c += 1
         image_only_indicator = torch.zeros(batch_size, num_frames, dtype=sample.dtype, device=sample.device)
         # down
+
+        print("***\n\n Before down block : ")
+        print("sample shape ", sample.shape)
+        print("temb shape ", emb.shape)
+        print("audio_emb shape ", audio_embedding.shape)
+        print("encoder_hidden_states shape ", encoder_hidden_states.shape)
+        print("image_only_indicator shape ", image_only_indicator.shape)
+
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
             if hasattr(downsample_block, "has_cross_attention") and downsample_block.has_cross_attention:
