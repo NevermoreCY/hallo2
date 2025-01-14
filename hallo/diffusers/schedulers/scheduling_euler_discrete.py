@@ -554,9 +554,10 @@ class EulerDiscreteScheduler(SchedulerMixin, ConfigMixin):
     def index_for_timestep(self, timestep, schedule_timesteps=None):
         if schedule_timesteps is None:
             schedule_timesteps = self.timesteps
-
+        print(schedule_timesteps)
+        print(timestep)
         indices = (schedule_timesteps == timestep).nonzero()
-
+        print(indices)
         # The sigma index that is taken for the **very** first `step`
         # is always the second index (or the last index if there is only 1)
         # This way we can ensure we don't accidentally skip a sigma in
