@@ -33,7 +33,7 @@ import os
 import sys
 
 import torch
-from diffusers import AutoencoderKL, DDIMScheduler , EulerDiscreteScheduler
+from diffusers import AutoencoderKL, DDIMScheduler ,
 from omegaconf import OmegaConf
 from torch import nn
 from pathlib import Path
@@ -58,6 +58,8 @@ from hallo.utils.util import tensor_to_video
 
 from hallo.models.whisper_local.audio2feature import load_audio_model
 from hallo.models.diffuser.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
+
+from hallo.diffusers.schedulers.scheduling_euler_discrete import EulerDiscreteScheduler
 
 class Net(nn.Module):
     """
