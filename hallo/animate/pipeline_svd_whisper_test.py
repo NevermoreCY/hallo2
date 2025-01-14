@@ -647,7 +647,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("latent_model_input shape ", latent_model_input.shape , t )
 
                 t = t.reshape(1)
-                print("t [0]", t[0].item)
+                print(t)
+                print("t [0]", t[0].item())
 
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
