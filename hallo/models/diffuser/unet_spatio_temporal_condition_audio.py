@@ -507,7 +507,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         encoder_hidden_states = encoder_hidden_states.repeat_interleave(num_frames, dim=0)
         # print("encoder hidden state shape is ", encoder_hidden_states.shape)
         # encoder hidden state shape is  torch.Size([28, 4, 1024])
-
+        print("sample shape is : ", sample.shape)
         # 2. pre-process
         sample = self.conv_in(sample)
         # print(f"**1230 \n\n after conv_in sample shape {c} : ", sample.shape)
