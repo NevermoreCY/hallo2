@@ -670,6 +670,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("image_embeddings_cfg", image_embeddings_cfg.dtype)
 
                 t = t.to(dtype=weight_dtype)
+                print("t dtype is ", t.dtype)
                 # predict the noise residual
                 noise_pred = self.unet(
                     latent_model_input,
