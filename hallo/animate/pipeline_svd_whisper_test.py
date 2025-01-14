@@ -645,7 +645,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 # latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
 
                 print("latent_model_input shape ", latent_model_input.shape , t )
-                print("t [0]" , t[0])
+
+                t = t.reshape(1)
+                print("t [0]", t[0].item)
 
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
