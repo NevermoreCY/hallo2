@@ -471,7 +471,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # print("sample dtype is ", sample.dtype)
         # t_emb dtype is  torch.float32
         # sample dtype is  torch.float16
-        t_emb = t_emb.to(dtype=sample.dtype)
+        t_emb = t_emb.to(dtype=audio_embedding.dtype)
         print("**\n\n "
               "sample dtype is ", sample.dtype)
         print("t_emb dtype is ", t_emb.dtype)
