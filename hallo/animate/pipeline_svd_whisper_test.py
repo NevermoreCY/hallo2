@@ -573,7 +573,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
 
-        timesteps = timesteps.to(dtype=weight_dtype)
+        # timesteps = timesteps
         print("DEBUG\n\n timesteps old", len(timesteps), timesteps.dtype, timesteps)
 
 
@@ -646,9 +646,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                 print("latent_model_input shape ", latent_model_input.shape , t )
 
-                t = t.reshape(1)
-                print(t)
-                print("t [0]", t[0].item())
+
 
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
@@ -671,6 +669,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("audio latents", audio_latents.dtype)
                 print("image_embeddings_cfg", image_embeddings_cfg.dtype)
 
+                t = t.to(dtype=weight_dtype)
                 # predict the noise residual
                 noise_pred = self.unet(
                     latent_model_input,
