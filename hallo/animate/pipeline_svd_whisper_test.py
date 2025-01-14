@@ -517,7 +517,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # Repeat the image latents for each frame so we can concatenate them with the noise
         # image_latents [batch, channels, height, width] ->[batch, num_frames, channels, height, width]
-        image_latents = image_latents.unsqueeze(1).repeat(1, video_length, 1, 1, 1)
+        image_latents = image_latents.unsqueeze(1).repeat(1, num_frames, 1, 1, 1)
 
         # 5. Get Added Time IDs
         added_time_ids = self._get_add_time_ids(
@@ -656,7 +656,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 # image_latest shape is  torch.Size([2, 25, 4, 64, 64])
 
                 # Concatenate image_latents over channels dimension
-                latent_model_input = torch.cat([latent_model_input, image_latents], dim=1)
+                latent_model_input = torch.cat([latent_model_input, image_latents], dim=2)
 
                 print("image_embeddings shape is ", image_embeddings.shape)
                 image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
