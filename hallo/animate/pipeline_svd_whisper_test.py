@@ -597,6 +597,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 )
 
                 print("**\n\n noise pred shape is :", noise_pred.shape)
+                print("latent shape is ", )
                 print("counter shape is : ", counter.shape)
                 #  noise pred shape is : torch.Size([2, 25, 4, 64, 64])
                 #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
