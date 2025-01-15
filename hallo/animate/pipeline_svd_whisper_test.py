@@ -670,10 +670,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 # print("t", t.dtype)
                 print("audio latents", audio_latents.dtype)
                 print("image_embeddings_cfg", image_embeddings_cfg.dtype)
+                print("self.audio_proj.dtype", self.audio_proj.dtype)
+
 
                 audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
                 audio_latents = audio_latents.to(
-                    device=self.audioproj.device, dtype=self.audioproj.dtype)
+                    device=self.audio_proj.device, dtype=self.audio_proj.dtype)
                 audio_latents = self.audio_proj(audio_latents)
 
                 image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
