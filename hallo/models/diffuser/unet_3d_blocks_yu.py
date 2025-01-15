@@ -1416,13 +1416,13 @@ class CrossAttnDownBlockSpatioTemporal(nn.Module):
                     encoder_hidden_states=encoder_hidden_states,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
-                ).sample
+                )[0]
 
-                print("crossattndown, after attn :", hidden_states.shape)
+                # print("crossattndown, after attn :", hidden_states.shape)
 
                 hidden_states = audio_module(
                     hidden_states,
-                    encoder_hidden_states=encoder_hidden_states,
+                    encoder_hidden_states=audio_embedding,
                     image_only_indicator=image_only_indicator,
                     return_dict=False,
                 )[0]
