@@ -126,6 +126,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # feature_extractor: CLIPImageProcessor,
         audio_guider,
         image_proj,
+        audio_proj,
 
     ):
         super().__init__()
@@ -137,6 +138,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             # feature_extractor=feature_extractor,
             audio_guider = audio_guider,
             image_proj = image_proj,
+            audio_proj = audio_proj,
         )
         self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
@@ -669,14 +671,22 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("audio latents", audio_latents.dtype)
                 print("image_embeddings_cfg", image_embeddings_cfg.dtype)
 
+                audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
+                audio_latents = audio_latents.to(
+                    device=self.audioproj.device, dtype=self.audioproj.dtype)
+                audio_latents = self.audioproj(audio_latents)
+
+                image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
+                image_embeddings = self.imageproj(image_embeddings)
+
                 t = t.to(dtype=weight_dtype)
                 print("t dtype is ", t.dtype)
                 # predict the noise residual
                 noise_pred = self.unet(
                     latent_model_input,
                     t,
-                    encoder_hidden_states=image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings,
-                    audio_embedding=audio_latents if self.do_classifier_free_guidance else c_audio_latents,
+                    encoder_hidden_states= image_embeddings,
+                    audio_embedding=audio_latents,
                     added_time_ids=added_time_ids,
                     return_dict=False,
                 )[0]

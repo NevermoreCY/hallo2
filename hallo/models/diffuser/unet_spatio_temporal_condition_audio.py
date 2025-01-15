@@ -521,6 +521,21 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         print("audio_emb shape ", audio_embedding.shape)
         print("encoder_hidden_states shape ", encoder_hidden_states.shape)
         print("image_only_indicator shape ", image_only_indicator.shape)
+        # sample shape  torch.Size([50, 320, 64, 64])
+        # temb shape  torch.Size([50, 1280])
+        # audio_emb shape  torch.Size([50, 50, 384])
+        # encoder_hidden_states shape  torch.Size([50, 512])
+        # image_only_indicator shape  torch.Size([2, 25])
+
+
+        # torch.Size([50, 320, 64, 64])
+        # temb shape torch.Size([50, 1280])
+        # audio_emb shape torch.Size([50, 32, 768])
+        # encoder_hidden_states shape torch.Size([50, 4, 1024])
+        # image_only_indicator shape torch.Size([2, 25])
+        # proj!!
+
+
 
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
