@@ -536,6 +536,23 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # proj!!
 
 
+        # training:
+        # Before down block :
+        # sample shape torch.Size([50, 320, 64, 64])
+        # temb shape
+        # torch.Size([50, 1280])
+        # audio_emb shape torch.Size([50, 32, 768])
+        # encoder_hidden_states shape torch.Size([50, 4, 1024])
+        # image_only_indicator shape torch.Size([2, 25])
+
+        # inference :
+        #  Before down block :
+        # sample shape  torch.Size([50, 320, 64, 64])
+        # temb shape  torch.Size([50, 1280])
+        # audio_emb shape  torch.Size([50, 32, 768])
+        # encoder_hidden_states shape  torch.Size([50, 4, 1024])
+        # image_only_indicator shape  torch.Size([2, 25])
+
 
         down_block_res_samples = (sample,)
         for downsample_block in self.down_blocks:
