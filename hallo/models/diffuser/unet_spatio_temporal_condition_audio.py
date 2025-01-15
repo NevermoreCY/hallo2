@@ -558,6 +558,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
             # print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
             c += 1
         # 4. mid
+        print("mid")
         sample = self.mid_block(
             hidden_states=sample,
             temb=emb,
@@ -568,6 +569,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
         c += 1
         # 5. up
+        print("up")
         for i, upsample_block in enumerate(self.up_blocks):
             is_final_block = i == len(self.up_blocks) - 1
 
