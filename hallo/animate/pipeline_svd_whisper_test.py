@@ -591,7 +591,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     dtype=latents.dtype,
                 )
                 counter = torch.zeros(
-                    (1, 1, latents.shape[2], 1, 1),
+                    (latents.shape[0], latents.shape[1], 1, 1, 1),
                     device=latents.device,
                     dtype=latents.dtype,
                 )
@@ -696,9 +696,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         added_time_ids=added_time_ids,
                         return_dict=False,
                     )[0]
+
+                    print("**jc\n\n ", new_context)
                     for j, c in enumerate(new_context):
-                        noise_pred[:, :, c] = noise_pred[:, :, c] + pred
-                        counter[:, :, c] = counter[:, :, c] + 1
+
+                        print(" noise_pred[:, :, c] shape is ",  noise_pred[:, :, c].shape)
+                        print("pred shape is ", pred.shape)
+                        noise_pred[:, c] = noise_pred[:,  c] + pred
+                        counter[:,  c] = counter[:, c] + 1
 
                 print("check counter", counter)
                 # perform guidance
