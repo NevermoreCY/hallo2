@@ -665,12 +665,6 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("image_embeddings cfg shape is ", image_embeddings.shape)
                 print("do cfg: ", self.do_classifier_free_guidance)
 
-                print("**01,11\n\n dtype check before entering unet:")
-                print("latent model", latent_model_input.dtype)
-                # print("t", t.dtype)
-                print("audio latents", audio_latents.dtype)
-                print("image_embeddings_cfg", image_embeddings_cfg.dtype)
-                print("self.audio_proj.dtype", self.audio_proj.dtype)
 
 
                 audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
@@ -682,6 +676,15 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 t = t.to(dtype=weight_dtype)
                 print("t dtype is ", t.dtype)
                 # predict the noise residual
+
+                print("**01,11\n\n dtype check before entering unet:")
+                print("latent model", latent_model_input.dtype, latent_model_input.device)
+                # print("t", t.dtype)
+                print("audio latents", audio_latents.dtype, audio_latents.device)
+                print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
+
+
+
                 noise_pred = self.unet(
                     latent_model_input,
                     t,
