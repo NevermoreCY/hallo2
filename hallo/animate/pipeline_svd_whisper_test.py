@@ -674,10 +674,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
                 audio_latents = audio_latents.to(
                     device=self.audioproj.device, dtype=self.audioproj.dtype)
-                audio_latents = self.audioproj(audio_latents)
+                audio_latents = self.audio_proj(audio_latents)
 
                 image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
-                image_embeddings = self.imageproj(image_embeddings)
+                image_embeddings = self.image_proj(image_embeddings)
 
                 t = t.to(dtype=weight_dtype)
                 print("t dtype is ", t.dtype)
