@@ -700,7 +700,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     print("**jc\n\n ", new_context)
                     for j, c in enumerate(new_context):
 
-                        print(" noise_pred[:, :, c] shape is ",  noise_pred[:, :, c].shape)
+                        print(" noise_pred[:, :, c] shape is ",  noise_pred[:, c].shape)
                         print("pred shape is ", pred.shape)
                         noise_pred[:, c] = noise_pred[:,  c] + pred
                         counter[:,  c] = counter[:, c] + 1
