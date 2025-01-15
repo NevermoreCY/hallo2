@@ -420,7 +420,8 @@ def inference_process(args: argparse.Namespace):
         unet=net.denoising_unet,
         scheduler=eul_noise_scheduler,
         audio_guider=audio_guider,
-        image_proj=net.imageproj,
+        image_proj= net.imageproj,
+        audio_proj = net.audioproj,
 
     )
     pipeline.to(device=device, dtype=weight_dtype)
