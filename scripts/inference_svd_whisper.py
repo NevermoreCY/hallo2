@@ -293,17 +293,26 @@ def inference_process(args: argparse.Namespace):
 
 
 
+    if in_domain_test :
+        for audio_path in driving_audio_paths:
+            save_path = os.path.join(config.save_path, Path(audio_path).stem)
+            save_seg_path = os.path.join(save_path, "seg_video")
+            print("save path: ", save_path)
 
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            if not os.path.exists(save_seg_path):
+                os.makedirs(save_seg_path)
+    else:
+        for source_image_path in source_image_paths:
+            save_path = os.path.join(config.save_path, Path(source_image_path).stem)
+            save_seg_path = os.path.join(save_path, "seg_video")
+            print("save path: ", save_path)
 
-    for source_image_path in source_image_paths:
-        save_path = os.path.join(config.save_path, Path(source_image_path).stem)
-        save_seg_path = os.path.join(save_path, "seg_video")
-        print("save path: ", save_path)
-    
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        if not os.path.exists(save_seg_path):
-            os.makedirs(save_seg_path)
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            if not os.path.exists(save_seg_path):
+                os.makedirs(save_seg_path)
 
     motion_scale = [config.pose_weight, config.face_weight, config.lip_weight]
 
