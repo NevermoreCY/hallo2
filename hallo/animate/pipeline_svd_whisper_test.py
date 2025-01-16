@@ -611,14 +611,15 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     dtype=latents.dtype,
                 )
 
-                # print("**\n\n noise pred shape is :", noise_pred.shape)
-                # print("latent shape is ", )
-                # print("counter shape is : ", counter.shape)
+                print("***\n\n\n i.t:", i, t, t.dtype)
+                print("noise pred shape is :", noise_pred.shape)
+                print("latent shape is ", latents.shape )
+                print("counter shape is : ", counter.shape)
                 #  noise pred shape is : torch.Size([2, 25, 4, 64, 64])
                 #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
 
                 # context
-                print("***\n\n\n i.t:", i,t, t.dtype )
+
                 num_context_batches = math.ceil(len(context_queue) / context_batch_size)
                 # should be same as context_queue
 
