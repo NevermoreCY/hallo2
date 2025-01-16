@@ -631,17 +631,17 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         ]
                     )
                 # TODO add shift count here
-
+                shift_count = 5
                 for context in global_context:
                     print("global_context:", len(global_context), global_context)
-                    context = global_context[0]
+                    # context = global_context[0]
                     print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
                     print("new context is ", new_context)  # all zeros
 
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
-                            new_context[c_j][c_i] = (context[c_j][c_i] + i * 2) % video_length
+                            new_context[c_j][c_i] = (context[c_j][c_i] + i * shift_count) % video_length
                     print("new context 2 is ", new_context)
                     print("latents shape is ", latents.shape)
                     # latents shape is  torch.Size([1, 189, 4, 64, 64])
@@ -652,26 +652,26 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         .repeat(2 if self.do_classifier_free_guidance else 1, 1, 1, 1, 1)
                     )
 
-                    print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
+                    # print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
-                    print("c_audio_latents shape is :", c_audio_latents.shape)
+                    # print("c_audio_latents shape is :", c_audio_latents.shape)
                     # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
                     audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
-                    print("audio_latents shape is :", audio_latents.shape)
+                    # print("audio_latents shape is :", audio_latents.shape)
                     # audio_latents shape is : torch.Size([2, 25, 50, 384])
                     # expand the latents if we are doing classifier free guidance
                     # latent_model_input = torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
 
-                    print("latent_model_input shape ", latent_model_input.shape , t )
+                    # print("latent_model_input shape ", latent_model_input.shape , t )
 
 
 
                     latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
-                    print("latent_model_input shape is ", latent_model_input.shape)
+                    # print("latent_model_input shape is ", latent_model_input.shape)
                     # latent_model_input shape is  torch.Size([2, 189, 4, 64, 64])
-                    print("image_latest shape is ", image_latents.shape)
+                    # print("image_latest shape is ", image_latents.shape)
                     # image_latest shape is  torch.Size([2, 25, 4, 64, 64])
 
                     # Concatenate image_latents over channels dimension
@@ -688,14 +688,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
                     t = t.to(dtype=weight_dtype)
-                    print("t dtype is ", t.dtype)
+                    # print("t dtype is ", t.dtype)
                     # predict the noise residual
 
-                    print("**01,11\n\n dtype check before entering unet:")
-                    print("latent model", latent_model_input.dtype, latent_model_input.device)
+                    # print("**01,11\n\n dtype check before entering unet:")
+                    # print("latent model", latent_model_input.dtype, latent_model_input.device)
                     # print("t", t.dtype)
-                    print("audio latents", audio_latents.dtype, audio_latents.device)
-                    print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
+                    # print("audio latents", audio_latents.dtype, audio_latents.device)
+                    # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
 
 
