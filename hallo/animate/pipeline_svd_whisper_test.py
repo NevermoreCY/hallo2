@@ -527,7 +527,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # Repeat the image latents for each frame so we can concatenate them with the noise
         # image_latents [batch, channels, height, width] ->[batch, num_frames, channels, height, width]
         image_latents = image_latents.unsqueeze(1).repeat(1, num_frames, 1, 1, 1)
-
+        print("current motion_bucket_id is ", motion_bucket_id )
+        motion_bucket_id = 10
+        print("decrease motion_bucket_id to ", motion_bucket_id)
         # 5. Get Added Time IDs
         added_time_ids = self._get_add_time_ids(
             fps,
