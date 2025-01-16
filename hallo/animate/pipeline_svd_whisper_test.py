@@ -715,11 +715,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         print(" noise_pred[:, :, c] shape is ",  noise_pred[:, c].shape)
                         print("pred shape is ", pred.shape)
                         print("counter[:c] shape is ", counter[:,c].shape)
-                        noise_pred[:, c] = noise_pred[:,  c] + pred
-                        counter[:,  c] = counter[:, c] + 1
+                        noise_pred[:,c] = noise_pred[:, c] + pred
+                        counter[:, c] = counter[:, c] + 1
                     print("after update count : ", counter )
-                    x = [1]
-                    x[3] =2
+
 
                 print("check counter", counter)
                 # perform guidance
