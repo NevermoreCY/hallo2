@@ -611,10 +611,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     dtype=latents.dtype,
                 )
 
-                print("***\n\n\n i.t:", i, t, t.dtype)
-                print("noise pred shape is :", noise_pred.shape)
-                print("latent shape is ", latents.shape )
-                print("counter shape is : ", counter.shape)
+                # print("***\n\n\n i.t:", i, t, t.dtype)
+                # print("noise pred shape is :", noise_pred.shape)
+                # print("latent shape is ", latents.shape )
+                # print("counter shape is : ", counter.shape)
                 #  noise pred shape is : torch.Size([2, 25, 4, 64, 64])
                 #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
 
@@ -633,17 +633,17 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 # TODO add shift count here
                 shift_count = 5
                 for context in global_context:
-                    print("global_context:", len(global_context), global_context)
+                    # print("global_context:", len(global_context), global_context)
                     # context = global_context[0]
                     print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
-                    print("new context is ", new_context)  # all zeros
+                    # print("new context is ", new_context)  # all zeros
 
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * shift_count) % video_length
                     print("new context 2 is ", new_context)
-                    print("latents shape is ", latents.shape)
+                    # print("latents shape is ", latents.shape)
                     # latents shape is  torch.Size([1, 189, 4, 64, 64])
 
                     latent_model_input = (
@@ -708,7 +708,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         return_dict=False,
                     )[0]
 
-                    print("**jc\n\n ", new_context)
+                    # print("**jc\n\n ", new_context)
                     # print("before update count :", counter)
                     for j, c in enumerate(new_context):
 
@@ -720,13 +720,13 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("after update count : ", counter )
 
 
-                print("check counter", counter)
+                # print("check counter", counter)
                 # perform guidance
                 if self.do_classifier_free_guidance:
-                    print("noise pred shape ", noise_pred.shape)
+                    # print("noise pred shape ", noise_pred.shape)
                     noise_pred_uncond, noise_pred_cond = (noise_pred / counter).chunk(2)
-                    print("noise pred uncond shape", noise_pred_uncond.shape , "noise_pred cond shape ", noise_pred_cond.shape)
-                    print("self.guidance scaleis ", self.guidance_scale[i].shape)
+                    # print("noise pred uncond shape", noise_pred_uncond.shape , "noise_pred cond shape ", noise_pred_cond.shape)
+                    # print("self.guidance scaleis ", self.guidance_scale[i].shape)
                     noise_pred = noise_pred_uncond + self.guidance_scale[i] * (noise_pred_cond - noise_pred_uncond)
 
                 # compute the previous noisy sample x_t -> x_t-1
