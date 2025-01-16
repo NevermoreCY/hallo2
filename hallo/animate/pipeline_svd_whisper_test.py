@@ -332,8 +332,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
     @property
     def do_classifier_free_guidance(self):
         if isinstance(self.guidance_scale, (int, float)):
-            return self.guidance_scale > 1
-        return self.guidance_scale.max() > 1
+            return self.guidance_scale >= 1
+        return self.guidance_scale.max() >= 1
 
     @property
     def num_timesteps(self):
@@ -555,10 +555,15 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         )
         print("latents d type is ", latents.dtype)
         # 8. Prepare guidance scale
-        guidance_scale = torch.linspace(min_guidance_scale, max_guidance_scale, num_frames).unsqueeze(0)
-        guidance_scale = guidance_scale.to(device, latents.dtype)
-        guidance_scale = guidance_scale.repeat(batch_size * num_videos_per_prompt, 1)
-        guidance_scale = _append_dims(guidance_scale, latents.ndim)
+        # guidance_scale = torch.linspace(min_guidance_scale, max_guidance_scale, num_frames).unsqueeze(0)
+        # guidance_scale = guidance_scale.to(device, latents.dtype)
+        # guidance_scale = guidance_scale.repeat(batch_size * num_videos_per_prompt, 1)
+        # guidance_scale = _append_dims(guidance_scale, latents.ndim)
+
+        guidance_scale = torch.linspace(
+            min_guidance_scale,
+            max_guidance_scale,
+            num_inference_steps)
 
         print("guidance scale")
         print("do CFG", self.do_classifier_free_guidance)
@@ -567,6 +572,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # print(guidance_scale)
         # 1,1.2,1.31,1.41,1.52.....3.39,3.5
         self._guidance_scale = guidance_scale
+        print("self._guidance_scale", self._guidance_scale)
 
         # 9. Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
@@ -605,9 +611,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     dtype=latents.dtype,
                 )
 
-                print("**\n\n noise pred shape is :", noise_pred.shape)
-                print("latent shape is ", )
-                print("counter shape is : ", counter.shape)
+                # print("**\n\n noise pred shape is :", noise_pred.shape)
+                # print("latent shape is ", )
+                # print("counter shape is : ", counter.shape)
                 #  noise pred shape is : torch.Size([2, 25, 4, 64, 64])
                 #  counter shape is :  torch.Size([1, 1, 4, 1, 1])
 
@@ -715,8 +721,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     print("noise pred shape ", noise_pred.shape)
                     noise_pred_uncond, noise_pred_cond = (noise_pred / counter).chunk(2)
                     print("noise pred uncond shape", noise_pred_uncond.shape , "noise_pred cond shape ", noise_pred_cond.shape)
-                    print("self.guidance scale shape is ", self.guidance_scale)
-                    noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_cond - noise_pred_uncond)
+                    print("self.guidance scaleis ", self.guidance_scale[i].shape)
+                    noise_pred = noise_pred_uncond + self.guidance_scale[i] * (noise_pred_cond - noise_pred_uncond)
 
                 # compute the previous noisy sample x_t -> x_t-1
                 latents = self.scheduler.step(noise_pred, t, latents).prev_sample
