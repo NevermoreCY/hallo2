@@ -276,7 +276,7 @@ def inference_process(args: argparse.Namespace):
 
     in_domain_test =True
     if in_domain_test:
-        target_audio_dir = "/yuch_ws/DH_Data/hallo_HDTF/audios"
+        target_audio_dir = "/yuch_ws/DH_Data/hallo_HDTF/audios_15s"
         target_image_dir = "/yuch_ws/DH_Data/hallo_HDTF/images"
         audio_names = os.listdir(target_audio_dir)
         driving_audio_paths = []
@@ -514,7 +514,7 @@ def inference_process(args: argparse.Namespace):
 
     # for each reference image exmaple
     for idx, source_image_path in enumerate(source_image_paths):
-
+        print("***\n\n staring job fpr", idx, source_image_path)
         source_image_name = os.path.basename(source_image_path)[:-4]
         source_image_pixels, \
             source_image_face_region, \
