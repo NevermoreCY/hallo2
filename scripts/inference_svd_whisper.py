@@ -548,7 +548,7 @@ def inference_process(args: argparse.Namespace):
         print(audio_video_path)
 
         save_videos_grid(video, video_path, n_rows=video.shape[0],
-                         fps=config.fps * 2 if config.use_interframe else config.fps)
+                         fps=24 )#config.fps * 2 if config.use_interframe else config.fps)
         os.system(
             f"ffmpeg -i '{video_path}'  -i '{driving_audio_path}' -s {resolution} -vcodec libx264 -acodec aac -crf 18 -shortest '{audio_video_path}' -y; rm '{video_path}'")
 
