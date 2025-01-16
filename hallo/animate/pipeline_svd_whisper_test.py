@@ -712,7 +712,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 print("check counter", counter)
                 # perform guidance
                 if self.do_classifier_free_guidance:
+                    print("noise pred shape ", noise_pred.shape)
                     noise_pred_uncond, noise_pred_cond = (noise_pred / counter).chunk(2)
+                    print("noise pred uncond shape", noise_pred_uncond.shape , "noise_pred cond shape ", noise_pred_cond.shape)
+                    print("self.guidance scale shape is ", self.guidance_scale)
                     noise_pred = noise_pred_uncond + self.guidance_scale * (noise_pred_cond - noise_pred_uncond)
 
                 # compute the previous noisy sample x_t -> x_t-1
