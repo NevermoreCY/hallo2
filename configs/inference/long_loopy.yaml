@@ -33,7 +33,7 @@ weight_dtype: fp16
 
 data:
   n_motion_frames: 2
-  n_sample_frames: 16
+  n_sample_frames: 25
   source_image:
     width: 512
     height: 512
@@ -52,7 +52,7 @@ use_cut: true
 audio_ckpt_dir: pretrained_models/hallo2
 
 
-save_path: ./output_whisper/debug/
+save_path: ./output_whisper/motion_bucket_10/
 cache_path: ./.cache
 
 base_model_path: ./pretrained_models/stable-diffusion-v1-5
