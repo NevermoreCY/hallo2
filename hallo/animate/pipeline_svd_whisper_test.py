@@ -244,6 +244,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
     def decode_latents(self, latents: torch.FloatTensor, num_frames: int, decode_chunk_size: int = 14):
         # [batch, frames, channels, height, width] -> [batch*frames, channels, height, width]
+
+        print("Decode latents\n\n")
+        print("latents shape is ", latents.shape)
+        print("num_frames is ", num_frames)
+        print("decode chunk size is ", decode_chunk_size)
+
         latents = latents.flatten(0, 1)
 
         latents = 1 / self.vae.config.scaling_factor * latents
@@ -264,6 +270,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             frames.append(frame)
         frames = torch.cat(frames, dim=0)
 
+        print("frames shape is ", frames.shape)
         # [batch*frames, channels, height, width] -> [batch, channels, frames, height, width]
         frames = frames.reshape(-1, num_frames, *frames.shape[1:]).permute(0, 2, 1, 3, 4)
 
@@ -747,6 +754,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             # cast back to fp16 if needed
             if needs_upcasting:
                 self.vae.to(dtype=torch.float16)
+
+
+
+
             frames = self.decode_latents(latents, num_frames, decode_chunk_size)
             frames = tensor2vid(frames, self.image_processor, output_type=output_type)
         else:

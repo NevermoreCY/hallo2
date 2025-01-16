@@ -592,7 +592,7 @@ def inference_process(args: argparse.Namespace):
                 num_frames=25,
                 width=img_size[0],
                 height=img_size[1],
-                num_inference_steps=config.inference_steps,
+                num_inference_steps= 2, #config.inference_steps,
                 max_guidance_scale=config.cfg_scale,
                 generator=generator,
                 weight_dtype = weight_dtype,
