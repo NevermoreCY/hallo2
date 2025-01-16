@@ -273,19 +273,22 @@ def inference_process(args: argparse.Namespace):
     driving_audio_paths = config.driving_audio
     # Create a directory for each source image
 
-    target_audio_dir = "/yuch_ws/DH_Data/hallo_HDTF/audios"
-    target_image_dir = "/yuch_ws/DH_Data/hallo_HDTF/images"
-    audio_names = os.listdir(target_audio_dir)
-    driving_audio_paths = []
-    source_image_paths = []
-    for audio_name in audio_names:
-        driving_audio_paths.append(os.path.join(target_audio_dir, audio_name))
-        video_subdir = audio_name[:-4]
-        video_name = "0001.png"
-        source_image_paths.append(os.path.join(target_image_dir, video_subdir, video_name))
 
-    print(driving_audio_paths)
-    print(source_image_paths)
+    in_domain_test =True
+    if in_domain_test:
+        target_audio_dir = "/yuch_ws/DH_Data/hallo_HDTF/audios"
+        target_image_dir = "/yuch_ws/DH_Data/hallo_HDTF/images"
+        audio_names = os.listdir(target_audio_dir)
+        driving_audio_paths = []
+        source_image_paths = []
+        for audio_name in audio_names:
+            driving_audio_paths.append(os.path.join(target_audio_dir, audio_name))
+            video_subdir = audio_name[:-4]
+            video_name = "0001.png"
+            source_image_paths.append(os.path.join(target_image_dir, video_subdir, video_name))
+
+        print(driving_audio_paths)
+        print(source_image_paths)
 
 
 
