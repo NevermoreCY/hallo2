@@ -755,10 +755,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             if needs_upcasting:
                 self.vae.to(dtype=torch.float16)
 
-
-
-
-            frames = self.decode_latents(latents, num_frames, decode_chunk_size)
+            frames = self.decode_latents(latents, video_length, decode_chunk_size)
             frames = tensor2vid(frames, self.image_processor, output_type=output_type)
         else:
             frames = latents
