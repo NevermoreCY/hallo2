@@ -591,7 +591,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     dtype=latents.dtype,
                 )
                 counter = torch.zeros(
-                    (latents.shape[0], latents.shape[1], 1, 1, 1),
+                    (latents.shape[0]* (2 if self.do_classifier_free_guidance else 1), latents.shape[1], 1, 1, 1),
                     device=latents.device,
                     dtype=latents.dtype,
                 )
