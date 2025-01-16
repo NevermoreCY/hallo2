@@ -599,10 +599,11 @@ def inference_process(args: argparse.Namespace):
             )
 
             tensor_result.append(pipeline_output.videos)
-
-        tensor_result = torch.cat(tensor_result, dim=2)
+        print("**End of pipeline, time to concat videos")
+        print(tensor_result[0].shape)
+        tensor_result = torch.cat(tensor_result, dim=1)
         tensor_result = tensor_result.squeeze(0)
-        tensor_result = tensor_result[:, :audio_length]
+        tensor_result = tensor_result[:audio_length]
 
         output_file = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
         # save the result after all iteration
