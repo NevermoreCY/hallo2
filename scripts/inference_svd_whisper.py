@@ -61,6 +61,55 @@ from hallo.models.diffuser.unet_spatio_temporal_condition_audio import UNetSpati
 
 from hallo.diffusers.schedulers.scheduling_euler_discrete import EulerDiscreteScheduler
 
+from einops import rearrange
+from PIL import Image
+import imageio
+import torchvision
+
+def save_videos_from_pil(pil_images, path, fps=8):
+    save_fmt = Path(path).suffix
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    if save_fmt == ".mp4":
+        with imageio.get_writer(path, fps=fps) as writer:
+            for img in pil_images:
+                img_array = np.array(img)  # Convert PIL Image to numpy array
+                writer.append_data(img_array)
+
+    elif save_fmt == ".gif":
+        pil_images[0].save(
+            fp=path,
+            format="GIF",
+            append_images=pil_images[1:],
+            save_all=True,
+            duration=(1 / fps * 1000),
+            loop=0,
+            optimize=False,
+            lossless=True
+        )
+    else:
+        raise ValueError("Unsupported file type. Use .mp4 or .gif.")
+
+
+def save_videos_grid(videos: torch.Tensor, path: str, rescale=False, n_rows=6, fps=8):
+    videos = rearrange(videos, "b c t h w -> t b c h w")
+    height, width = videos.shape[-2:]
+    outputs = []
+
+    for i, x in enumerate(videos):
+        x = torchvision.utils.make_grid(x, nrow=n_rows)  # (c h w)
+        x = x.transpose(0, 1).transpose(1, 2).squeeze(-1)  # (h w c)
+        if rescale:
+            x = (x + 1.0) / 2.0  # -1,1 -> 0,1
+        x = (x * 255).numpy().astype(np.uint8)
+        x = Image.fromarray(x)
+        outputs.append(x)
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    save_videos_from_pil(outputs, path, fps)
+
+
 class Net(nn.Module):
     """
     The Net class defines a neural network model that combines a reference UNet2DConditionModel,
@@ -201,6 +250,9 @@ def cut_audio(audio_path, save_dir, length=60):
         segment.export(path, format="wav")
 
     return audio_list
+
+
+
 
 
 def inference_process(args: argparse.Namespace):
@@ -487,8 +539,19 @@ def inference_process(args: argparse.Namespace):
         video = (video * 0.5 + 0.5).clamp(0, 1)
         video = torch.cat([video.to(pipeline.device)], dim=0).cpu()
 
-
+        video_path = config.save_path + source_image_name + '_' + driving_audio_name + '_noaudio.mp4'
+        audio_video_path = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
         print("**End of pipeline, video shape is " , video.shape, torch.max(video), torch.min(video))
+        resolution = f'{img_size[0]}x{img_size[1]}'
+        print(resolution)
+        print(video_path)
+        print(audio_video_path)
+
+        save_videos_grid(video, video_path, n_rows=video.shape[0],
+                         fps=config.fps * 2 if config.use_interframe else config.fps)
+        os.system(
+            f"ffmpeg -i '{video_path}'  -i '{driving_audio_path}' -s {resolution} -vcodec libx264 -acodec aac -crf 18 -shortest '{audio_video_path}' -y; rm '{video_path}'")
+
         # print(tensor_result[0].shape)
         # tensor_result = torch.cat(tensor_result, dim=1)
         # tensor_result = tensor_result.squeeze(0)
