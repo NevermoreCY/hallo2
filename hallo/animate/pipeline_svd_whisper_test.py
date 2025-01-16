@@ -573,6 +573,15 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         self._num_timesteps = len(timesteps)
 
 
+        # prepare image embeddings
+
+        print("image_embeddings shape is ", image_embeddings.shape)
+        image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
+        print("image_embeddings cfg shape is ", image_embeddings.shape)
+        print("do cfg: ", self.do_classifier_free_guidance)
+        image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
+        image_embeddings = image_embeddings.to(device=self.image_proj.device, dtype=self.image_proj.dtype)
+        image_embeddings = self.image_proj(image_embeddings)
 
 
         # timesteps = timesteps
@@ -661,10 +670,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # Concatenate image_latents over channels dimension
                     latent_model_input = torch.cat([latent_model_input, image_latents], dim=2)
 
-                    print("image_embeddings shape is ", image_embeddings.shape)
-                    image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
-                    print("image_embeddings cfg shape is ", image_embeddings.shape)
-                    print("do cfg: ", self.do_classifier_free_guidance)
+
 
 
 
@@ -672,9 +678,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
                     audio_latents = self.audio_proj(audio_latents)
 
-                    image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
-                    image_embeddings = image_embeddings.to(device=self.image_proj.device, dtype=self.image_proj.dtype)
-                    image_embeddings = self.image_proj(image_embeddings)
+
 
                     t = t.to(dtype=weight_dtype)
                     print("t dtype is ", t.dtype)
