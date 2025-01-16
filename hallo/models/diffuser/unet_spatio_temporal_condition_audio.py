@@ -455,10 +455,10 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
         batch_size, num_frames = sample.shape[:2]
         timesteps = timesteps.expand(batch_size)
-        print("sample shape ",sample.shape)
-        print("timesteps shape", timesteps,timesteps.shape)
+        # print("sample shape ",sample.shape)
+        # print("timesteps shape", timesteps,timesteps.shape)
         t_emb = self.time_proj(timesteps)
-        print("t_emb shape is ", t_emb.shape)
+        # print("t_emb shape is ", t_emb.shape)
         # input sample shape 0 :  torch.Size([4, 14, 4, 64, 64])
         # time steps shape :  torch.Size([4]) False
         # tensor([0.2014, 0.3099, 0.0070, 0.7441], device='cuda:0') torch.Size([4])
@@ -467,15 +467,15 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # `Timesteps` does not contain any weights and will always return f32 tensors
         # but time_embedding might actually be running in fp16. so we need to cast here.
         # there might be better ways to encapsulate this.
-        print("t_emb dtype is ", t_emb.dtype)
+        # print("t_emb dtype is ", t_emb.dtype)
         # print("sample dtype is ", sample.dtype)
         # t_emb dtype is  torch.float32
         # sample dtype is  torch.float16
         t_emb = t_emb.to(dtype=audio_embedding.dtype)
         sample = sample.to(dtype=audio_embedding.dtype)
-        print("**\n\n "
-              "sample dtype is ", sample.dtype)
-        print("t_emb dtype is ", t_emb.dtype)
+        # print("**\n\n "
+        #       "sample dtype is ", sample.dtype)
+        # print("t_emb dtype is ", t_emb.dtype)
 
 
 
@@ -507,7 +507,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         encoder_hidden_states = encoder_hidden_states.repeat_interleave(num_frames, dim=0)
         # print("encoder hidden state shape is ", encoder_hidden_states.shape)
         # encoder hidden state shape is  torch.Size([28, 4, 1024])
-        print("sample shape is : ", sample.shape)
+        # print("sample shape is : ", sample.shape)
         # 2. pre-process
         sample = self.conv_in(sample)
         # print(f"**1230 \n\n after conv_in sample shape {c} : ", sample.shape)
@@ -515,12 +515,12 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         image_only_indicator = torch.zeros(batch_size, num_frames, dtype=sample.dtype, device=sample.device)
         # down
 
-        print("***\n\n Before down block : ")
-        print("sample shape ", sample.shape)
-        print("temb shape ", emb.shape)
-        print("audio_emb shape ", audio_embedding.shape)
-        print("encoder_hidden_states shape ", encoder_hidden_states.shape)
-        print("image_only_indicator shape ", image_only_indicator.shape)
+        # print("***\n\n Before down block : ")
+        # print("sample shape ", sample.shape)
+        # print("temb shape ", emb.shape)
+        # print("audio_emb shape ", audio_embedding.shape)
+        # print("encoder_hidden_states shape ", encoder_hidden_states.shape)
+        # print("image_only_indicator shape ", image_only_indicator.shape)
         # sample shape  torch.Size([50, 320, 64, 64])
         # temb shape  torch.Size([50, 1280])
         # audio_emb shape  torch.Size([50, 50, 384])
@@ -575,7 +575,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
             # print(f"**1230 \n\n down sample shape {c} : ", sample.shape)
             c += 1
         # 4. mid
-        print("mid")
+        # print("mid")
         sample = self.mid_block(
             hidden_states=sample,
             temb=emb,
@@ -586,7 +586,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
         # print(f"**1230 \n\n mid sample shape {c} : ", sample.shape)
         c += 1
         # 5. up
-        print("up")
+        # print("up")
         for i, upsample_block in enumerate(self.up_blocks):
             is_final_block = i == len(self.up_blocks) - 1
 
