@@ -718,6 +718,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                         noise_pred[:, c] = noise_pred[:,  c] + pred
                         counter[:,  c] = counter[:, c] + 1
                     print("after update count : ", counter )
+                    x = [1]
+                    x[3] =2
+
                 print("check counter", counter)
                 # perform guidance
                 if self.do_classifier_free_guidance:
