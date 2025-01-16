@@ -462,19 +462,6 @@ def inference_process(args: argparse.Namespace):
         source_image_face_emb = source_image_face_emb.reshape(1, -1)
         source_image_face_emb = torch.tensor(source_image_face_emb)
 
-        source_image_full_mask = [
-            (mask.repeat(clip_length, 1))
-            for mask in source_image_full_mask
-        ]
-        source_image_face_mask = [
-            (mask.repeat(clip_length, 1))
-            for mask in source_image_face_mask
-        ]
-        source_image_lip_mask = [
-            (mask.repeat(clip_length, 1))
-            for mask in source_image_lip_mask
-        ]
-
 
         times = audio_emb.shape[0] // clip_length
 
@@ -482,165 +469,36 @@ def inference_process(args: argparse.Namespace):
 
         generator = torch.manual_seed(42)
 
-        # ic(audio_emb.shape)
-        # ic(audio_length)
-        batch_size = 60
-        start = 0
 
-        # for each time clip
-        for t in range(times):
-            print(f"[{t+1}/{times}]")
-            print("\n wihout motion frame, reference image shape :", source_image_pixels.shape)
-            if len(tensor_result) == 0:
-                # The first iteration
-                motion_zeros = source_image_pixels.repeat(
-                    config.data.n_motion_frames, 1, 1, 1)
-                # zero mask
-                motion_zeros = torch.zeros_like(motion_zeros)
-                motion_zeros = motion_zeros.to(
-                    dtype=source_image_pixels.dtype, device=source_image_pixels.device)
-                pixel_values_ref_img = torch.cat(
-                    [source_image_pixels, motion_zeros], dim=0)  # concat the ref image and the first motion frames
-            elif len(tensor_result) == 1:
-                motion_frames = tensor_result[-1][0]
-                motion_frames = motion_frames.permute(1, 0, 2, 3)
-                motion_frames = motion_frames[np.array([-13, -11,-9,-7,-5, -4,-3,-2,-1])]
-                motion_frames = motion_frames * 2.0 - 1.0
-                motion_frames_to_pad = source_image_pixels.repeat(3, 1, 1, 1)
-                # zero mask
-                motion_frames_to_pad = torch.zeros_like(motion_frames_to_pad)
-                motion_frames = torch.cat([motion_frames_to_pad, motion_frames], dim=0)
-                pixel_values_ref_img = torch.cat(
-                    [source_image_pixels, motion_frames], dim=0)  # concat the ref image and the motion frames
-            else:
-                motion_frames_1 = tensor_result[-1][0]
-                motion_frames_1 = motion_frames_1.permute(1, 0, 2, 3)
-                motion_frames_2 = tensor_result[-2][0]
-                motion_frames_2 = motion_frames_2.permute(1, 0, 2, 3)
-                motion_frames = torch.cat([motion_frames_2, motion_frames_1], dim=0)
-                motion_frames = motion_frames[np.array([-25,-21,-17,-13, -11,-9,-7,-5, -4,-3,-2,-1])]
-                motion_frames = motion_frames * 2.0 - 1.0
-                motion_frames = motion_frames.to(
-                    dtype=source_image_pixels.dtype, device=source_image_pixels.device)
-                pixel_values_ref_img = torch.cat(
-                    [source_image_pixels, motion_frames], dim=0)  # concat the ref image and the motion frames
+        video = pipeline(
+            image=source_image_pixels,
+            face_emb=source_image_face_emb,
+            audio_path=driving_audio_path,
+            video_length=1200,
+            num_frames=25,
+            width=img_size[0],
+            height=img_size[1],
+            num_inference_steps=2,  # config.inference_steps,
+            max_guidance_scale=config.cfg_scale,
+            generator=generator,
+            weight_dtype=weight_dtype,
+        ).frames
 
-            pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
-
-            #  [1, 3, 3, 512, 512]
-
-            pixel_motion_values = pixel_values_ref_img[:, 1:]
-
-            if config.use_mask:
-                b, f, c, h, w = pixel_motion_values.shape
-                rand_mask = torch.rand(h, w)
-                mask = rand_mask > config.mask_rate
-                mask = mask.unsqueeze(0).unsqueeze(0).unsqueeze(0)
-                mask = mask.expand(b, f, c, h, w)
-
-                face_mask = source_image_face_region.repeat(f, 1, 1, 1).unsqueeze(0)
-                assert face_mask.shape == mask.shape
-                mask = mask | face_mask.bool()
-
-                pixel_motion_values = pixel_motion_values * mask
-                pixel_values_ref_img[:, 1:] = pixel_motion_values
+        video = (video * 0.5 + 0.5).clamp(0, 1)
+        video = torch.cat([video.to(pipeline.device)], dim=0).cpu()
 
 
-            assert pixel_motion_values.shape[0] == 1
-
-            audio_tensor = audio_fea_final[
-                t * clip_length: min((t + 1) * clip_length, audio_emb.shape[0]-1)
-            ]
-            audio_tensor = audio_tensor.unsqueeze(0)
-            audio_tensor = audio_tensor.to(
-                device=net.audioproj.device, dtype=net.audioproj.dtype)
-            audio_tensor = net.audioproj(audio_tensor)
-
-            print("\n\n start run pipeline ")
-
-            #         self,
-            #         image: Union[PIL.Image.Image, List[PIL.Image.Image], torch.FloatTensor],
-            #         face_emb,
-            #         audio_path,
-            #         video_length,
-            #         height: int = 576,
-            #         width: int = 1024,
-            #         num_frames: Optional[int] = None,
-            #         num_inference_steps: int = 25,
-            #         min_guidance_scale: float = 1.0,
-            #         max_guidance_scale: float = 3.0,
-            #         fps: int = 7,
-            #         motion_bucket_id: int = 127,
-            #         noise_aug_strength: float = 0.02,
-            #         decode_chunk_size: Optional[int] = None,
-            #         num_videos_per_prompt: Optional[int] = 1,
-            #         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            #         latents: Optional[torch.FloatTensor] = None,
-            #         output_type: Optional[str] = "pil",
-            #         callback_on_step_end: Optional[Callable[[int, int, Dict], None]] = None,
-            #         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
-            #         return_dict: bool = True,
-            #         context_schedule="uniform",
-            #
-            #     ):
-
-            pipeline_output = pipeline(
-                image=source_image_pixels,
-                face_emb=source_image_face_emb,
-                audio_path = driving_audio_path,
-                video_length = 1200,
-                num_frames=25,
-                width=img_size[0],
-                height=img_size[1],
-                num_inference_steps= 2, #config.inference_steps,
-                max_guidance_scale=config.cfg_scale,
-                generator=generator,
-                weight_dtype = weight_dtype,
-            )
-
-            tensor_result.append(pipeline_output.videos)
-        print("**End of pipeline, time to concat videos")
-        print(tensor_result[0].shape)
-        tensor_result = torch.cat(tensor_result, dim=1)
-        tensor_result = tensor_result.squeeze(0)
-        tensor_result = tensor_result[:audio_length]
-
-        output_file = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
-        # save the result after all iteration
-        tensor_to_video(tensor_result, output_file, driving_audio_path)
-
-
-        # return output_file
+        print("**End of pipeline, video shape is " , video.shape, torch.max(video), torch.min(video))
+        # print(tensor_result[0].shape)
+        # tensor_result = torch.cat(tensor_result, dim=1)
+        # tensor_result = tensor_result.squeeze(0)
+        # tensor_result = tensor_result[:audio_length]
         #
-        #     if (t+1) % batch_size == 0 or (t+1)==times:
-        #         last_motion_frame = [tensor_result[-1]]
-        #         ic(len(tensor_result))
-        #
-        #         if start!=0:
-        #             tensor_result = torch.cat(tensor_result[1:], dim=2)
-        #         else:
-        #             tensor_result = torch.cat(tensor_result, dim=2)
-        #
-        #         tensor_result = tensor_result.squeeze(0)
-        #         f = tensor_result.shape[1]
-        #         length = min(f, audio_length)
-        #         tensor_result = tensor_result[:, :length]
-        #
-        #         ic(tensor_result.shape)
-        #         ic(start)
-        #         ic(audio_length)
-        #
-        #         name = Path(save_path).name
-        #         output_file = os.path.join(save_seg_path, f"{name}-{t+1:06}.mp4")
-        #
-        #         tensor_to_video_batch(tensor_result, output_file, start, driving_audio_path)
-        #         del tensor_result
-        #
-        #         tensor_result = last_motion_frame
-        #         audio_length -= length
-        #         start += length
-        #
-        # merge_videos(save_seg_path, os.path.join(Path(save_seg_path).parent, "merge_video.mp4"))
+        # output_file = config.save_path + source_image_name + '_' + driving_audio_name + '.mp4'
+        # # save the result after all iteration
+        # tensor_to_video(tensor_result, output_file, driving_audio_path)
+
+
 
     return save_seg_path
     

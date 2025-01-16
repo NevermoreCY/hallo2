@@ -756,7 +756,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 self.vae.to(dtype=torch.float16)
 
             frames = self.decode_latents(latents, video_length, decode_chunk_size)
-            frames = tensor2vid(frames, self.image_processor, output_type=output_type)
+            print("after decode frames shape are ", frames)
+            # frames = tensor2vid(frames, self.image_processor, output_type=output_type)
         else:
             frames = latents
 
