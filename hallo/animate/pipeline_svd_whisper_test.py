@@ -467,7 +467,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # prepare audio
         whisper_feature = self.audio_guider.audio2feat(audio_path)
-
+        print("whisper fps is ", fps )
         whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
 
         print("\n whisper_chunks:", whisper_chunks.shape)
@@ -528,7 +528,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # image_latents [batch, channels, height, width] ->[batch, num_frames, channels, height, width]
         image_latents = image_latents.unsqueeze(1).repeat(1, num_frames, 1, 1, 1)
         print("current motion_bucket_id is ", motion_bucket_id )
-        motion_bucket_id = 10
+        motion_bucket_id = 250
         print("decrease motion_bucket_id to ", motion_bucket_id)
         # 5. Get Added Time IDs
         added_time_ids = self._get_add_time_ids(
@@ -644,14 +644,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                 for context in global_context:
                     # print("global_context:", len(global_context), global_context)
                     # context = global_context[0]
-                    print("context is ", context)
+                    # print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
                     # print("new context is ", new_context)  # all zeros
 
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * shift_count) % video_length
-                    print("new context 2 is ", new_context)
+                    # print("new context 2 is ", new_context)
                     # print("latents shape is ", latents.shape)
                     # latents shape is  torch.Size([1, 189, 4, 64, 64])
 
