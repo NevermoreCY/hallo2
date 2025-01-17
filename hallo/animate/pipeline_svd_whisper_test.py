@@ -374,7 +374,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         context_schedule="uniform",
         context_frames=25,
         context_stride=1,
-        context_overlap=0,
+        context_overlap=5,
         context_batch_size=1,
         weight_dtype = torch.float16,
 
