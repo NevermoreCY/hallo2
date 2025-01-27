@@ -154,6 +154,10 @@ class TalkingVideoDataset(Dataset):
         # whisper feature extractor
         self.feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
 
+        #old ver
+        audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
+        self.audio_guider = load_audio_model(model_path=audio_model_path, device=device)
+
         # 新增，用于CLIP处理和人脸对齐检测
         self.clip_processor = CLIPImageProcessor()
         self.align_instance = align_instance
@@ -267,13 +271,13 @@ class TalkingVideoDataset(Dataset):
             audio_input, audio_len = get_audio_feature(audio_path, self.feature_extractor)
 
 
-            # whisper_feature = self.audio_guider.audio2feat(audio_path)
-            # # print("whisper feature shape :", whisper_feature.shape)
-            # whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            whisper_feature = self.audio_guider.audio2feat(audio_path)
+            # print("whisper feature shape :", whisper_feature.shape)
+            whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
             # print("whisper_chunks:", whisper_chunks.shape)
-            # audio_frame_num = whisper_chunks.shape[0]
-            # audio_fea_final = torch.Tensor(whisper_chunks)
-            # audio_fea_final = audio_fea_final.unsqueeze(0)
+            audio_frame_num = whisper_chunks.shape[0]
+            audio_fea_final = torch.Tensor(whisper_chunks)
+            audio_fea_final = audio_fea_final.unsqueeze(0)
             # print("audio_fea_final:", audio_fea_final.shape)
 
 
@@ -322,7 +326,7 @@ class TalkingVideoDataset(Dataset):
             audio_tensor = audio_emb[center_indices]
             # print(f"\n {index} center_indices are {center_indices}")
 
-            # audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
+            audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
             # audio_fea_final: torch.Size([1, 243, 50, 384])
             # print("audio tensor whisper shape :", audio_tensor_whisper.shape)
             # [1,14,50,384]
@@ -404,7 +408,7 @@ class TalkingVideoDataset(Dataset):
                     [pixel_values_ref_img, pixel_values_motion], dim=0
                 )
 
-            # audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
+            audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
             # print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
             # print("pixel_values_vid shape is :", pixel_values_vid.shape)
             # print("pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
@@ -447,6 +451,7 @@ class TalkingVideoDataset(Dataset):
 
             print("clip_image shape", clip_image.shape)
             print("audio_tensor shape ", audio_input[0].shape)
+            print("audio_tensor_whisper_old shape", audio_tensor_whisper.shape)
 
             sample = {
                 "start_idx": start_idx,
