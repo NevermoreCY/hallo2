@@ -631,7 +631,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         context_tokens=32,
     ).to(device="cuda", dtype=weight_dtype)
 
-    whisper = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")# .to(device="cuda").eval()
+    whisper = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
     whisper.requires_grad_(False)
 
     audio2token = AudioProjModel_sonic(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=1024,
