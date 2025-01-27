@@ -79,7 +79,29 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 import numpy as np
+
+import whisper
+import os
+import librosa
+from ..models.whisper_local.audio2feature import load_audio_model
 from transformers import CLIPImageProcessor
+from transformers import WhisperModel, CLIPVisionModelWithProjection, AutoFeatureExtractor
+
+
+def get_audio_feature(audio_path, feature_extractor):
+    audio_input, sampling_rate = librosa.load(audio_path, sr=16000)
+    assert sampling_rate == 16000
+
+    audio_features = []
+    window = 750*640
+    for i in range(0, len(audio_input), window):
+        audio_feature = feature_extractor(audio_input[i:i+window],
+                                        sampling_rate=sampling_rate,
+                                        return_tensors="pt",
+                                        ).input_features
+        audio_features.append(audio_feature)
+    audio_features = torch.cat(audio_features, dim=-1)
+    return audio_features, len(audio_input) // 640
 
 class TalkingVideoDataset(Dataset):
     """
@@ -113,6 +135,7 @@ class TalkingVideoDataset(Dataset):
         n_sample_frames=16,
         data_meta_paths=None,
         wav2vec_cfg=None,
+        device='cuda',
         # ============ 新增的可选参数 ============
         align_instance=None,
         clip_area=1.25,
@@ -127,6 +150,9 @@ class TalkingVideoDataset(Dataset):
         self.audio_type = wav2vec_cfg.audio_type
         self.audio_model = wav2vec_cfg.model_scale
         self.audio_features = wav2vec_cfg.features
+
+        # whisper feature extractor
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
 
         # 新增，用于CLIP处理和人脸对齐检测
         self.clip_processor = CLIPImageProcessor()
@@ -218,10 +244,9 @@ class TalkingVideoDataset(Dataset):
         return ret_tensor
 
     def __getitem__(self, index):
+
         try:
-
-            motion_mask = True
-
+            # print("\n\n\n  Getting image at index {}".format(index))
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
             mask_path = video_meta["mask_path"]
@@ -232,37 +257,42 @@ class TalkingVideoDataset(Dataset):
             audio_emb_path = video_meta[
                 f"{self.audio_type}_emb_{self.audio_model}_{self.audio_features}"
             ]
+
+            # here we use whisper instead of wav2vec
+            audio_path = video_meta["video_path"].replace("videos", "audios")
+            audio_path = audio_path.replace(".mp4", ".wav")
+            # print(f"\n {index} audio path is {audio_path}")
+            fps = 25
+
+            audio_input, audio_len = get_audio_feature(audio_path, self.feature_extractor)
+
+
+            # whisper_feature = self.audio_guider.audio2feat(audio_path)
+            # # print("whisper feature shape :", whisper_feature.shape)
+            # whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            # print("whisper_chunks:", whisper_chunks.shape)
+            # audio_frame_num = whisper_chunks.shape[0]
+            # audio_fea_final = torch.Tensor(whisper_chunks)
+            # audio_fea_final = audio_fea_final.unsqueeze(0)
+            # print("audio_fea_final:", audio_fea_final.shape)
+
+
             tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
+            # print(f" {index} video length:", video_length)
 
+            assert (
+                video_length
+                > self.n_sample_frames + self.total_motion_frames  + 2 * self.audio_margin
+            )
+            start_idx = random.randint(
+                self.total_motion_frames ,
+                video_length - self.n_sample_frames - self.audio_margin - 1,
+            )
 
-            if motion_mask:
-
-                assert (
-                        video_length
-                        > self.n_sample_frames + 2 * self.audio_margin
-                )
-                # we can start with 0, just use mask
-                start_idx = random.randint(
-                    self.audio_margin,
-                    video_length - self.n_sample_frames - self.audio_margin - 1,
-                )
-
-            else:
-
-                assert (
-                        video_length
-                        > self.n_sample_frames + self.total_motion_frames + 2 * self.audio_margin
-                )
-                start_idx = random.randint(
-                    self.total_motion_frames,
-                    video_length - self.n_sample_frames - self.audio_margin - 1,
-                )
-
-            # extract video frames
             videos = video_frames[start_idx : start_idx + self.n_sample_frames]
 
             frame_list = [
@@ -279,6 +309,9 @@ class TalkingVideoDataset(Dataset):
 
             face_emb = torch.load(face_emb_path)
             audio_emb = torch.load(audio_emb_path)
+
+            # print(f"\n {index} Audio embedding shape: {audio_emb.shape}")
+
             indices = (
                 torch.arange(2 * self.audio_margin + 1) - self.audio_margin
             )  # Generates [-2, -1, 0, 1, 2]
@@ -286,10 +319,37 @@ class TalkingVideoDataset(Dataset):
                 start_idx,
                 start_idx + self.n_sample_frames,
             ).unsqueeze(1) + indices.unsqueeze(0)
-
-
-
             audio_tensor = audio_emb[center_indices]
+            # print(f"\n {index} center_indices are {center_indices}")
+
+            # audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
+            # audio_fea_final: torch.Size([1, 243, 50, 384])
+            # print("audio tensor whisper shape :", audio_tensor_whisper.shape)
+            # [1,14,50,384]
+            # whisper log mel
+            # if not os.path.exists(audio_path):
+            #     print(f"\n {index} Audio path does not exist: {audio_path}")
+            #     mels = np.zeros((80, 3000))
+            #     audio_start_index = -1
+            #     audio_end_index = -1
+            # else:
+            #     audio, _ = librosa.load(audio_path, sr=16000)
+            #     print(f"\n {index} Audio librosa shape is :", audio.shape)
+            #     # audio_start_index = int(pick_start / 25 * 50)
+            #     # audio_end_index = audio_start_index + int(random_pick_size / 25 * 50)
+            #
+            #     # do not cut here due to long-term audio context
+            #     # print('audio_start_index=', audio_start_index)
+            #     # print('audio_end_index=', audio_end_index)
+            #     # audio = audio[audio_start_index:audio_end_index]
+            #     # print('audio.shape=', audio.shape)
+            #
+            #     audio = whisper.pad_or_trim(
+            #         audio.flatten())  # as least 30s. you can slide to your specific duration at the usage.
+            #
+            #     print(f"\n {index} After pad or trim audio shape is :", audio.shape)
+            #     mels = whisper.log_mel_spectrogram(audio)
+            #     print(f"\n {index} mels shape is :", mels.shape)
 
             ref_img_idx = random.randint(
                 self.total_motion_frames,
@@ -298,37 +358,12 @@ class TalkingVideoDataset(Dataset):
             ref_img = video_frames[ref_img_idx].asnumpy()
             ref_img = Image.fromarray(ref_img)
 
-            zero_img = Image.new("RGB", (self.img_size[0], self.img_size[1]))
-
-            test_out_dir = "/yuch_ws/DH/hallo2/test_dir/"
-            video_name = video_path.split("/")[-1].split(".")[0]
             if self.n_motion_frames > 0:
                 # motions = video_frames[start_idx - self.n_motion_frames : start_idx]
-
-                if motion_mask:
-                    actual_indices = list(start_idx + self.motion_indices_offset)
-                    motion_list = []
-                    for ind in actual_indices:
-                        out_path = test_out_dir + f"{video_name}_{ind}.png"
-                        if ind < 0: # we use mask for this case
-                            motion_list.append(zero_img)
-                            # zero_img.save(out_path)
-                            # print("saved motion frames to " + out_path)
-                        else:
-                            motion = video_frames[ind].asnumpy()
-                            motion = Image.fromarray(motion)
-                            # if ind < 10:
-                            #     motion.save(out_path)
-                                # print("saved motion frames to " + out_path)
-                            motion_list.append(motion)
-
-                else:
-                    # actual_indices = list(start_idx + self.motion_indices_offset)
-
-                    motions = video_frames.get_batch(list(start_idx + self.motion_indices_offset))
-                    motion_list = [
-                        Image.fromarray(motion).convert("RGB") for motion in motions.asnumpy()
-                    ]
+                motions = video_frames.get_batch(list(start_idx + self.motion_indices_offset))
+                motion_list = [
+                    Image.fromarray(motion).convert("RGB") for motion in motions.asnumpy()
+                ]
 
             # transform
             state = torch.get_rng_state()
@@ -355,17 +390,24 @@ class TalkingVideoDataset(Dataset):
                 self.augmentation(full_masks_list, self.attn_transform_16, state),
                 self.augmentation(full_masks_list, self.attn_transform_8, state),
             ]
-
+            # print("pixel_values_ref_img shape is 1", ref_img.shape)
             pixel_values_ref_img = self.augmentation(ref_img, self.pixel_transform, state)
+            # print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
             pixel_values_ref_img = pixel_values_ref_img.unsqueeze(0)
-            # print(pixel_values_ref)
-            # if self.n_motion_frames > 0:
-            #     pixel_values_motion = self.augmentation(
-            #         motion_list, self.pixel_transform, state
-            #     )
-            #     pixel_values_ref_img = torch.cat(
-            #         [pixel_values_ref_img, pixel_values_motion], dim=0
-            #     )
+            # print("pixel_values_ref_img shape is 3", pixel_values_ref_img.shape)
+            # print("self.n_motion_frames is ", self.n_motion_frames   )
+            if self.n_motion_frames > 0:
+                pixel_values_motion = self.augmentation(
+                    motion_list, self.pixel_transform, state
+                )
+                pixel_values_ref_img = torch.cat(
+                    [pixel_values_ref_img, pixel_values_motion], dim=0
+                )
+
+            # audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
+            # print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
+            # print("pixel_values_vid shape is :", pixel_values_vid.shape)
+            # print("pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
 
             # ========== 新增： 将 ref_img 转换为 CLIP image =============
             # （下面仅示例如何做，具体是否要裁剪/对齐看你需求）
@@ -404,24 +446,22 @@ class TalkingVideoDataset(Dataset):
             # ========== 新增完毕 ==========
 
             print("clip_image shape", clip_image.shape)
-
+            print("audio_tensor shape ", audio_input[0].shape)
 
             sample = {
+                "start_idx": start_idx,
                 "video_dir": video_path,
                 "pixel_values_vid": pixel_values_vid,
                 "pixel_values_mask": pixel_values_mask,
                 "pixel_values_face_mask": pixel_values_face_mask,
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
-                "audio_tensor": audio_tensor,
+                "audio_tensor": audio_input[0],
+                "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
                 "clip_image_ref": clip_image,
             }
-
-            # # 若有 clip_image，额外塞进 sample
-            # if clip_image is not None:
-            #     sample["clip_image_ref"] = clip_image
 
             return sample
 

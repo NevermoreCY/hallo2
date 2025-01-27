@@ -64,9 +64,12 @@ from hallo.animate.face_animate_yu import FaceAnimatePipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 # from hallo.datasets.talk_video_svd import TalkingVideoDataset
-from hallo.datasets.talk_video_loopy_whisper import TalkingVideoDataset
+from hallo.datasets.talk_video_sonic_whisper import TalkingVideoDataset
 # from hallo.models.audio_proj import AudioProjModel
 from hallo.models.audio_proj_whisper import AudioProjModel
+
+from hallo.models.audio_proj_sonic import AudioProjModel as AudioProjModel_sonic
+from hallo.models.audio_to_bucket import Audio2bucketModel
 
 from hallo.utils.util import (compute_snr, delete_additional_ckpt,
                               import_filename, init_output_dir,
@@ -140,12 +143,16 @@ class Net(nn.Module):
         face_locator: FaceLocator,
         imageproj,
         audioproj,
+        audio2bucket,
+        audio2token,
     ):
         super().__init__()
         self.denoising_unet = denoising_unet
         self.face_locator = face_locator
         self.imageproj = imageproj
         self.audioproj = audioproj
+        self.audio2bucket = audio2bucket
+        self.audio2token = audio2token
 
     # model_pred = net(
     #     noisy_latents=noisy_latents,
@@ -510,66 +517,7 @@ def tensor_to_vae_latent(t, vae):
     return latents
 
 
-def image_audio_to_tensor(align_instance, feature_extractor, image_path, audio_path, limit=100, image_size=512,
-                          area=1.25):
-    clip_processor = CLIPImageProcessor()
 
-    to_tensor = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-    mask_to_tensor = transforms.Compose([
-        transforms.ToTensor(),
-    ])
-
-    imSrc_ = Image.open(image_path).convert('RGB')
-    w, h = imSrc_.size
-
-    _, _, bboxes_list = align_instance(np.array(imSrc_)[:, :, [2, 1, 0]], maxface=True)
-
-    if len(bboxes_list) == 0:
-        return None
-    bboxSrc = bboxes_list[0]
-
-    x1, y1, ww, hh = bboxSrc
-    x2, y2 = x1 + ww, y1 + hh
-
-    mask_img = np.zeros_like(np.array(imSrc_))
-    ww, hh = (x2 - x1) * area, (y2 - y1) * area
-    center = [(x2 + x1) // 2, (y2 + y1) // 2]
-    x1 = max(center[0] - ww // 2, 0)
-    y1 = max(center[1] - hh // 2, 0)
-    x2 = min(center[0] + ww // 2, w)
-    y2 = min(center[1] + hh // 2, h)
-    mask_img[int(y1):int(y2), int(x1):int(x2)] = 255
-    mask_img = Image.fromarray(mask_img)
-
-    w, h = imSrc_.size
-    scale = image_size / min(w, h)
-    new_w = round(w * scale / 64) * 64
-    new_h = round(h * scale / 64) * 64
-    if new_h != h or new_w != w:
-        imSrc = imSrc_.resize((new_w, new_h), Image.LANCZOS)
-        mask_img = mask_img.resize((new_w, new_h), Image.LANCZOS)
-    else:
-        imSrc = imSrc_
-
-    clip_image = clip_processor(
-        images=imSrc.resize((224, 224), Image.LANCZOS), return_tensors="pt"
-    ).pixel_values[0]
-    audio_input, audio_len = get_audio_feature(audio_path, feature_extractor)
-
-    audio_len = min(limit, audio_len)
-
-    sample = dict(
-        face_mask=mask_to_tensor(mask_img),
-        ref_img=to_tensor(imSrc),
-        clip_images=clip_image,
-        audio_feature=audio_input[0],
-        audio_len=audio_len
-    )
-
-    return sample
 
 def train_stage2_process(cfg: argparse.Namespace) -> None:
     """
@@ -684,6 +632,13 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     ).to(device="cuda", dtype=weight_dtype)
 
 
+
+    audio2token = AudioProjModel(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=1024,
+                                 context_tokens=32).to(device="cuda")
+    audio2bucket = Audio2bucketModel(seq_len=50, blocks=1, channels=384, clip_channels=1024, intermediate_dim=1024,
+                                     output_dim=1, context_tokens=2).to(device="cuda")
+
+
     feature_extractor = CLIPImageProcessor.from_pretrained(
         cfg.svd.pretrain, subfolder="feature_extractor"
     )
@@ -699,6 +654,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     imageproj.requires_grad_(False)
     face_locator.requires_grad_(False)
     audioproj.requires_grad_(False)
+    audio2bucket.requires_grad_(False)
+    audio2token.requires_grad_(False)
 
     vae.requires_grad_(False)
     image_encoder.requires_grad_(False)
@@ -735,6 +692,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         face_locator,
         imageproj,
         audioproj,
+        audio2token,
+        audio2bucket
     ).to(dtype=weight_dtype)
 
     # m,u = net.load_state_dict(
