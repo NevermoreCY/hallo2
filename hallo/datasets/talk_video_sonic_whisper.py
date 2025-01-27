@@ -85,7 +85,7 @@ import os
 import librosa
 from ..models.whisper_local.audio2feature import load_audio_model
 from transformers import CLIPImageProcessor
-from transformers import WhisperModel, CLIPVisionModelWithProjection, AutoFeatureExtractor
+from transformers import AutoFeatureExtractor
 
 
 def get_audio_feature(audio_path, feature_extractor):
