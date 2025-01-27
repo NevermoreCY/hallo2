@@ -404,7 +404,7 @@ class TalkingVideoDataset(Dataset):
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========
 
-            print("clip_image", clip_image.shape)
+            print("clip_image shape", clip_image.shape)
 
 
             sample = {
