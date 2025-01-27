@@ -461,6 +461,8 @@ class TalkingVideoDataset(Dataset):
             wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
 
             audio_feature = audio_input[0]
+            audio_feature = audio_feature.squeeze(0)
+            print(video_path[-15:-4],"audio_feature squeezed : ", audio_feature.shape)
             window = 3000
             audio_prompts = []
             last_audio_prompts = []
@@ -472,9 +474,13 @@ class TalkingVideoDataset(Dataset):
                 audio_prompt = torch.stack(audio_prompt, dim=2)
                 audio_prompts.append(audio_prompt)
                 last_audio_prompts.append(last_audio_prompt)
+                print(video_path[-15:-4], "audio_prompts chunk shape", audio_prompt.shape)
+                print(video_path[-15:-4], "last audio prompts shape", last_audio_prompt.shape)
 
             audio_prompts = torch.cat(audio_prompts, dim=1)
+            print(video_path[-15:-4], "audio_prompts 1 shape", audio_prompts.shape)
             audio_prompts = audio_prompts[:, :audio_len * 2]
+            print(video_path[-15:-4], "audio_prompts 2 shape", audio_prompts.shape)
             audio_prompts = torch.cat(
                 [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
 
