@@ -633,7 +633,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
 
-    audio2token = AudioProjModel(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=1024,
+    audio2token = AudioProjModel_sonic(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=1024,
                                  context_tokens=32).to(device="cuda")
     audio2bucket = Audio2bucketModel(seq_len=50, blocks=1, channels=384, clip_channels=1024, intermediate_dim=1024,
                                      output_dim=1, context_tokens=2).to(device="cuda")
