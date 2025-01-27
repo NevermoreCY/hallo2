@@ -279,7 +279,7 @@ class TalkingVideoDataset(Dataset):
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
             audio_fea_final = audio_fea_final.unsqueeze(0)
-            # print("audio_fea_final:", audio_fea_final.shape)
+            print("audio_fea_final:", audio_fea_final.shape)
 
 
             tgt_mask_pil = Image.open(mask_path)
@@ -450,9 +450,10 @@ class TalkingVideoDataset(Dataset):
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========
 
-            # print("clip_image shape", clip_image.shape)
-            # print("audio_tensor shape ", audio_input[0].shape)
-            # print("audio_tensor_whisper_old shape", audio_tensor_whisper.shape)
+            print("clip_image shape", clip_image.shape)
+            print("audio_tensor shape ", audio_input[0].shape)
+            print("audio_tensor_whisper_old shape", audio_tensor_whisper.shape)
+            print("audio_len", audio_len)
             # clip_image shape torch.Size([3, 224, 224])
             # audio_tensor shape  torch.Size([80, 9000])
             # audio_tensor_whisper_old shape torch.Size([25, 50, 384])
@@ -466,8 +467,8 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
                 "audio_tensor": audio_tensor_whisper,
-                "audio_feature": audio_input[0],
-                "audio_len": audio_len,
+                # "audio_feature": audio_input[0],
+                # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
                 "clip_image_ref": clip_image,
