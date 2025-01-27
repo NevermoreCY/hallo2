@@ -79,6 +79,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 import numpy as np
+from transformers import CLIPImageProcessor
 
 class TalkingVideoDataset(Dataset):
     """
@@ -112,6 +113,11 @@ class TalkingVideoDataset(Dataset):
         n_sample_frames=16,
         data_meta_paths=None,
         wav2vec_cfg=None,
+        # ============ 新增的可选参数 ============
+
+        align_instance=None,
+        clip_area=1.25,
+        clip_image_size=224,
     ):
         super().__init__()
         self.sample_rate = sample_rate
@@ -122,6 +128,12 @@ class TalkingVideoDataset(Dataset):
         self.audio_type = wav2vec_cfg.audio_type
         self.audio_model = wav2vec_cfg.model_scale
         self.audio_features = wav2vec_cfg.features
+
+        # 新增，用于CLIP处理和人脸对齐检测
+        self.clip_processor = CLIPImageProcessor()
+        self.align_instance = align_instance
+        self.clip_area = clip_area
+        self.clip_image_size = clip_image_size
 
         # loopy features
         self.num_segments = 3
@@ -228,7 +240,7 @@ class TalkingVideoDataset(Dataset):
             video_length = len(video_frames)
 
 
-            if motion_mask == True:
+            if motion_mask:
 
                 assert (
                         video_length
@@ -251,7 +263,7 @@ class TalkingVideoDataset(Dataset):
                     video_length - self.n_sample_frames - self.audio_margin - 1,
                 )
 
-
+            # extract video frames
             videos = video_frames[start_idx : start_idx + self.n_sample_frames]
 
             frame_list = [
@@ -356,6 +368,43 @@ class TalkingVideoDataset(Dataset):
             #         [pixel_values_ref_img, pixel_values_motion], dim=0
             #     )
 
+            # ========== 新增： 将 ref_img 转换为 CLIP image =============
+            # （下面仅示例如何做，具体是否要裁剪/对齐看你需求）
+
+            clip_image = None
+            if self.clip_processor is not None:
+                # 如果 align_instance 存在，先做一个 bounding box 检测并裁剪
+                if self.align_instance is not None:
+                    w, h = ref_img.size
+                    # 执行人脸检测
+                    _, _, bboxes_list = self.align_instance(
+                        np.array(ref_img)[:, :, [2, 1, 0]], maxface=True
+                    )
+                    if len(bboxes_list) > 0:
+                        x1, y1, ww, hh = bboxes_list[0]
+                        x2, y2 = x1 + ww, y1 + hh
+                        # 根据 area 放大
+                        ww, hh = (x2 - x1) * self.clip_area, (y2 - y1) * self.clip_area
+                        cx, cy = (x2 + x1) // 2, (y2 + y1) // 2
+                        x1 = max(cx - ww // 2, 0)
+                        y1 = max(cy - hh // 2, 0)
+                        x2 = min(cx + ww // 2, w)
+                        y2 = min(cy + hh // 2, h)
+
+                        # 裁剪这部分作为 clip 的原图
+                        ref_img_clip = ref_img.crop((x1, y1, x2, y2))
+                    else:
+                        ref_img_clip = ref_img
+                else:
+                    # 如果没有人脸检测，就直接用整张图
+                    ref_img_clip = ref_img
+
+                # 再把图 resize 到合适大小（224×224）做 CLIP 处理
+                ref_img_clip = ref_img_clip.resize((self.clip_image_size, self.clip_image_size), Image.LANCZOS)
+                clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
+            # ========== 新增完毕 ==========
+
+
             sample = {
                 "video_dir": video_path,
                 "pixel_values_vid": pixel_values_vid,
@@ -367,6 +416,13 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
             }
+
+            # 若有 clip_image，额外塞进 sample
+            if clip_image is not None:
+                sample["clip_image_ref"] = clip_image
+
+            return sample
+
 
             return sample
 

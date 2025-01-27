@@ -93,6 +93,8 @@ from hallo.utils.util import (compute_snr, delete_additional_ckpt,
 from hallo.models.whisper_local.audio2feature import load_audio_model
 
 from packaging import version
+from transformers import CLIPImageProcessor
+
 
 
 warnings.filterwarnings("ignore")
@@ -506,6 +508,68 @@ def tensor_to_vae_latent(t, vae):
 
 
     return latents
+
+
+def image_audio_to_tensor(align_instance, feature_extractor, image_path, audio_path, limit=100, image_size=512,
+                          area=1.25):
+    clip_processor = CLIPImageProcessor()
+
+    to_tensor = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+    mask_to_tensor = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+
+    imSrc_ = Image.open(image_path).convert('RGB')
+    w, h = imSrc_.size
+
+    _, _, bboxes_list = align_instance(np.array(imSrc_)[:, :, [2, 1, 0]], maxface=True)
+
+    if len(bboxes_list) == 0:
+        return None
+    bboxSrc = bboxes_list[0]
+
+    x1, y1, ww, hh = bboxSrc
+    x2, y2 = x1 + ww, y1 + hh
+
+    mask_img = np.zeros_like(np.array(imSrc_))
+    ww, hh = (x2 - x1) * area, (y2 - y1) * area
+    center = [(x2 + x1) // 2, (y2 + y1) // 2]
+    x1 = max(center[0] - ww // 2, 0)
+    y1 = max(center[1] - hh // 2, 0)
+    x2 = min(center[0] + ww // 2, w)
+    y2 = min(center[1] + hh // 2, h)
+    mask_img[int(y1):int(y2), int(x1):int(x2)] = 255
+    mask_img = Image.fromarray(mask_img)
+
+    w, h = imSrc_.size
+    scale = image_size / min(w, h)
+    new_w = round(w * scale / 64) * 64
+    new_h = round(h * scale / 64) * 64
+    if new_h != h or new_w != w:
+        imSrc = imSrc_.resize((new_w, new_h), Image.LANCZOS)
+        mask_img = mask_img.resize((new_w, new_h), Image.LANCZOS)
+    else:
+        imSrc = imSrc_
+
+    clip_image = clip_processor(
+        images=imSrc.resize((224, 224), Image.LANCZOS), return_tensors="pt"
+    ).pixel_values[0]
+    audio_input, audio_len = get_audio_feature(audio_path, feature_extractor)
+
+    audio_len = min(limit, audio_len)
+
+    sample = dict(
+        face_mask=mask_to_tensor(mask_img),
+        ref_img=to_tensor(imSrc),
+        clip_images=clip_image,
+        audio_feature=audio_input[0],
+        audio_len=audio_len
+    )
+
+    return sample
 
 def train_stage2_process(cfg: argparse.Namespace) -> None:
     """
