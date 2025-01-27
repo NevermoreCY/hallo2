@@ -271,6 +271,7 @@ class TalkingVideoDataset(Dataset):
             audio_input, audio_len = get_audio_feature(audio_path, self.feature_extractor)
 
 
+
             whisper_feature = self.audio_guider.audio2feat(audio_path)
             # print("whisper feature shape :", whisper_feature.shape)
             whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
