@@ -457,6 +457,54 @@ class TalkingVideoDataset(Dataset):
             # clip_image shape torch.Size([3, 224, 224])
             # audio_tensor shape  torch.Size([80, 9000])
             # audio_tensor_whisper_old shape torch.Size([25, 50, 384])
+            from transformers import WhisperModel
+            wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
+
+            audio_feature = audio_input[0]
+            window = 3000
+            audio_prompts = []
+            last_audio_prompts = []
+            for i in range(0, audio_feature.shape[-1], window):
+                audio_prompt = wav_enc.encoder(audio_feature[:, :, i:i + window],
+                                               output_hidden_states=True).hidden_states
+                last_audio_prompt = wav_enc.encoder(audio_feature[:, :, i:i + window]).last_hidden_state
+                last_audio_prompt = last_audio_prompt.unsqueeze(-2)
+                audio_prompt = torch.stack(audio_prompt, dim=2)
+                audio_prompts.append(audio_prompt)
+                last_audio_prompts.append(last_audio_prompt)
+
+            audio_prompts = torch.cat(audio_prompts, dim=1)
+            audio_prompts = audio_prompts[:, :audio_len * 2]
+            audio_prompts = torch.cat(
+                [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
+
+            last_audio_prompts = torch.cat(last_audio_prompts, dim=1)
+            last_audio_prompts = last_audio_prompts[:, :audio_len * 2]
+            last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
+                                            torch.zeros_like(last_audio_prompts[:, :26])], 1)
+
+            print(video_path[-15:-4], "audio_prompts shape", audio_prompts.shape)
+            print(video_path[-15:-4], "last_audio_prompts", last_audio_prompts.shape)
+            step = 2
+            ref_tensor_list = []
+            audio_tensor_list = []
+            uncond_audio_tensor_list = []
+            motion_buckets = []
+            for i in range(audio_len // step):
+                audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10].unsqueeze(0)
+                audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
+            print(video_path[-15:-4], "audio_clip", audio_clip.shape)
+            print(video_path[-15:-4], "audio_clip_for_bucket", audio_clip_for_bucket.shape)
+                # motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
+                # motion_bucket = motion_bucket * 16 + 16
+                # motion_buckets.append(motion_bucket[0])
+                #
+                # cond_audio_clip = audio_pe(audio_clip).squeeze(0)
+                # uncond_audio_clip = audio_pe(torch.zeros_like(audio_clip)).squeeze(0)
+                #
+                # ref_tensor_list.append(ref_img[0])
+                # audio_tensor_list.append(cond_audio_clip[0])
+                # uncond_audio_tensor_list.append(uncond_audio_clip[0])
 
             sample = {
                 "start_idx": start_idx,
