@@ -471,7 +471,7 @@ class TalkingVideoDataset(Dataset):
                 # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
-                "clip_image_ref": clip_image,
+                "clip_images": clip_image,
             }
 
             return sample
