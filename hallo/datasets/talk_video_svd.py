@@ -404,6 +404,8 @@ class TalkingVideoDataset(Dataset):
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========
 
+            print("clip_image", clip_image.shape)
+
 
             sample = {
                 "video_dir": video_path,
@@ -415,14 +417,12 @@ class TalkingVideoDataset(Dataset):
                 "audio_tensor": audio_tensor,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
+                "clip_image_ref": clip_image,
             }
 
-            # 若有 clip_image，额外塞进 sample
-            if clip_image is not None:
-                sample["clip_image_ref"] = clip_image
-
-            return sample
-
+            # # 若有 clip_image，额外塞进 sample
+            # if clip_image is not None:
+            #     sample["clip_image_ref"] = clip_image
 
             return sample
 
