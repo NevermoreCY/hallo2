@@ -644,7 +644,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         cfg.svd.pretrain, subfolder="feature_extractor"
     )
     image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-        cfg.svd.pretrain, subfolder="image_encoder"
+        cfg.svd.pretrain, subfolder="image_encoder",
+        variant="fp16"
     )
     vae = AutoencoderKLTemporalDecoder.from_pretrained(
         cfg.svd.pretrain, subfolder="vae")
@@ -939,6 +940,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # pixel_values_vid shape is  torch.Size([4, 14, 3, 512, 512])
                 #
 
+
                 conditional_pixel_values = batch["pixel_values_ref_img"].to(weight_dtype)
                 # reference_pixel_values = batch["pixel_values_ref_img"].to(weight_dtype)
                 #
@@ -953,6 +955,68 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # conditional_pixel_values shape is  torch.Size([4, 1, 3, 512, 512])
                 # print("**debug 12 29 \n\n  vae scaling factor ", vae.config.scaling_factor )
                 # vae scaling factor  0.18215
+
+                # 新增CLIP & audio embd
+
+                clip_img = batch['clip_images']
+                image_embeds = image_encoder(
+                    clip_img
+                ).image_embeds
+
+                audio_feature = batch['audio_feature']
+                audio_len = batch['audio_len']
+
+                window = 3000
+                audio_prompts = []
+                last_audio_prompts = []
+                for i in range(0, audio_feature.shape[-1], window):
+                    audio_prompt = whisper.encoder(audio_feature[:, :, i:i + window],
+                                                   output_hidden_states=True).hidden_states
+                    last_audio_prompt = whisper.encoder(audio_feature[:, :, i:i + window]).last_hidden_state
+                    last_audio_prompt = last_audio_prompt.unsqueeze(-2)
+                    audio_prompt = torch.stack(audio_prompt, dim=2)
+                    audio_prompts.append(audio_prompt)
+                    last_audio_prompts.append(last_audio_prompt)
+
+                audio_prompts = torch.cat(audio_prompts, dim=1)
+                audio_prompts = audio_prompts[:, :audio_len * 2]
+                audio_prompts = torch.cat(
+                    [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
+
+                last_audio_prompts = torch.cat(last_audio_prompts, dim=1)
+                last_audio_prompts = last_audio_prompts[:, :audio_len * 2]
+                last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
+                                                torch.zeros_like(last_audio_prompts[:, :26])], 1)
+
+                step=2
+                ref_tensor_list = []
+                audio_tensor_list = []
+                uncond_audio_tensor_list = []
+                motion_buckets = []
+                for i in tqdm(range(audio_len // step)):
+                    audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10].unsqueeze(0)
+                    audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
+                    motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
+                    motion_bucket = motion_bucket * 16 + 16
+                    motion_buckets.append(motion_bucket[0])
+
+                    cond_audio_clip = audio2token(audio_clip).squeeze(0)
+                    uncond_audio_clip = audio2token(torch.zeros_like(audio_clip)).squeeze(0)
+
+                    print("cond_audio_clip shape is : ", cond_audio_clip.shape)
+                    # ref_tensor_list.append(ref_img[0])
+                    audio_tensor_list.append(cond_audio_clip[0])
+                    print("cond_audio_clip[0] shape is : ", cond_audio_clip[0].shape)
+                    uncond_audio_tensor_list.append(uncond_audio_clip[0])
+
+
+
+
+
+
+
+                # 新增结束
+
 
 
                 latents = tensor_to_vae_latent(pixel_values_vid , vae)
