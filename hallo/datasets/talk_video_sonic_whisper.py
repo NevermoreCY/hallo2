@@ -461,8 +461,8 @@ class TalkingVideoDataset(Dataset):
             wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
 
             audio_feature = audio_input[0]
-            audio_feature = audio_feature.squeeze(0)
-            print(video_path[-15:-4],"audio_feature squeezed : ", audio_feature.shape)
+            audio_feature = audio_feature.unsqueeze(0)
+            print(video_path[-15:-4],"audio_feature unsqueezed : ", audio_feature.shape)
             window = 3000
             audio_prompts = []
             last_audio_prompts = []
