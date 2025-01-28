@@ -510,8 +510,12 @@ class TalkingVideoDataset(Dataset):
             audio_clips = []
             audio_clips_for_bucket = []
             for i in center_indices:
-                audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10]
-                audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50]
+                # we shift window to cover past info
+                audio_clip_start_idx = i * 2 * step -4
+                audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
+                # we shift window to cover past info
+                audio_clip_for_bucket_start_idx = i * 2 * step - 24
+                audio_clip_for_bucket = last_audio_prompts[:, audio_clip_for_bucket_start_idx:audio_clip_for_bucket_start_idx + 50]
                 audio_clips.append(audio_clip)
                 audio_clips_for_bucket.append(audio_clip_for_bucket)
             print(video_path[-15:-4], "audio_clip", audio_clip.shape)
@@ -542,8 +546,10 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_face_mask": pixel_values_face_mask,
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
-                "audio_tensor": audio_tensor_whisper,
-                "audio_feature": audio_input[0],
+                "audio_clips " : audio_clips,
+                "audio_clips_for_bucket" : audio_clips_for_bucket,
+                # "audio_tensor": audio_tensor_whisper,
+                # "audio_feature": audio_input[0],
                 # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
