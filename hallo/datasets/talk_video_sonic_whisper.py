@@ -501,19 +501,25 @@ class TalkingVideoDataset(Dataset):
             # lSteele_000 audio_prompts shape torch.Size([1, 660, 5, 384])
             # lSteele_000 last_audio_prompts torch.Size([1, 700, 1, 384])
 
-
-
-
+            center_indices = np.arange(
+                start_idx,
+                start_idx + self.n_sample_frames,
+            )
+            print(video_path[-15:-4], "center_indices : ", center_indices)
             step = 2
-            ref_tensor_list = []
-            audio_tensor_list = []
-            uncond_audio_tensor_list = []
-            motion_buckets = []
-            for i in range(audio_len // step):
-                audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10].unsqueeze(0)
-                audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
+            audio_clips = []
+            audio_clips_for_bucket = []
+            for i in center_indices:
+                audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10]
+                audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50]
+                audio_clips.append(audio_clip)
+                audio_clips_for_bucket.append(audio_clip_for_bucket)
             print(video_path[-15:-4], "audio_clip", audio_clip.shape)
             print(video_path[-15:-4], "audio_clip_for_bucket", audio_clip_for_bucket.shape)
+            audio_clips = torch.cat(audio_clips, dim=0)
+            audio_clips_for_bucket = torch.cat(audio_clips_for_bucket, dim=0)
+            print(video_path[-15:-4], "audio_clips", audio_clips.shape)
+            print(video_path[-15:-4], "audio_clips_for_bucket", audio_clips_for_bucket.shape)
             # lSteele_000 audio_clip torch.Size([1, 1, 10, 5, 384])
             # lSteele_000 audio_clip_for_bucket torch.Size([1, 1, 50, 1, 384])
 
@@ -537,7 +543,7 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
                 "audio_tensor": audio_tensor_whisper,
-                # "audio_feature": audio_input[0],
+                "audio_feature": audio_input[0],
                 # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
                 "face_emb": face_emb,
