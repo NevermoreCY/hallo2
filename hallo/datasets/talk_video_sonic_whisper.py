@@ -287,7 +287,7 @@ class TalkingVideoDataset(Dataset):
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
-            # print(f" {index} video length:", video_length)
+            print(f"{video_path[-15:-4]} {index} video length:", video_length)
 
             assert (
                 video_length
@@ -297,7 +297,7 @@ class TalkingVideoDataset(Dataset):
                 self.total_motion_frames ,
                 video_length - self.n_sample_frames - self.audio_margin - 1,
             )
-
+            print(video_path[-15:-4], "start idx is ", start_idx)
             videos = video_frames[start_idx : start_idx + self.n_sample_frames]
 
             frame_list = [
@@ -450,19 +450,22 @@ class TalkingVideoDataset(Dataset):
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========
 
-            print(video_path[-15:-4] ,"clip_image shape", clip_image.shape)
-            print(video_path[-15:-4], "audio_tensor shape ", audio_input[0].shape)
-            print(video_path[-15:-4], "audio_tensor_whisper_old shape", audio_tensor_whisper.shape)
-            print(video_path[-15:-4], "audio_len", audio_len)
-            # clip_image shape torch.Size([3, 224, 224])
-            # audio_tensor shape  torch.Size([80, 9000])
-            # audio_tensor_whisper_old shape torch.Size([25, 50, 384])
+            # print(video_path[-15:-4] ,"clip_image shape", clip_image.shape)
+            # print(video_path[-15:-4], "audio_tensor shape ", audio_input[0].shape)
+            # print(video_path[-15:-4], "audio_tensor_whisper_old shape", audio_tensor_whisper.shape)
+            # print(video_path[-15:-4], "audio_len", audio_len)
+            # lSteele_000 audio_fea_final: torch.Size([1, 327, 50, 384])
+            # lSteele_000 clip_image shape torch.Size([3, 224, 224])
+            # lSteele_000 audio_tensor shape  torch.Size([80, 3000])
+            # lSteele_000 audio_tensor_whisper_old shape torch.Size([25, 50, 384])
+            # lSteele_000 audio_len 325
             from transformers import WhisperModel
             wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
 
             audio_feature = audio_input[0]
             audio_feature = audio_feature.unsqueeze(0).to(device="cuda")
             print(video_path[-15:-4],"audio_feature unsqueezed : ", audio_feature.shape)
+            # lSteele_000 audio_feature unsqueezed :  torch.Size([1, 80, 3000])
             window = 3000
             audio_prompts = []
             last_audio_prompts = []
@@ -474,13 +477,17 @@ class TalkingVideoDataset(Dataset):
                 audio_prompt = torch.stack(audio_prompt, dim=2)
                 audio_prompts.append(audio_prompt)
                 last_audio_prompts.append(last_audio_prompt)
-                print(video_path[-15:-4], "audio_prompts chunk shape", audio_prompt.shape)
-                print(video_path[-15:-4], "last audio prompts shape", last_audio_prompt.shape)
+                # print(video_path[-15:-4], "audio_prompts chunk shape", audio_prompt.shape)
+                # print(video_path[-15:-4], "last audio prompts shape", last_audio_prompt.shape)
+                # lSteele_000 audio_prompts chunk shape torch.Size([1, 1500, 5, 384])
+                # lSteele_000 last audio prompts shape torch.Size([1, 1500, 1, 384])
 
             audio_prompts = torch.cat(audio_prompts, dim=1)
-            print(video_path[-15:-4], "audio_prompts 1 shape", audio_prompts.shape)
+            # print(video_path[-15:-4], "audio_prompts 1 shape", audio_prompts.shape)
+            # lSteele_000 audio_prompts 1 shape torch.Size([1, 1500, 5, 384])
             audio_prompts = audio_prompts[:, :audio_len * 2]
-            print(video_path[-15:-4], "audio_prompts 2 shape", audio_prompts.shape)
+            # print(video_path[-15:-4], "audio_prompts 2 shape", audio_prompts.shape)
+            # lSteele_000 audio_prompts 2 shape torch.Size([1, 650, 5, 384])
             audio_prompts = torch.cat(
                 [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
 
@@ -489,8 +496,14 @@ class TalkingVideoDataset(Dataset):
             last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
                                             torch.zeros_like(last_audio_prompts[:, :26])], 1)
 
-            print(video_path[-15:-4], "audio_prompts shape", audio_prompts.shape)
-            print(video_path[-15:-4], "last_audio_prompts", last_audio_prompts.shape)
+            # print(video_path[-15:-4], "audio_prompts shape", audio_prompts.shape)
+            # print(video_path[-15:-4], "last_audio_prompts", last_audio_prompts.shape)
+            # lSteele_000 audio_prompts shape torch.Size([1, 660, 5, 384])
+            # lSteele_000 last_audio_prompts torch.Size([1, 700, 1, 384])
+
+
+
+
             step = 2
             ref_tensor_list = []
             audio_tensor_list = []
@@ -501,6 +514,9 @@ class TalkingVideoDataset(Dataset):
                 audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
             print(video_path[-15:-4], "audio_clip", audio_clip.shape)
             print(video_path[-15:-4], "audio_clip_for_bucket", audio_clip_for_bucket.shape)
+            # lSteele_000 audio_clip torch.Size([1, 1, 10, 5, 384])
+            # lSteele_000 audio_clip_for_bucket torch.Size([1, 1, 50, 1, 384])
+
                 # motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
                 # motion_bucket = motion_bucket * 16 + 16
                 # motion_buckets.append(motion_bucket[0])
