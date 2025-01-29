@@ -179,6 +179,9 @@ class Net(nn.Module):
         """
         face_emb = self.imageproj(face_emb)
         print("face_emb after image proj 1", face_emb.shape)
+        #face_emb after image proj 1 torch.Size([2, 4, 1024])
+
+
         # mask = mask.to(device="cuda")
         # mask_feature = self.face_locator(mask)
         # audio_emb = audio_emb.to(
@@ -619,7 +622,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
     imageproj = ImageProjModel(
         cross_attention_dim=unet.config.cross_attention_dim,
-        clip_embeddings_dim=512,
+        clip_embeddings_dim=1024,
         clip_extra_context_tokens=4,
     ).to(device="cuda", dtype=weight_dtype)
     face_locator = FaceLocator(
@@ -705,8 +708,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         face_locator,
         imageproj,
         audioproj,
+        audio2bucket,
         audio2token,
-        audio2bucket
+
     ).to(dtype=weight_dtype)
 
     # m,u = net.load_state_dict(
@@ -1206,7 +1210,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
-                    face_emb=image_prompt_embeds,
+                    face_emb=clip_image_embeds,
                     audio_emb= audio_clips,
                     added_time_ids=added_time_ids2,
                     uncond_audio_fwd=uncond_audio_fwd
