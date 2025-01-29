@@ -279,7 +279,7 @@ class TalkingVideoDataset(Dataset):
             audio_frame_num = whisper_chunks.shape[0]
             audio_fea_final = torch.Tensor(whisper_chunks)
             audio_fea_final = audio_fea_final.unsqueeze(0)
-            print(video_path[-15:-4], "audio_fea_final:", audio_fea_final.shape)
+            # print(video_path[-15:-4], "audio_fea_final:", audio_fea_final.shape)
 
 
             tgt_mask_pil = Image.open(mask_path)
@@ -297,7 +297,7 @@ class TalkingVideoDataset(Dataset):
                 self.total_motion_frames ,
                 video_length - self.n_sample_frames - self.audio_margin - 1,
             )
-            print(video_path[-15:-4], "start idx is ", start_idx)
+            # print(video_path[-15:-4], "start idx is ", start_idx)
             videos = video_frames[start_idx : start_idx + self.n_sample_frames]
 
             frame_list = [
@@ -465,7 +465,7 @@ class TalkingVideoDataset(Dataset):
 
             audio_feature = audio_input[0]
             audio_feature = audio_feature.unsqueeze(0).to(device="cuda")
-            print(video_path[-15:-4],"audio_feature unsqueezed : ", audio_feature.shape)
+            # print(video_path[-15:-4],"audio_feature unsqueezed : ", audio_feature.shape)
             # lSteele_000 audio_feature unsqueezed :  torch.Size([1, 80, 3000])
             window = 3000
             audio_prompts = []
@@ -506,8 +506,8 @@ class TalkingVideoDataset(Dataset):
                 start_idx,
                 start_idx + self.n_sample_frames,
             )
-            print(video_path[-15:-4], "center_indices : ", center_indices)
-
+            # print(video_path[-15:-4], "center_indices : ", center_indices)
+            # rowley1_003 center_indices :  [62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86]
 
             audio_clips = []
             audio_clips_for_bucket = []
@@ -520,14 +520,16 @@ class TalkingVideoDataset(Dataset):
                 audio_clip_for_bucket = last_audio_prompts[:, audio_clip_for_bucket_start_idx:audio_clip_for_bucket_start_idx + 50]
                 audio_clips.append(audio_clip)
                 audio_clips_for_bucket.append(audio_clip_for_bucket)
-            print(video_path[-15:-4], "audio_clip", audio_clip.shape)
-            print(video_path[-15:-4], "audio_clip_for_bucket", audio_clip_for_bucket.shape)
+            # print(video_path[-15:-4], "audio_clip", audio_clip.shape)
+            # print(video_path[-15:-4], "audio_clip_for_bucket", audio_clip_for_bucket.shape)
+            # rowley1_003 audio_clip torch.Size([1, 10, 5, 384])
+            # rowley1_003 audio_clip_for_bucket torch.Size([1, 50, 1, 384])
             audio_clips = torch.cat(audio_clips, dim=0)
             audio_clips_for_bucket = torch.cat(audio_clips_for_bucket, dim=0)
-            print(video_path[-15:-4], "audio_clips", audio_clips.shape)
-            print(video_path[-15:-4], "audio_clips_for_bucket", audio_clips_for_bucket.shape)
-            # lSteele_000 audio_clip torch.Size([1, 1, 10, 5, 384])
-            # lSteele_000 audio_clip_for_bucket torch.Size([1, 1, 50, 1, 384])
+            # print(video_path[-15:-4], "audio_clips", audio_clips.shape)
+            # print(video_path[-15:-4], "audio_clips_for_bucket", audio_clips_for_bucket.shape)
+            # rowley1_003 audio_clips torch.Size([25, 10, 5, 384])
+            # rowley1_003 audio_clips_for_bucket torch.Size([25, 50, 1, 384])
 
                 # motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
                 # motion_bucket = motion_bucket * 16 + 16
@@ -548,7 +550,7 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_face_mask": pixel_values_face_mask,
                 "pixel_values_lip_mask": pixel_values_lip_mask,
                 "pixel_values_full_mask": pixel_values_full_mask,
-                "audio_clips " : audio_clips,
+                "audio_clips" : audio_clips,
                 "audio_clips_for_bucket" : audio_clips_for_bucket,
                 # "audio_tensor": audio_tensor_whisper,
                 # "audio_feature": audio_input[0],
