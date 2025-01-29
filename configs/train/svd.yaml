@@ -11,6 +11,8 @@ data:
   train_meta_paths:
     - "./data/hallo_HDTF_stage2.json"
 
+sonic:
+  motion_bucket_scale: 1.0
 
 wav2vec_config:
   audio_type: "vocals" # audio vocals
