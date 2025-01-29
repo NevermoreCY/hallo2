@@ -972,35 +972,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
-
-
-                # window = 3000
-                # audio_prompts = []
-                # last_audio_prompts = []
-                # for i in range(0, audio_feature.shape[-1], window):
-                #     audio_prompt = whisper.encoder(audio_feature[:, :, i:i + window],
-                #                                    output_hidden_states=True).hidden_states
-                #     last_audio_prompt = whisper.encoder(audio_feature[:, :, i:i + window]).last_hidden_state
-                #     last_audio_prompt = last_audio_prompt.unsqueeze(-2)
-                #     audio_prompt = torch.stack(audio_prompt, dim=2)
-                #     audio_prompts.append(audio_prompt)
-                #     last_audio_prompts.append(last_audio_prompt)
-                #
-                # audio_prompts = torch.cat(audio_prompts, dim=1)
-                # audio_prompts = audio_prompts[:, :audio_len * 2]
-                # audio_prompts = torch.cat(
-                #     [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
-                #
-                # last_audio_prompts = torch.cat(last_audio_prompts, dim=1)
-                # last_audio_prompts = last_audio_prompts[:, :audio_len * 2]
-                # last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
-                #                                 torch.zeros_like(last_audio_prompts[:, :26])], 1)
-                #
-                # step=2
-                # ref_tensor_list = []
-                # audio_tensor_list = []
-                # uncond_audio_tensor_list = []
-                # motion_buckets = []
+                x =2
+                x[1] = 0
                 # for i in tqdm(range(audio_len // step)):
                 #     audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10].unsqueeze(0)
                 #     audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
