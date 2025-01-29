@@ -1117,7 +1117,10 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     bsz,
                 )
                 # # print("**1230\n\n added_time_ids:", added_time_ids)
-                added_time_ids2 = motion_buckets
+                bz,_=motion_buckets.shape
+                new_column = torch.full((bz,1),24,dtype=motion_buckets.dtype)
+                added_time_ids2 = torch.cat((new_column, motion_buckets))
+
                 added_time_ids = added_time_ids.to(latents.device)
                 #  added_time_ids: tensor([[2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
