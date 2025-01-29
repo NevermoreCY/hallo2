@@ -178,13 +178,19 @@ class Net(nn.Module):
         simple docstring to prevent pylint error
         """
         face_emb = self.imageproj(face_emb)
+        print("face_emb after image proj 1", face_emb.shape)
         # mask = mask.to(device="cuda")
         # mask_feature = self.face_locator(mask)
-        audio_emb = audio_emb.to(
-            device=self.audioproj.device, dtype=self.audioproj.dtype)
-        audio_emb = self.audioproj(audio_emb)
+        # audio_emb = audio_emb.to(
+        #     device=self.audioproj.device, dtype=self.audioproj.dtype)
+        # audio_emb = self.audioproj(audio_emb)
+        # print("audio_emb after audio proj 1", audio_emb.shape)
+        # audio_emb after audio proj 1 torch.Size([2, 25, 32, 768])
 
-        print("audio_emb after audio proj 1", audio_emb.shape)
+        audio_emb = audio_emb.to(
+            device=self.audio2token.device, dtype=self.audio2token.dtype)
+        audio_emb = self.audio2token(audio_emb)
+        print("audio_emb after audio proj 2", audio_emb.shape)
 
         if uncond_audio_fwd:
             audio_emb = torch.zeros_like(audio_emb).to(
@@ -638,7 +644,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     whisper = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
     whisper.requires_grad_(False)
 
-    audio2token = AudioProjModel_sonic(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=1024,
+    audio2token = AudioProjModel_sonic(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=768,
                                  context_tokens=32).to(device="cuda")
     audio2bucket = Audio2bucketModel(seq_len=50, blocks=1, channels=384, clip_channels=1024, intermediate_dim=1024,
                                      output_dim=1, context_tokens=2).to(device="cuda")
@@ -964,10 +970,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # 新增CLIP & audio embd
 
                 clip_image = batch['clip_images']
-                image_embeds = image_encoder(
+                clip_image_embeds = image_encoder(
                     clip_image
                 ).image_embeds
-                image_embeds = image_embeds.repeat_interleave(25, dim=0)
+
+                image_embeds = clip_image_embeds.repeat_interleave(25, dim=0)
 
                 audio_clips = batch["audio_clips"]
                 audio_clips_for_bucket = batch["audio_clips_for_bucket"]
@@ -993,11 +1000,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 audio_clips_for_bucket=audio_clips_for_bucket.to(dtype=audio2bucket.dtype)
                 motion_buckets = audio2bucket(audio_clips_for_bucket, image_embeds)
 
-                audio_clips = audio_clips.to(dtype=audio2token.dtype)
-                cond_audio_clip = audio2token(audio_clips)
-                print("cond_audio_clip shape :", cond_audio_clip.shape)
-                print("motion buckets shape : ", motion_buckets.shape)
 
+                # cond_audio_clip shape : torch.Size([2, 25, 32, 1024])
 
                 # for i in tqdm(range(audio_len // step)):
                 #     audio_clip = audio_prompts[idx]
@@ -1197,13 +1201,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("face emb shape ", image_prompt_embeds.shape)
                 print("audio emb final shape", audio_emb.shape)
                 print("add time ids :", added_time_ids.shape)
-                print("add time ids 2 : ", added_time_ids2.shape)
+                print("add time ids 2 : ", added_time_ids2)
+                print("clip_image_embeds", clip_image_embeds.shape)
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
                     face_emb=image_prompt_embeds,
-                    audio_emb= audio_emb,
-                    added_time_ids=added_time_ids,
+                    audio_emb= audio_clips,
+                    added_time_ids=added_time_ids2,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
                 # print("idx", idx , "denoising latents" )
