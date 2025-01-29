@@ -974,21 +974,21 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
                 x =2
                 x[1] = 0
-                # for i in tqdm(range(audio_len // step)):
-                #     audio_clip = audio_prompts[:, i * 2 * step:i * 2 * step + 10].unsqueeze(0)
-                #     audio_clip_for_bucket = last_audio_prompts[:, i * 2 * step:i * 2 * step + 50].unsqueeze(0)
-                #     motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
-                #     motion_bucket = motion_bucket * 16 + 16
-                #     motion_buckets.append(motion_bucket[0])
-                #
-                #     cond_audio_clip = audio2token(audio_clip).squeeze(0)
-                #     uncond_audio_clip = audio2token(torch.zeros_like(audio_clip)).squeeze(0)
-                #
-                #     print("cond_audio_clip shape is : ", cond_audio_clip.shape)
-                #     # ref_tensor_list.append(ref_img[0])
-                #     audio_tensor_list.append(cond_audio_clip[0])
-                #     print("cond_audio_clip[0] shape is : ", cond_audio_clip[0].shape)
-                #     uncond_audio_tensor_list.append(uncond_audio_clip[0])
+                for i in tqdm(range(audio_len // step)):
+                    audio_clip = audio_prompts[idx]
+                    audio_clip_for_bucket = audio_clips_for_bucket[idx]
+                    motion_bucket = audio2bucket(audio_clip_for_bucket, image_embeds)
+                    motion_bucket = motion_bucket * 16 + 16
+                    motion_buckets.append(motion_bucket[0])
+
+                    cond_audio_clip = audio2token(audio_clip).squeeze(0)
+                    uncond_audio_clip = audio2token(torch.zeros_like(audio_clip)).squeeze(0)
+
+                    print("cond_audio_clip shape is : ", cond_audio_clip.shape)
+                    # ref_tensor_list.append(ref_img[0])
+                    audio_tensor_list.append(cond_audio_clip[0])
+                    print("cond_audio_clip[0] shape is : ", cond_audio_clip[0].shape)
+                    uncond_audio_tensor_list.append(uncond_audio_clip[0])
 
 
 

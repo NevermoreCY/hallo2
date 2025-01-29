@@ -287,7 +287,7 @@ class TalkingVideoDataset(Dataset):
             assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
-            print(f"{video_path[-15:-4]} {index} video length:", video_length)
+            # print(f"{video_path[-15:-4]} {index} video length:", video_length)
 
             assert (
                 video_length
