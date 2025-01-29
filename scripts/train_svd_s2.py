@@ -974,12 +974,15 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
                 print("aaudio2bucket dtype is ", audio2bucket.dtype)
+                print("aaudio2token dtype is ", audio2token.dtype)
                 image_embeds=image_embeds.to(dtype=audio2bucket.dtype)
                 audio_clips_for_bucket=audio_clips_for_bucket.to(dtype=audio2bucket.dtype)
                 motion_bucket = audio2bucket(audio_clips_for_bucket, image_embeds)
 
+                audio_clips = audio_clips.to(dtype=audio2bucket.dtype)
+                audio_zeros = torch.zeros_like(audio_clips)
                 cond_audio_clip = audio2token(audio_clips).squeeze(0)
-                uncond_audio_clip = audio2token(torch.zeros_like(audio_clips)).squeeze(0)
+                uncond_audio_clip = audio2token(audio_zeros).squeeze(0)
 
                 x =2
                 x[1] = 0
