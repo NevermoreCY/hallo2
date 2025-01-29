@@ -977,15 +977,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("aaudio2token dtype is ", audio2token.dtype)
                 image_embeds=image_embeds.to(dtype=audio2bucket.dtype)
                 audio_clips_for_bucket=audio_clips_for_bucket.to(dtype=audio2bucket.dtype)
-                motion_bucket = audio2bucket(audio_clips_for_bucket, image_embeds)
+                motion_buckets = audio2bucket(audio_clips_for_bucket, image_embeds)
 
                 audio_clips = audio_clips.to(dtype=audio2bucket.dtype)
                 audio_zeros = torch.zeros_like(audio_clips)
                 cond_audio_clip = audio2token(audio_clips).squeeze(0)
                 uncond_audio_clip = audio2token(audio_zeros).squeeze(0)
 
-                x =2
-                x[1] = 0
+                print("motion buckets shape : ", motion_buckets.shape)
+                print("cond_audio_clip shape : ", cond_audio_clip.shape)
+                print("uncond_audioclip shape :" , uncond_audio_clip.shape)
+
                 # for i in tqdm(range(audio_len // step)):
                 #     audio_clip = audio_prompts[idx]
                 #     audio_clip_for_bucket = audio_clips_for_bucket[idx]
@@ -1080,6 +1082,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 image_prompt_embeds = batch["face_emb"].to(
                     dtype=imageproj.dtype, device=imageproj.device
                 )
+
+                # process motion buckets:
+
+                motion_buckets = torch.stack(motion_buckets, dim=0).to(device="cuda")
+                print("motion buckets shape ", motion_buckets.shape)
+                motion_buckets = motion_buckets.unsqueeze(0)
 
 
                 added_time_ids = _get_add_time_ids(
