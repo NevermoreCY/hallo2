@@ -962,6 +962,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 image_embeds = image_encoder(
                     clip_img
                 ).image_embeds
+                image_embeds = image_embeds.repeat_interleave(25, dim=0)
 
                 audio_clips = batch["audio_clips"]
                 audio_clips_for_bucket = batch["audio_clips_for_bucket"]
