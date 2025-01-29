@@ -1088,12 +1088,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # motion buckets shape :  torch.Size([2, 25, 2, 1])
 
-                motion_buckets = torch.stack(motion_buckets, dim=0).to(device="cuda")
+
                 print("motion buckets shape ", motion_buckets.shape)
-                motion_buckets = motion_buckets.unsqueeze(0)
+                # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
-                # motion_bucket = indice_slice(motion_buckets, idx_list)
                 motion_bucket = torch.mean(motion_bucket, dim=1).squeeze()
+                print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
                 # motion_bucket_id_exp = motion_bucket[1]
                 added_time_ids = _get_add_time_ids(
