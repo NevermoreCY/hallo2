@@ -973,7 +973,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
-
+                print("aaudio2bucket dtype is ", audio2bucket.dtype)
+                image_embeds=image_embeds.to(dtype=audio2bucket.dtype)
+                audio_clips_for_bucket=audio_clips_for_bucket.to(dtype=audio2bucket.dtype)
                 motion_bucket = audio2bucket(audio_clips_for_bucket, image_embeds)
 
                 cond_audio_clip = audio2token(audio_clips).squeeze(0)
