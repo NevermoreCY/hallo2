@@ -552,7 +552,7 @@ class TalkingVideoDataset(Dataset):
                 "pixel_values_full_mask": pixel_values_full_mask,
                 "audio_clips" : audio_clips,
                 "audio_clips_for_bucket" : audio_clips_for_bucket,
-                # "audio_tensor": audio_tensor_whisper,
+                "audio_tensor": audio_tensor_whisper,
                 # "audio_feature": audio_input[0],
                 # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,

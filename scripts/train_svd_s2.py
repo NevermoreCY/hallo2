@@ -250,6 +250,8 @@ def get_noise_scheduler(cfg: argparse.Namespace) -> Tuple[DDIMScheduler, DDIMSch
     return train_noise_scheduler, val_noise_scheduler
 
 
+
+
 def process_audio_emb(audio_emb: torch.Tensor) -> torch.Tensor:
     """
     Process the audio embedding to concatenate with other tensors.
@@ -640,6 +642,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                                      output_dim=1, context_tokens=2).to(device="cuda")
 
 
+
     feature_extractor = CLIPImageProcessor.from_pretrained(
         cfg.svd.pretrain, subfolder="feature_extractor"
     )
@@ -958,9 +961,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # 新增CLIP & audio embd
 
-                clip_img = batch['clip_images']
+                clip_image = batch['clip_images']
                 image_embeds = image_encoder(
-                    clip_img
+                    clip_image
                 ).image_embeds
                 image_embeds = image_embeds.repeat_interleave(25, dim=0)
 
@@ -969,7 +972,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # audio_feature = batch['audio_feature']
                 # audio_len = batch['audio_len']
-                print("clip_img.shape",clip_img.shape)
+                print("clip_img.shape",clip_image.shape)
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
@@ -1083,12 +1086,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     dtype=imageproj.dtype, device=imageproj.device
                 )
 
+                # process clip image embeds
+
+                image_embeddings = image_encoder(clip_image).image_embeds
+                print()
+
                 # process motion buckets:
                 motion_bucket_scale = cfg.sonic.motion_bucket_scale
-
                 # motion buckets shape :  torch.Size([2, 25, 2, 1])
-
-
                 print("motion buckets shape ", motion_buckets.shape)
                 # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
@@ -1103,7 +1108,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     image_prompt_embeds.dtype,
                     bsz,
                 )
-                # print("**1230\n\n added_time_ids:", added_time_ids)
+                # # print("**1230\n\n added_time_ids:", added_time_ids)
+                added_time_ids2 = motion_buckets
                 added_time_ids = added_time_ids.to(latents.device)
                 #  added_time_ids: tensor([[2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
@@ -1176,6 +1182,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 inp_noisy_latents = inp_noisy_latents.to(dtype=weight_dtype)
                 timesteps = timesteps.to(dtype=weight_dtype)
                 # ---- Forward!!! -----
+                print("Before forward \n\n\n")
+                print("face emb shape ", image_prompt_embeds)
+                print("audio emb final shape", audio_emb.shape)
+                print("add time ids :", added_time_ids.shape)
+                print("add time ids 2 : ", added_time_ids2.shape)
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
