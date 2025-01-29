@@ -461,6 +461,7 @@ class TalkingVideoDataset(Dataset):
             # lSteele_000 audio_len 325
             from transformers import WhisperModel
             wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
+            wav_enc.requires_grad_(False)
 
             audio_feature = audio_input[0]
             audio_feature = audio_feature.unsqueeze(0).to(device="cuda")

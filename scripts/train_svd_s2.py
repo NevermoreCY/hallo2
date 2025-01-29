@@ -972,7 +972,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
-                #TODO:
+
 
                 # window = 3000
                 # audio_prompts = []
