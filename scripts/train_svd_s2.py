@@ -184,6 +184,8 @@ class Net(nn.Module):
             device=self.audioproj.device, dtype=self.audioproj.dtype)
         audio_emb = self.audioproj(audio_emb)
 
+        print("audio_emb after audio proj 1", audio_emb.shape)
+
         if uncond_audio_fwd:
             audio_emb = torch.zeros_like(audio_emb).to(
                 device=audio_emb.device, dtype=audio_emb.dtype
@@ -976,20 +978,26 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
-                print("aaudio2bucket dtype is ", audio2bucket.dtype)
-                print("aaudio2token dtype is ", audio2token.dtype)
+                print("audio2bucket dtype is ", audio2bucket.dtype)
+                print("audio2token dtype is ", audio2token.dtype)
+
+                # ip_img.shape torch.Size([2, 3, 224, 224])
+                # image_embeds.shape torch.Size([50, 1024])
+                # audio_clips.shape torch.Size([2, 25, 10, 5, 384])
+                # audio_clips_for_bucket.shape torch.Size([2, 25, 50, 1, 384])
+                # audio2bucket dtype is  torch.float16
+                # audio2token dtype is  torch.float16
+
+
                 image_embeds=image_embeds.to(dtype=audio2bucket.dtype)
                 audio_clips_for_bucket=audio_clips_for_bucket.to(dtype=audio2bucket.dtype)
                 motion_buckets = audio2bucket(audio_clips_for_bucket, image_embeds)
 
-                audio_clips = audio_clips.to(dtype=audio2bucket.dtype)
-                audio_zeros = torch.zeros_like(audio_clips)
-                cond_audio_clip = audio2token(audio_clips).squeeze(0)
-                uncond_audio_clip = audio2token(audio_zeros).squeeze(0)
-
+                audio_clips = audio_clips.to(dtype=audio2token.dtype)
+                cond_audio_clip = audio2token(audio_clips)
+                print("cond_audio_clip shape :", cond_audio_clip)
                 print("motion buckets shape : ", motion_buckets.shape)
-                print("cond_audio_clip shape : ", cond_audio_clip.shape)
-                print("uncond_audioclip shape :" , uncond_audio_clip.shape)
+
 
                 # for i in tqdm(range(audio_len // step)):
                 #     audio_clip = audio_prompts[idx]
@@ -1183,7 +1191,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 timesteps = timesteps.to(dtype=weight_dtype)
                 # ---- Forward!!! -----
                 print("Before forward \n\n\n")
-                print("face emb shape ", image_prompt_embeds)
+                print("face emb shape ", image_prompt_embeds.shape)
                 print("audio emb final shape", audio_emb.shape)
                 print("add time ids :", added_time_ids.shape)
                 print("add time ids 2 : ", added_time_ids2.shape)
