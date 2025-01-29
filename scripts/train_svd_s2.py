@@ -995,7 +995,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 audio_clips = audio_clips.to(dtype=audio2token.dtype)
                 cond_audio_clip = audio2token(audio_clips)
-                print("cond_audio_clip shape :", cond_audio_clip)
+                print("cond_audio_clip shape :", cond_audio_clip.shape)
                 print("motion buckets shape : ", motion_buckets.shape)
 
 
@@ -1118,7 +1118,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 )
                 # # print("**1230\n\n added_time_ids:", added_time_ids)
                 bz,_=motion_buckets.shape
-                new_column = torch.full((bz,1),24,dtype=motion_buckets.dtype)
+                new_column = torch.full((bz,1),24,dtype=motion_buckets.dtype,device=motion_buckets.device)
                 added_time_ids2 = torch.cat((new_column, motion_buckets))
 
                 added_time_ids = added_time_ids.to(latents.device)
