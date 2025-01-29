@@ -1092,7 +1092,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("motion buckets shape ", motion_buckets.shape)
                 # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
-                motion_bucket = torch.mean(motion_bucket, dim=1).squeeze()
+                motion_buckets = torch.mean(motion_buckets, dim=1).squeeze()
                 print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
                 # motion_bucket_id_exp = motion_bucket[1]
