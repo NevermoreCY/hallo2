@@ -106,18 +106,28 @@ class Audio2bucketModel(ModelMixin):
             context_tokens (torch.Tensor): The output context tokens with shape (batch_size, video_length, context_tokens, output_dim).
         """
         # merge
+        print("\n\n Audio 2 bucket model:")
+        print("Input shpaes")
+        print("audio emb:", audio_embeds.shape)
+        print("clip emb:", clip_embeds.shape)
         video_length = audio_embeds.shape[1]
         audio_embeds = rearrange(audio_embeds, "bz f w b c -> (bz f) w b c")
         batch_size, window_size, blocks, channels = audio_embeds.shape
+        print("audio emb 1:", audio_embeds.shape)
         audio_embeds = audio_embeds.view(batch_size, window_size * blocks * channels)
+        print("audio emb 2:", audio_embeds.shape)
         audio_embeds = torch.cat([audio_embeds, clip_embeds], dim=-1)
+        print("audio emb 3 :", audio_embeds.shape)
 
         audio_embeds = self.act(self.proj1(audio_embeds))
-        audio_embeds = self.act(self.proj2(audio_embeds))
 
+        print("audio emb 4:", audio_embeds.shape)
+        audio_embeds = self.act(self.proj2(audio_embeds))
+        print("audio emb 5:", audio_embeds.shape)
         context_tokens = self.proj3(audio_embeds).reshape(
             batch_size, self.context_tokens, self.output_dim
         )
+        print("context emb 6:", audio_embeds.shape)
 
         # context_tokens = self.norm(context_tokens)
         context_tokens = rearrange(
