@@ -982,9 +982,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # audio_feature = batch['audio_feature']
                 # audio_len = batch['audio_len']
                 # print("clip_img.shape, MAX MIN",clip_image.shape, torch.max(clip_image), torch.min(clip_image))
-                # print("image_embeds.shape",image_embeds.shape)
-                # print("audio_clips.shape",audio_clips.shape)
-                # print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
+                print("image_embeds.shape",image_embeds.shape)
+                print("audio_clips.shape",audio_clips.shape)
+                print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
                 # print("audio2bucket dtype is ", audio2bucket.dtype)
                 # print("audio2token dtype is ", audio2token.dtype)
 
@@ -1104,6 +1104,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("motion buckets shape ", motion_buckets.shape)
                 # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
+                print("motion buckets 1 shape ", motion_buckets.shape)
                 motion_buckets = torch.mean(motion_buckets, dim=1)
                 # print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
