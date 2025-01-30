@@ -254,13 +254,13 @@ class TalkingVideoDataset(Dataset):
             video_meta = self.vid_meta[index]
             video_path = video_meta["video_path"]
             mask_path = video_meta["mask_path"]
-            lip_mask_union_path = video_meta.get("sep_mask_lip", None)
-            face_mask_union_path = video_meta.get("sep_mask_face", None)
-            full_mask_union_path = video_meta.get("sep_mask_border", None)
-            face_emb_path = video_meta["face_emb_path"]
-            audio_emb_path = video_meta[
-                f"{self.audio_type}_emb_{self.audio_model}_{self.audio_features}"
-            ]
+            # lip_mask_union_path = video_meta.get("sep_mask_lip", None)
+            # face_mask_union_path = video_meta.get("sep_mask_face", None)
+            # full_mask_union_path = video_meta.get("sep_mask_border", None)
+            # face_emb_path = video_meta["face_emb_path"]
+            # audio_emb_path = video_meta[
+            #     f"{self.audio_type}_emb_{self.audio_model}_{self.audio_features}"
+            # ]
 
             # here we use whisper instead of wav2vec
             audio_path = video_meta["video_path"].replace("videos", "audios")
@@ -272,19 +272,19 @@ class TalkingVideoDataset(Dataset):
 
 
 
-            whisper_feature = self.audio_guider.audio2feat(audio_path)
+            # whisper_feature = self.audio_guider.audio2feat(audio_path)
             # print("whisper feature shape :", whisper_feature.shape)
-            whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
+            # whisper_chunks = self.audio_guider.feature2chunks(feature_array=whisper_feature, fps=fps)
             # print("whisper_chunks:", whisper_chunks.shape)
-            audio_frame_num = whisper_chunks.shape[0]
-            audio_fea_final = torch.Tensor(whisper_chunks)
-            audio_fea_final = audio_fea_final.unsqueeze(0)
+            # audio_frame_num = whisper_chunks.shape[0]
+            # audio_fea_final = torch.Tensor(whisper_chunks)
+            # audio_fea_final = audio_fea_final.unsqueeze(0)
             # print(video_path[-15:-4], "audio_fea_final:", audio_fea_final.shape)
 
 
-            tgt_mask_pil = Image.open(mask_path)
+            # tgt_mask_pil = Image.open(mask_path)
             video_frames = VideoReader(video_path, ctx=cpu(0))
-            assert tgt_mask_pil is not None, "Fail to load target mask."
+            # assert tgt_mask_pil is not None, "Fail to load target mask."
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
             # print(f"{video_path[-15:-4]} {index} video length:", video_length)
@@ -304,30 +304,30 @@ class TalkingVideoDataset(Dataset):
                 Image.fromarray(video).convert("RGB") for video in videos.asnumpy()
             ]
 
-            face_masks_list = [Image.open(face_mask_union_path)] * self.n_sample_frames
-            lip_masks_list = [Image.open(lip_mask_union_path)] * self.n_sample_frames
-            full_masks_list = [Image.open(full_mask_union_path)] * self.n_sample_frames
-            assert face_masks_list[0] is not None, "Fail to load face mask."
-            assert lip_masks_list[0] is not None, "Fail to load lip mask."
-            assert full_masks_list[0] is not None, "Fail to load full mask."
+            # face_masks_list = [Image.open(face_mask_union_path)] * self.n_sample_frames
+            # lip_masks_list = [Image.open(lip_mask_union_path)] * self.n_sample_frames
+            # full_masks_list = [Image.open(full_mask_union_path)] * self.n_sample_frames
+            # assert face_masks_list[0] is not None, "Fail to load face mask."
+            # assert lip_masks_list[0] is not None, "Fail to load lip mask."
+            # assert full_masks_list[0] is not None, "Fail to load full mask."
 
 
-            face_emb = torch.load(face_emb_path)
-            audio_emb = torch.load(audio_emb_path)
+            # face_emb = torch.load(face_emb_path)
+            # audio_emb = torch.load(audio_emb_path)
 
             # print(f"\n {index} Audio embedding shape: {audio_emb.shape}")
 
-            indices = (
-                torch.arange(2 * self.audio_margin + 1) - self.audio_margin
-            )  # Generates [-2, -1, 0, 1, 2]
-            center_indices = torch.arange(
-                start_idx,
-                start_idx + self.n_sample_frames,
-            ).unsqueeze(1) + indices.unsqueeze(0)
-            audio_tensor = audio_emb[center_indices]
+            # indices = (
+            #     torch.arange(2 * self.audio_margin + 1) - self.audio_margin
+            # )  # Generates [-2, -1, 0, 1, 2]
+            # center_indices = torch.arange(
+            #     start_idx,
+            #     start_idx + self.n_sample_frames,
+            # ).unsqueeze(1) + indices.unsqueeze(0)
+            # audio_tensor = audio_emb[center_indices]
             # print(f"\n {index} center_indices are {center_indices}")
 
-            audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
+            # audio_tensor_whisper = audio_fea_final[:,start_idx:start_idx + self.n_sample_frames,:,:]
             # audio_fea_final: torch.Size([1, 243, 50, 384])
             # print("audio tensor whisper shape :", audio_tensor_whisper.shape)
             # [1,14,50,384]
@@ -374,27 +374,27 @@ class TalkingVideoDataset(Dataset):
             state = torch.get_rng_state()
             pixel_values_vid = self.augmentation(frame_list, self.pixel_transform, state)
 
-            pixel_values_mask = self.augmentation(tgt_mask_pil, self.cond_transform, state)
-            pixel_values_mask = pixel_values_mask.repeat(3, 1, 1)
+            # pixel_values_mask = self.augmentation(tgt_mask_pil, self.cond_transform, state)
+            # pixel_values_mask = pixel_values_mask.repeat(3, 1, 1)
 
-            pixel_values_face_mask = [
-                self.augmentation(face_masks_list, self.attn_transform_64, state),
-                self.augmentation(face_masks_list, self.attn_transform_32, state),
-                self.augmentation(face_masks_list, self.attn_transform_16, state),
-                self.augmentation(face_masks_list, self.attn_transform_8, state),
-            ]
-            pixel_values_lip_mask = [
-                self.augmentation(lip_masks_list, self.attn_transform_64, state),
-                self.augmentation(lip_masks_list, self.attn_transform_32, state),
-                self.augmentation(lip_masks_list, self.attn_transform_16, state),
-                self.augmentation(lip_masks_list, self.attn_transform_8, state),
-            ]
-            pixel_values_full_mask = [
-                self.augmentation(full_masks_list, self.attn_transform_64, state),
-                self.augmentation(full_masks_list, self.attn_transform_32, state),
-                self.augmentation(full_masks_list, self.attn_transform_16, state),
-                self.augmentation(full_masks_list, self.attn_transform_8, state),
-            ]
+            # pixel_values_face_mask = [
+            #     self.augmentation(face_masks_list, self.attn_transform_64, state),
+            #     self.augmentation(face_masks_list, self.attn_transform_32, state),
+            #     self.augmentation(face_masks_list, self.attn_transform_16, state),
+            #     self.augmentation(face_masks_list, self.attn_transform_8, state),
+            # ]
+            # pixel_values_lip_mask = [
+            #     self.augmentation(lip_masks_list, self.attn_transform_64, state),
+            #     self.augmentation(lip_masks_list, self.attn_transform_32, state),
+            #     self.augmentation(lip_masks_list, self.attn_transform_16, state),
+            #     self.augmentation(lip_masks_list, self.attn_transform_8, state),
+            # ]
+            # pixel_values_full_mask = [
+            #     self.augmentation(full_masks_list, self.attn_transform_64, state),
+            #     self.augmentation(full_masks_list, self.attn_transform_32, state),
+            #     self.augmentation(full_masks_list, self.attn_transform_16, state),
+            #     self.augmentation(full_masks_list, self.attn_transform_8, state),
+            # ]
             # print("pixel_values_ref_img shape is 1", ref_img.shape)
             pixel_values_ref_img = self.augmentation(ref_img, self.pixel_transform, state)
             # print("pixel_values_ref_img shape is 2", pixel_values_ref_img.shape)
@@ -409,7 +409,7 @@ class TalkingVideoDataset(Dataset):
                     [pixel_values_ref_img, pixel_values_motion], dim=0
                 )
 
-            audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
+            # audio_tensor_whisper = audio_tensor_whisper.squeeze(0)
             # print("\n audio_tensor shape is :", audio_tensor_whisper.shape)
             # print("pixel_values_vid shape is :", pixel_values_vid.shape)
             # print("pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
@@ -549,17 +549,17 @@ class TalkingVideoDataset(Dataset):
                 "start_idx": start_idx,
                 "video_dir": video_path,
                 "pixel_values_vid": pixel_values_vid,
-                "pixel_values_mask": pixel_values_mask,
-                "pixel_values_face_mask": pixel_values_face_mask,
-                "pixel_values_lip_mask": pixel_values_lip_mask,
-                "pixel_values_full_mask": pixel_values_full_mask,
+                # "pixel_values_mask": pixel_values_mask,
+                # "pixel_values_face_mask": pixel_values_face_mask,
+                # "pixel_values_lip_mask": pixel_values_lip_mask,
+                # "pixel_values_full_mask": pixel_values_full_mask,
                 "audio_clips" : audio_clips,
                 "audio_clips_for_bucket" : audio_clips_for_bucket,
-                "audio_tensor": audio_tensor_whisper,
+                # "audio_tensor": audio_tensor_whisper,
                 # "audio_feature": audio_input[0],
                 # "audio_len": audio_len,
                 "pixel_values_ref_img": pixel_values_ref_img,
-                "face_emb": face_emb,
+                # "face_emb": face_emb,
                 "clip_images": clip_image,
             }
 

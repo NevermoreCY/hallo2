@@ -140,17 +140,17 @@ class Net(nn.Module):
     def __init__(
         self,
         denoising_unet: UNetSpatioTemporalConditionModel,
-        face_locator: FaceLocator,
+        # face_locator: FaceLocator,
         imageproj,
-        audioproj,
+        # audioproj,
         audio2bucket,
         audio2token,
     ):
         super().__init__()
         self.denoising_unet = denoising_unet
-        self.face_locator = face_locator
+        # self.face_locator = face_locator
         self.imageproj = imageproj
-        self.audioproj = audioproj
+        # self.audioproj = audioproj
         self.audio2bucket = audio2bucket
         self.audio2token = audio2token
 
@@ -608,9 +608,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
         clip_embeddings_dim=1024,
         clip_extra_context_tokens=4,
     ).to(device="cuda", dtype=weight_dtype)
-    face_locator = FaceLocator(
-        conditioning_embedding_channels=320,
-    ).to(device="cuda", dtype=weight_dtype)
+    # face_locator = FaceLocator(
+    #     conditioning_embedding_channels=320,
+    # ).to(device="cuda", dtype=weight_dtype)
     # audioproj = AudioProjModel(
     #     seq_len=5,
     #     blocks=12,
@@ -619,13 +619,13 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     #     output_dim=768,
     #     context_tokens=32,
     # ).to(device="cuda", dtype=weight_dtype)
-    audioproj = AudioProjModel(
-        window=50,
-        channels=384,
-        intermediate_dim=512,
-        output_dim=768,
-        context_tokens=32,
-    ).to(device="cuda", dtype=weight_dtype)
+    # audioproj = AudioProjModel(
+    #     window=50,
+    #     channels=384,
+    #     intermediate_dim=512,
+    #     output_dim=768,
+    #     context_tokens=32,
+    # ).to(device="cuda", dtype=weight_dtype)
 
     whisper = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
     whisper.requires_grad_(False)
@@ -636,10 +636,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                                      output_dim=1, context_tokens=2).to(device="cuda")
 
 
-
-    feature_extractor = CLIPImageProcessor.from_pretrained(
-        cfg.svd.pretrain, subfolder="feature_extractor"
-    )
     image_encoder = CLIPVisionModelWithProjection.from_pretrained(
         cfg.svd.pretrain, subfolder="image_encoder",
         variant="fp16"
@@ -652,8 +648,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     # Freeze
     vae.requires_grad_(False)
     image_encoder.requires_grad_(False)
-    audioproj.requires_grad_(False)
-    face_locator.requires_grad_(False)
+    # audioproj.requires_grad_(False)
+    # face_locator.requires_grad_(False)
 
 
     # Train:
@@ -690,9 +686,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
     net = Net(
         unet,
-        face_locator,
+        # face_locator,
         imageproj,
-        audioproj,
+        # audioproj,
         audio2bucket,
         audio2token,
 
@@ -763,6 +759,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
+
     for name, param in imageproj.named_parameters():
             trainable_params.append(param)
             train_param_names.append(name)
@@ -771,7 +768,6 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
-
     for name, param in audio2bucket.named_parameters():
             trainable_params.append(param)
             train_param_names.append(name)
@@ -1187,7 +1183,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("\n batch audio tensor shape is :", batch["audio_tensor"].shape)
 
 
-                audio_emb = batch["audio_tensor"].to(dtype=weight_dtype)
+                # audio_emb = batch["audio_tensor"].to(dtype=weight_dtype)
                 # print("**debug 12 29 \n\n  audio_embd shape", audio_emb.shape)
                 # print("**debug 12 29 \n\n  face_embd shape", image_prompt_embeds.shape)
                 #   audio_embd shape torch.Size([4, 14, 5, 12, 768])
@@ -1201,8 +1197,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("audio emb final shape", audio_emb.shape)
                 # print("add time ids :", added_time_ids.shape)
                 # print("add time ids 2 : ", added_time_ids2)
-                print("clip_image_embeds:", clip_image_embeds.shape)
-                print("audio_clips :" , audio_clips.shape )
+                # print("clip_image_embeds:", clip_image_embeds.shape)
+                # print("audio_clips :" , audio_clips.shape )
 
                 # drop out
                 rand_val = random.random()
