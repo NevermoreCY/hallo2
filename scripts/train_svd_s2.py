@@ -181,7 +181,7 @@ class Net(nn.Module):
 
         audio_emb = audio_emb.to(device=self.audio2token.device, dtype=self.audio2token.dtype)
         audio_emb = self.audio2token(audio_emb)
-        print("audio_emb after audio proj 2", audio_emb.shape)
+        # print("audio_emb after audio proj 2", audio_emb.shape)
 
         # print("**0101\n\n face_emb ", face_emb.shape)
         # print("**0101\n\n audio_emb ", audio_emb.shape)
@@ -1104,7 +1104,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("motion buckets shape ", motion_buckets.shape)
                 # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
-                motion_buckets = torch.mean(motion_buckets, dim=1).squeeze()
+                motion_buckets = torch.mean(motion_buckets, dim=1)
                 # print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
                 # motion_bucket_id_exp = motion_bucket[1]
@@ -1116,6 +1116,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 #     bsz,
                 # )
                 # # print("**1230\n\n added_time_ids:", added_time_ids)
+                print("motion buckets shape " , motion_buckets.shape)
                 bz,_=motion_buckets.shape
                 new_column = torch.full((bz,1),24,dtype=motion_buckets.dtype,device=motion_buckets.device)
                 added_time_ids2 = torch.cat([new_column, motion_buckets],dim=1)
@@ -1216,11 +1217,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 if drop_audio:
 
                     audio_clips = torch.zeros_like(audio_clips, device=audio_clips.device, dtype=audio_clips.dtype)
-                    print("\n\n Drop audio \n", audio_clips.shape, torch.max(audio_clips), torch.min(audio_clips))
+                    # print("\n\n Drop audio \n", audio_clips.shape, torch.max(audio_clips), torch.min(audio_clips))
 
                 if drop_image:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
-                    print("\n\n Drop image \n", clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds))
+                    # print("\n\n Drop image \n", clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds))
 
                 # print("clip_image_embeds:", clip_image_embeds.shape)
                 # print("audio_clips :", audio_clips.shape)
