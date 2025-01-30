@@ -970,12 +970,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # audio_feature = batch['audio_feature']
                 # audio_len = batch['audio_len']
-                print("clip_img.shape, MAX MIN",clip_image.shape, torch.max(clip_image), torch.min(clip_image))
-                print("image_embeds.shape",image_embeds.shape)
-                print("audio_clips.shape",audio_clips.shape)
-                print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
-                print("audio2bucket dtype is ", audio2bucket.dtype)
-                print("audio2token dtype is ", audio2token.dtype)
+                # print("clip_img.shape, MAX MIN",clip_image.shape, torch.max(clip_image), torch.min(clip_image))
+                # print("image_embeds.shape",image_embeds.shape)
+                # print("audio_clips.shape",audio_clips.shape)
+                # print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
+                # print("audio2bucket dtype is ", audio2bucket.dtype)
+                # print("audio2token dtype is ", audio2token.dtype)
 
                 # ip_img.shape torch.Size([2, 3, 224, 224])
                 # image_embeds.shape torch.Size([50, 1024])
@@ -1083,14 +1083,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("**debug 12 29 \n\n  pixel_values_ref_img shape is ", pixel_values_ref_img.shape)
                 # pixel_values_ref_img shape is  torch.Size([4, 13, 3, 512, 512])
 
-                image_prompt_embeds = batch["face_emb"].to(
-                    dtype=imageproj.dtype, device=imageproj.device
-                )
-
-                # process clip image embeds
-
-                image_embeddings = image_encoder(clip_image).image_embeds
-                print()
+                # image_prompt_embeds = batch["face_emb"].to(
+                #     dtype=imageproj.dtype, device=imageproj.device
+                # )
 
                 # process motion buckets:
                 motion_bucket_scale = cfg.sonic.motion_bucket_scale
@@ -1102,19 +1097,19 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
                 # motion_bucket_id_exp = motion_bucket[1]
-                added_time_ids = _get_add_time_ids(
-                    24,  # fixed
-                    127,  # motion_bucket_id = 127, fixed
-                    noise_aug_strength,  # noise_aug_strength == cond_sigmas
-                    image_prompt_embeds.dtype,
-                    bsz,
-                )
+                # added_time_ids = _get_add_time_ids(
+                #     24,  # fixed
+                #     127,  # motion_bucket_id = 127, fixed
+                #     noise_aug_strength,  # noise_aug_strength == cond_sigmas
+                #     image_prompt_embeds.dtype,
+                #     bsz,
+                # )
                 # # print("**1230\n\n added_time_ids:", added_time_ids)
                 bz,_=motion_buckets.shape
                 new_column = torch.full((bz,1),24,dtype=motion_buckets.dtype,device=motion_buckets.device)
                 added_time_ids2 = torch.cat([new_column, motion_buckets],dim=1)
 
-                added_time_ids = added_time_ids.to(latents.device)
+                # added_time_ids = added_time_ids.to(latents.device)
                 #  added_time_ids: tensor([[2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
                 #         [2.4000e+01, 1.2700e+02, 4.0161e-02],
@@ -1186,12 +1181,12 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 inp_noisy_latents = inp_noisy_latents.to(dtype=weight_dtype)
                 timesteps = timesteps.to(dtype=weight_dtype)
                 # ---- Forward!!! -----
-                print("Before forward \n\n\n")
-                print("face emb shape ", image_prompt_embeds.shape)
-                print("audio emb final shape", audio_emb.shape)
-                print("add time ids :", added_time_ids.shape)
-                print("add time ids 2 : ", added_time_ids2)
-                print("clip_image_embeds", clip_image_embeds.shape)
+                # print("Before forward \n\n\n")
+                # print("face emb shape ", image_prompt_embeds.shape)
+                # print("audio emb final shape", audio_emb.shape)
+                # print("add time ids :", added_time_ids.shape)
+                # print("add time ids 2 : ", added_time_ids2)
+                # print("clip_image_embeds", clip_image_embeds.shape)
 
                 # drop out
                 rand_val = random.random()
@@ -1209,7 +1204,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 if drop_audio:
 
                     audio_clips = torch.zeros_like(audio_clips, device=audio_clips.device, dtype=audio_clips.dtype)
-                    print("\n\n Drop audio \n", print(audio_clips[0][70:80]))
+                    print("\n\n Drop audio \n", print(audio_clips.shape, torch.max(audio_clips), torch.min(audio_clips)))
 
                 if drop_image:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
