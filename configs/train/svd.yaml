@@ -29,7 +29,7 @@ svd:
   pretrain: ./pretrained_models
 
 solver:
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 2
   mixed_precision: "no"
   enable_xformers_memory_efficient_attention: True
   gradient_checkpointing: True
