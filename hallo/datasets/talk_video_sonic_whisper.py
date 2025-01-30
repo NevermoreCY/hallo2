@@ -155,8 +155,8 @@ class TalkingVideoDataset(Dataset):
         self.feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
 
         #old ver
-        audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
-        self.audio_guider = load_audio_model(model_path=audio_model_path, device=device)
+        # audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
+        # self.audio_guider = load_audio_model(model_path=audio_model_path, device=device)
 
         # 新增，用于CLIP处理和人脸对齐检测
         self.clip_processor = CLIPImageProcessor()
@@ -463,11 +463,11 @@ class TalkingVideoDataset(Dataset):
             # lSteele_000 audio_tensor_whisper_old shape torch.Size([25, 50, 384])
             # lSteele_000 audio_len 325
             from transformers import WhisperModel
-            wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").to(device="cuda").eval()
+            wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").eval()
             wav_enc.requires_grad_(False)
 
             audio_feature = audio_input[0]
-            audio_feature = audio_feature.unsqueeze(0).to(device="cuda")
+            audio_feature = audio_feature.unsqueeze(0)
             # print(video_path[-15:-4],"audio_feature unsqueezed : ", audio_feature.shape)
             # lSteele_000 audio_feature unsqueezed :  torch.Size([1, 80, 3000])
             window = 3000
