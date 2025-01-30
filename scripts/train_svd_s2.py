@@ -1293,7 +1293,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
                     # print("idx", idx, "clip grad norm")
-                    print("accelerator.sync_gradients 1 ")
+                    # print("accelerator.sync_gradients 1 ")
                     accelerator.clip_grad_norm_(
                         trainable_params,
                         cfg.solver.max_grad_norm,
@@ -1305,7 +1305,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
             if accelerator.sync_gradients:
-                print("accelerator.sync_gradients 2")
+                # print("accelerator.sync_gradients 2")
                 progress_bar.update(1)
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
