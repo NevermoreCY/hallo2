@@ -974,6 +974,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # 新增CLIP & audio embd
 
                 clip_image = batch['clip_images']
+
+
                 clip_image_embeds = image_encoder(
                     clip_image
                 ).image_embeds
@@ -985,7 +987,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 # audio_feature = batch['audio_feature']
                 # audio_len = batch['audio_len']
-                print("clip_img.shape",clip_image.shape)
+                print("clip_img.shape, MAX MIN",clip_image.shape, torch.max(clip_image), torch.min(clip_image))
                 print("image_embeds.shape",image_embeds.shape)
                 print("audio_clips.shape",audio_clips.shape)
                 print("audio_clips_for_bucket.shape", audio_clips_for_bucket.shape)
