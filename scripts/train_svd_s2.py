@@ -1095,11 +1095,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # process motion buckets:
                 motion_bucket_scale = cfg.sonic.motion_bucket_scale
                 # motion buckets shape :  torch.Size([2, 25, 2, 1])
-                print("motion buckets shape ", motion_buckets.shape)
+                # print("motion buckets shape ", motion_buckets.shape)
                 # print("motion buckets shape squeeze3", motion_buckets.shape)
                 motion_buckets = motion_buckets * motion_bucket_scale
                 motion_buckets = torch.mean(motion_buckets, dim=1).squeeze()
-                print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
+                # print("motion buckets shape mean 1 squeeze", motion_buckets.shape)
                 # motion_bucket_id = motion_bucket[0]
                 # motion_bucket_id_exp = motion_bucket[1]
                 added_time_ids = _get_add_time_ids(
@@ -1207,10 +1207,13 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     drop_image = True
 
                 if drop_audio:
+
                     audio_clips = torch.zeros_like(audio_clips, device=audio_clips.device, dtype=audio_clips.dtype)
+                    print("\n\n Drop audio \n", print(audio_clips[0][70:80]))
 
                 if drop_image:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
+                    print("\n\n Drop image \n", print(clip_image_embeds[0][30:50]))
 
 
                 model_pred = net(
