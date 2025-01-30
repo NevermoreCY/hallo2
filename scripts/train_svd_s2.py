@@ -1211,8 +1211,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
                     print("\n\n Drop image \n", clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds))
 
-                print("clip_image_embeds:", clip_image_embeds.shape)
-                print("audio_clips :", audio_clips.shape)
+                # print("clip_image_embeds:", clip_image_embeds.shape)
+                # print("audio_clips :", audio_clips.shape)
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
