@@ -1208,7 +1208,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
                 if drop_image:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
-                    print("\n\n Drop image \n", print(clip_image_embeds[0][30:50]))
+                    print("\n\n Drop image \n", print(clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds)))
 
 
                 model_pred = net(
