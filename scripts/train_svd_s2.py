@@ -1296,6 +1296,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
                     # print("idx", idx, "clip grad norm")
+                    print("accelerator.sync_gradients 1 ")
                     accelerator.clip_grad_norm_(
                         trainable_params,
                         cfg.solver.max_grad_norm,
@@ -1307,7 +1308,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
             if accelerator.sync_gradients:
-                # print("idx", idx, "progress_bar")
+                print("accelerator.sync_gradients 2")
                 progress_bar.update(1)
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
@@ -1351,7 +1352,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 save_path = os.path.join(
                     checkpoint_dir, f"checkpoint-{global_step}")
                 if accelerator.is_main_process:
-                    delete_additional_ckpt(checkpoint_dir, 30)
+                    delete_additional_ckpt(checkpoint_dir, 3)
                 accelerator.wait_for_everyone()
                 accelerator.save_state(save_path)
 
