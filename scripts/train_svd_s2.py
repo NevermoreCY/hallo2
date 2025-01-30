@@ -168,50 +168,20 @@ class Net(nn.Module):
         self,
         noisy_latents: torch.Tensor,
         timesteps: torch.Tensor,
-        cond_image_emb: torch.Tensor,
-        uncond_image_emb: torch.Tensor,
-        cond_audio_emb: torch.Tensor,
-        uncond_audio_emb: torch.Tensor,
+        image_emb: torch.Tensor,
+        audio_emb: torch.Tensor,
         added_time_ids,
     ):
         """
         simple docstring to prevent pylint error
         """
+        image_emb = self.imageproj(image_emb)
+        # print("face_emb after image proj 1", face_emb.shape)
+        #face_emb after image proj 1 torch.Size([2, 4, 1024])
 
-
-
-        # drop out
-        rand_val = random.random()
-        drop_audio=False
-        drop_image=False
-
-        if rand_val < 0.05:
-            drop_audio = True  # 5% 概率 drop audio
-        elif rand_val < 0.10:
-            drop_image = True  # 5% 概率 drop image
-        elif rand_val < 0.15:
-            drop_audio = True  # 5% 概率 drop both
-            drop_image = True
-
-
-        #         face_emb = self.imageproj(face_emb)
-        #         # print("face_emb after image proj 1", face_emb.shape)
-        #         #face_emb after image proj 1 torch.Size([2, 4, 1024])
-        #
-        #         audio_emb = audio_emb.to(
-        #             device=self.audio2token.device, dtype=self.audio2token.dtype)
-        #         audio_emb = self.audio2token(audio_emb)
-        #         print("audio_emb after audio proj 2", audio_emb.shape)
-
-        if drop_audio:
-            audio_input = self.audio2token(uncond_audio_emb)
-        else:
-            audio_input = self.audio2bucket(cond_audio_emb)
-
-        if drop_image:
-            image_input = self.imageproj(cond_image_emb)
-        else:
-            image_input = self.imageproj(uncond_image_emb)
+        audio_emb = audio_emb.to(device=self.audio2token.device, dtype=self.audio2token.dtype)
+        audio_emb = self.audio2token(audio_emb)
+        print("audio_emb after audio proj 2", audio_emb.shape)
 
         # print("**0101\n\n face_emb ", face_emb.shape)
         # print("**0101\n\n audio_emb ", audio_emb.shape)
@@ -220,8 +190,8 @@ class Net(nn.Module):
         model_pred = self.denoising_unet(
             noisy_latents,
             timesteps,
-            encoder_hidden_states=image_input,
-            audio_embedding=audio_input,
+            encoder_hidden_states=image_emb,
+            audio_embedding=audio_emb,
             added_time_ids=added_time_ids,
         ).sample
 
