@@ -444,11 +444,11 @@ class TalkingVideoDataset(Dataset):
                 else:
                     # 如果没有人脸检测，就直接用整张图
                     ref_img_clip = ref_img
-                print("ref_img shape , max min", ref_img.shape, torch.max(ref_img), torch.min(ref_img))
+                # print("ref_img shape , max min", ref_img.shape, torch.max(ref_img), torch.min(ref_img))
                 # 再把图 resize 到合适大小（224×224）做 CLIP 处理
                 ref_img_clip = ref_img_clip.resize((self.clip_image_size, self.clip_image_size), Image.LANCZOS)
 
-                print("ref_img_clip shape , max min", ref_img_clip.shape, torch.max(ref_img_clip), torch.min(ref_img_clip))
+                # print("ref_img_clip shape , max min", ref_img_clip.shape, torch.max(ref_img_clip), torch.min(ref_img_clip))
 
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========

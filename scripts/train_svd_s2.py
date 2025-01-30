@@ -209,7 +209,9 @@ class Net(nn.Module):
             audio_input = self.audio2bucket(cond_audio_emb)
 
         if drop_image:
-            image_input = self.imageproj(audio_input)
+            image_input = self.imageproj(cond_image_emb)
+        else:
+            image_input = self.imageproj(uncond_image_emb)
 
         # print("**0101\n\n face_emb ", face_emb.shape)
         # print("**0101\n\n audio_emb ", audio_emb.shape)
@@ -1220,11 +1222,32 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 print("add time ids :", added_time_ids.shape)
                 print("add time ids 2 : ", added_time_ids2)
                 print("clip_image_embeds", clip_image_embeds.shape)
+
+                # drop out
+                rand_val = random.random()
+                drop_audio = False
+                drop_image = False
+
+                if rand_val < 0.05:
+                    drop_audio = True  # 5% 概率 drop audio
+                elif rand_val < 0.10:
+                    drop_image = True  # 5% 概率 drop image
+                elif rand_val < 0.15:
+                    drop_audio = True  # 5% 概率 drop both
+                    drop_image = True
+
+                if drop_audio:
+                    audio_clips = torch.zeros_like(audio_clips, device=audio_clips.device, dtype=audio_clips.dtype)
+
+                if drop_image:
+                    clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
+
+
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
-                    face_emb=clip_image_embeds,
-                    audio_emb= audio_clips,
+                    image_emb= clip_image_embeds,
+                    audio_emb= audio_clips ,
                     added_time_ids=added_time_ids2,
                     uncond_audio_fwd=uncond_audio_fwd
                 )
