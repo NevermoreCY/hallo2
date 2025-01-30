@@ -1186,7 +1186,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # print("audio emb final shape", audio_emb.shape)
                 # print("add time ids :", added_time_ids.shape)
                 # print("add time ids 2 : ", added_time_ids2)
-                # print("clip_image_embeds", clip_image_embeds.shape)
+                print("clip_image_embeds:", clip_image_embeds.shape)
+                print("audio_clips :" , audio_clips.shape )
 
                 # drop out
                 rand_val = random.random()
@@ -1210,14 +1211,14 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
                     print("\n\n Drop image \n", print(clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds)))
 
-
+                print("clip_image_embeds:", clip_image_embeds.shape)
+                print("audio_clips :", audio_clips.shape)
                 model_pred = net(
                     noisy_latents=inp_noisy_latents,
                     timesteps=timesteps,
                     image_emb= clip_image_embeds,
                     audio_emb= audio_clips ,
                     added_time_ids=added_time_ids2,
-                    uncond_audio_fwd=uncond_audio_fwd
                 )
                 # print("idx", idx , "denoising latents" )
                 # Denoise the latents
