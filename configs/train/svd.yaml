@@ -10,6 +10,8 @@ data:
   audio_margin: 2
   train_meta_paths:
     - "./data/hallo_HDTF_stage2.json"
+    - "./data/vox2_p1_stage2.json"
+    - "./data/vox2_p2_stage2.json"
 
 sonic:
   motion_bucket_scale: 1.0
