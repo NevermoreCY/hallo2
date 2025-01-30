@@ -438,7 +438,7 @@ class UNetSpatioTemporalConditionModel(ModelMixin, ConfigMixin, UNet2DConditionL
 
 
         c += 1
-        print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
+        # print("time steps shape : ", timesteps.shape , not torch.is_tensor(timesteps))
 
         if not torch.is_tensor(timesteps):
             # TODO: this requires sync between CPU and GPU. So try to pass timesteps as tensors if you can
