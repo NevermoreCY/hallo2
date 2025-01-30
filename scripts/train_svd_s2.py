@@ -1286,12 +1286,9 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 # Backpropagate
                 # accelerator.backward(loss)
                 # print(f"Loss requires_grad: {loss.requires_grad}, Loss grad_fn: {loss.grad_fn}")
-                try:
-                    accelerator.backward(loss)
-                except Exception as e:
-                    import traceback
-                    print("Exception in backward pass:", e)
-                    print(traceback.format_exc())
+
+                accelerator.backward(loss)
+
 
                 # print("idx", idx, "backward done")
                 if accelerator.sync_gradients:
@@ -1334,7 +1331,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         #     face_analysis_model_path=cfg.face_analysis_model_path
                         # )
             # print("idx", idx, "logs")
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             logs = {
                 "step_loss": loss.detach().item(),
                 "lr": lr_scheduler.get_last_lr()[0],
