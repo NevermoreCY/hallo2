@@ -1205,11 +1205,11 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 if drop_audio:
 
                     audio_clips = torch.zeros_like(audio_clips, device=audio_clips.device, dtype=audio_clips.dtype)
-                    print("\n\n Drop audio \n", print(audio_clips.shape, torch.max(audio_clips), torch.min(audio_clips)))
+                    print("\n\n Drop audio \n", audio_clips.shape, torch.max(audio_clips), torch.min(audio_clips))
 
                 if drop_image:
                     clip_image_embeds = torch.zeros_like(clip_image_embeds, device=clip_image_embeds.device, dtype=clip_image_embeds.dtype)
-                    print("\n\n Drop image \n", print(clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds)))
+                    print("\n\n Drop image \n", clip_image_embeds.shape, torch.max(clip_image_embeds), torch.min(clip_image_embeds))
 
                 print("clip_image_embeds:", clip_image_embeds.shape)
                 print("audio_clips :", audio_clips.shape)
