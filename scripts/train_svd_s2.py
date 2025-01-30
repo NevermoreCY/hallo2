@@ -650,15 +650,17 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     print("load done ")
 
     # Freeze
-    imageproj.requires_grad_(False)
-    face_locator.requires_grad_(False)
-    audioproj.requires_grad_(False)
-    audio2bucket.requires_grad_(False)
-    audio2token.requires_grad_(False)
-
     vae.requires_grad_(False)
     image_encoder.requires_grad_(False)
+    audioproj.requires_grad_(False)
+    face_locator.requires_grad_(False)
+
+
+    # Train:
     unet.requires_grad_(False)
+    imageproj.requires_grad_(True)
+    audio2bucket.requires_grad_(True)
+    audio2token.requires_grad_(True)
 
 
     image_encoder.to(accelerator.device, dtype=weight_dtype)
@@ -757,11 +759,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     trainable_params = []
     train_param_names= []
     for name, param in unet.named_parameters():
-        if "audio_modules" in name:
-            trainable_params.append(param)
-            train_param_names.append(name)
-            param.requires_grad = True
-    for name, param in audioproj.named_parameters():
+        if "audio_modules" in name or "attentions" in name:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
@@ -769,8 +767,25 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
+    for name, param in audio2token.named_parameters():
+            trainable_params.append(param)
+            train_param_names.append(name)
+            param.requires_grad = True
 
-    print("**Trainable params: " , train_param_names)
+    for name, param in audio2bucket.named_parameters():
+            trainable_params.append(param)
+            train_param_names.append(name)
+            param.requires_grad = True
+    # for name, param in audioproj.named_parameters():
+    #         trainable_params.append(param)
+    #         train_param_names.append(name)
+    #         param.requires_grad = True
+    # for name, param in imageproj.named_parameters():
+    #         trainable_params.append(param)
+    #         train_param_names.append(name)
+    #         param.requires_grad = True
+
+    print("** ALL Trainable params: " , train_param_names)
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
