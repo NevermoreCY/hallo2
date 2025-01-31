@@ -154,16 +154,7 @@ class Net(nn.Module):
         self.audio2bucket = audio2bucket
         self.audio2token = audio2token
 
-    # model_pred = net(
-    #     noisy_latents=noisy_latents,
-    #     timesteps=timesteps,
-    #     ref_image_latents=ref_image_latents,
-    #     face_emb=image_prompt_embeds,
-    #     audio_emb=batch["audio_tensor"].to(
-    #         dtype=weight_dtype),
-    #     uncond_img_fwd=uncond_img_fwd,
-    #     uncond_audio_fwd=uncond_audio_fwd
-    # )
+
     def forward(
         self,
         noisy_latents: torch.Tensor,

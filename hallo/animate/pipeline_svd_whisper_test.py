@@ -124,9 +124,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         unet: UNetSpatioTemporalConditionModel,
         scheduler: EulerDiscreteScheduler,
         # feature_extractor: CLIPImageProcessor,
-        audio_guider,
+        # audio_guider,
         image_proj,
-        audio_proj,
+        audio2bucket,
+        audio2token
 
     ):
         super().__init__()

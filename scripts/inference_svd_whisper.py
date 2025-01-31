@@ -48,6 +48,11 @@ from hallo.animate.pipeline_svd_whisper_test import StableVideoDiffusionPipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.models.audio_proj_whisper import AudioProjModel
+
+
+from hallo.models.audio_proj_sonic import AudioProjModel as AudioProjModel_sonic
+from hallo.models.audio_to_bucket import Audio2bucketModel
+
 from hallo.models.face_locator import FaceLocator
 from hallo.models.image_proj import ImageProjModel
 from hallo.models.unet_2d_condition import UNet2DConditionModel
@@ -65,6 +70,7 @@ from einops import rearrange
 from PIL import Image
 import imageio
 import torchvision
+from transformers import WhisperModel
 
 def save_videos_from_pil(pil_images, path, fps=8):
     save_fmt = Path(path).suffix
@@ -143,40 +149,38 @@ class Net(nn.Module):
     def __init__(
         self,
         denoising_unet: UNetSpatioTemporalConditionModel,
-        face_locator: FaceLocator,
+        # face_locator: FaceLocator,
         imageproj,
-        audioproj,
+        # audioproj,
+        audio2bucket,
+        audio2token,
     ):
         super().__init__()
         self.denoising_unet = denoising_unet
-        self.face_locator = face_locator
+        # self.face_locator = face_locator
         self.imageproj = imageproj
-        self.audioproj = audioproj
+        # self.audioproj = audioproj
+        self.audio2bucket = audio2bucket
+        self.audio2token = audio2token
 
     def forward(
         self,
         noisy_latents: torch.Tensor,
         timesteps: torch.Tensor,
-        face_emb: torch.Tensor,
+        image_emb: torch.Tensor,
         audio_emb: torch.Tensor,
         added_time_ids,
-        uncond_img_fwd: bool = False,
-        uncond_audio_fwd: bool = False,
     ):
         """
         simple docstring to prevent pylint error
         """
-        face_emb = self.imageproj(face_emb)
-        # mask = mask.to(device="cuda")
-        # mask_feature = self.face_locator(mask)
-        audio_emb = audio_emb.to(
-            device=self.audioproj.device, dtype=self.audioproj.dtype)
-        audio_emb = self.audioproj(audio_emb)
+        image_emb = self.imageproj(image_emb)
+        # print("face_emb after image proj 1", face_emb.shape)
+        # face_emb after image proj 1 torch.Size([2, 4, 1024])
 
-        if uncond_audio_fwd:
-            audio_emb = torch.zeros_like(audio_emb).to(
-                device=audio_emb.device, dtype=audio_emb.dtype
-            )
+        audio_emb = audio_emb.to(device=self.audio2token.device, dtype=self.audio2token.dtype)
+        audio_emb = self.audio2token(audio_emb)
+        # print("audio_emb after audio proj 2", audio_emb.shape)
 
         # print("**0101\n\n face_emb ", face_emb.shape)
         # print("**0101\n\n audio_emb ", audio_emb.shape)
@@ -185,7 +189,7 @@ class Net(nn.Module):
         model_pred = self.denoising_unet(
             noisy_latents,
             timesteps,
-            encoder_hidden_states=face_emb,
+            encoder_hidden_states=image_emb,
             audio_embedding=audio_emb,
             added_time_ids=added_time_ids,
         ).sample
@@ -392,15 +396,15 @@ def inference_process(args: argparse.Namespace):
     #         ) as audio_processor:
     #             audio_emb, audio_length = audio_processor.preprocess(driving_audio_path, clip_length)
 
-    audio_processor = AudioProcessor(
-        sample_rate,
-        fps,
-        wav2vec_model_path,
-        wav2vec_only_last_features,
-        os.path.dirname(audio_separator_model_file),
-        os.path.basename(audio_separator_model_file),
-        os.path.join(save_path, "audio_preprocess")
-    )
+    # audio_processor = AudioProcessor(
+    #     sample_rate,
+    #     fps,
+    #     wav2vec_model_path,
+    #     wav2vec_only_last_features,
+    #     os.path.dirname(audio_separator_model_file),
+    #     os.path.basename(audio_separator_model_file),
+    #     os.path.join(save_path, "audio_preprocess")
+    # )
 
     audio_model_path = "/yuch_ws/DH/hallo2/pretrained_models/whisper_tiny.pt"
     audio_guider = load_audio_model(model_path=audio_model_path, device='cuda')
@@ -437,11 +441,16 @@ def inference_process(args: argparse.Namespace):
     # denoising_unet.set_attn_processor()
 
     face_locator = FaceLocator(conditioning_embedding_channels=320)
-    image_proj = ImageProjModel(
+    imageproj = ImageProjModel(
         cross_attention_dim=unet.config.cross_attention_dim,
-        clip_embeddings_dim=512,
+        clip_embeddings_dim=1024,
         clip_extra_context_tokens=4,
     )
+
+    audio2token = AudioProjModel_sonic(seq_len=10, blocks=5, channels=384, intermediate_dim=1024, output_dim=768,
+                                       context_tokens=32).to(device="cuda")
+    audio2bucket = Audio2bucketModel(seq_len=50, blocks=1, channels=384, clip_channels=1024, intermediate_dim=1024,
+                                     output_dim=1, context_tokens=2).to(device="cuda")
     #
     # audio_proj = AudioProjModel(
     #     seq_len=5,
@@ -468,28 +477,34 @@ def inference_process(args: argparse.Namespace):
 
     # Freeze
     vae.requires_grad_(False)
-    image_proj.requires_grad_(False)
+    imageproj.requires_grad_(False)
     unet.requires_grad_(False)
 
     face_locator.requires_grad_(False)
     audio_proj.requires_grad_(False)
 
+    audio2bucket.requires_grad_(False)
+    audio2token.requires_grad_(False)
 
     net = Net(
         unet,
-        face_locator,
-        image_proj,
-        audio_proj,
-    )
+        # face_locator,
+        imageproj,
+        # audioproj,
+        audio2bucket,
+        audio2token,
+
+    ).to(dtype=weight_dtype)
 
     m,u = net.load_state_dict(
         torch.load(
-            os.path.join(audio_ckpt_dir, f"net-18500.pth"),
+            os.path.join(audio_ckpt_dir, f"net-8500.pth"),
             map_location="cpu",
         ),
     )
+
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
-    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-18500.pth"))
+    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-8500.pth"))
 
     # vae: AutoencoderKLTemporalDecoder,
     # unet: UNetSpatioTemporalConditionModel,
@@ -503,10 +518,10 @@ def inference_process(args: argparse.Namespace):
         vae=vae,
         unet=net.denoising_unet,
         scheduler=eul_noise_scheduler,
-        audio_guider=audio_guider,
+        # audio_guider=audio_guider,
         image_proj= net.imageproj,
-        audio_proj = net.audioproj,
-
+        audio2bucket = net.audio2bucket,
+        audio2token = net.audio2token
     )
     pipeline.to(device=device, dtype=weight_dtype)
 
@@ -528,16 +543,16 @@ def inference_process(args: argparse.Namespace):
         driving_audio_name = os.path.basename(driving_audio_path)[:-4]
 
 
-        audio_emb, audio_length = audio_processor.preprocess(driving_audio_path, clip_length)
+        # audio_emb, audio_length = audio_processor.preprocess(driving_audio_path, clip_length)
 
-        audio_emb = process_audio_emb(audio_emb)
+        # audio_emb = process_audio_emb(audio_emb)
 
         whisper_feature = audio_guider.audio2feat(driving_audio_path)
-        print("whisper feature shape :", whisper_feature.shape)
+        # print("whisper feature shape :", whisper_feature.shape)
         whisper_chunks = audio_guider.feature2chunks(feature_array=whisper_feature, fps=25)
         audio_frame_num = whisper_chunks.shape[0]
         audio_fea_final = torch.Tensor(whisper_chunks)
-        print("audio_fea_final shape ", audio_fea_final.shape)
+        # print("audio_fea_final shape ", audio_fea_final.shape)
         audio_length = audio_fea_final.shape[0] - 1
 
 
@@ -547,12 +562,14 @@ def inference_process(args: argparse.Namespace):
         source_image_face_emb = torch.tensor(source_image_face_emb)
 
 
-        times = audio_emb.shape[0] // clip_length
+        # times = audio_emb.shape[0] // clip_length
 
         tensor_result = []
 
         generator = torch.manual_seed(42)
 
+
+        print("source_image_pixels", source_image_pixels.shape)
 
         video = pipeline(
             image=source_image_pixels,
@@ -617,7 +634,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--face_expand_ratio", type=float, help="face region", required=False)
     parser.add_argument(
-        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/svd_whisper_train0",type=str, help="specific checkpoint dir", required=False)
+        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/svd_whisper_train_v1.1/modules",type=str, help="specific checkpoint dir", required=False)
 
 
     command_line_args = parser.parse_args()
