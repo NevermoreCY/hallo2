@@ -450,8 +450,8 @@ class TalkingVideoDataset(Dataset):
                 ref_img_clip = ref_img_clip.resize((self.clip_image_size, self.clip_image_size), Image.LANCZOS)
 
                 ref_img_clip = np.array(ref_img_clip)
-                print("ref_img_clip shape , max min", ref_img_clip.shape, np.max(ref_img_clip), np.min(ref_img_clip))
-
+                # print("ref_img_clip shape , max min", ref_img_clip.shape, np.max(ref_img_clip), np.min(ref_img_clip))
+                # ref_img_clip shape , max min (224, 224, 3) 236 0
                 clip_image = self.clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
             # ========== 新增完毕 ==========
 
