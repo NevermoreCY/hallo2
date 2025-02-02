@@ -519,7 +519,7 @@ def inference_process(args: argparse.Namespace):
         vae=vae,
         unet=net.denoising_unet,
         scheduler=eul_noise_scheduler,
-        # audio_guider=audio_guider,
+        audio_guider=audio_guider,
         image_proj= net.imageproj,
         audio2bucket = net.audio2bucket,
         audio2token = net.audio2token
