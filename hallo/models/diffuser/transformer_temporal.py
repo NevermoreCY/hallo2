@@ -270,7 +270,7 @@ class TransformerSpatioTemporalModel(nn.Module):
         self.norm = torch.nn.GroupNorm(num_groups=32, num_channels=in_channels, eps=1e-6)
         self.proj_in = nn.Linear(in_channels, inner_dim)
 
-        self.position_embedding = SinusoidalPositionalEmbedding(embed_dim=inner_dim, max_seq_length=512)
+        self.position_embedding = SinusoidalPositionalEmbedding(embed_dim=768, max_seq_length=512)
 
         # 3. Define transformers blocks
         self.transformer_blocks = nn.ModuleList(
