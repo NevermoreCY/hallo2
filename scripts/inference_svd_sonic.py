@@ -44,7 +44,7 @@ from pydub import AudioSegment
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hallo.animate.pipeline_svd_whisper_test import StableVideoDiffusionPipeline
+from hallo.animate.pipeline_svd_sonic import StableVideoDiffusionPipeline
 from hallo.datasets.audio_processor import AudioProcessor
 from hallo.datasets.image_processor import ImageProcessor
 from hallo.models.audio_proj_whisper import AudioProjModel
@@ -595,6 +595,7 @@ def inference_process(args: argparse.Namespace):
         video = pipeline(
             image=source_image_pixels,
             face_emb=source_image_face_emb,
+            clip_image=clip_image,
             audio_path=driving_audio_path,
             video_length=1200,
             num_frames=25,

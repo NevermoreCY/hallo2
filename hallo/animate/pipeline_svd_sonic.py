@@ -31,6 +31,10 @@ from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from .context import get_context_scheduler
 from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import retrieve_timesteps
 
+from transformers import CLIPImageProcessor
+from transformers import AutoFeatureExtractor,  WhisperModel
+from hallo.utils.test_preprocess import process_bbox, image_audio_to_tensor, get_audio_feature
+
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 EXAMPLE_DOC_STRING = """
@@ -353,6 +357,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         self,
         image: Union[PIL.Image.Image, List[PIL.Image.Image], torch.FloatTensor],
         face_emb,
+        clip_image,
         audio_path,
         video_length,
         height: int = 512,
@@ -474,8 +479,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("\n whisper_chunks:", whisper_chunks.shape)
         # whisper_chunks: (189, 50, 384)
 
-        # new audio
-
+        # new audio feature start
+        print("new audio start \n\n ")
         from transformers import WhisperModel
         wav_enc = WhisperModel.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/").eval()
         wav_enc.requires_grad_(False)
@@ -486,7 +491,40 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         audio_feature = audio_input[0]
         audio_feature = audio_feature.unsqueeze(0)
 
+        window = 3000
+        audio_prompts = []
+        last_audio_prompts = []
+        for i in range(0, audio_feature.shape[-1], window):
+            audio_prompt = wav_enc.encoder(audio_feature[:, :, i:i + window],
+                                           output_hidden_states=True).hidden_states
+            last_audio_prompt = wav_enc.encoder(audio_feature[:, :, i:i + window]).last_hidden_state
+            last_audio_prompt = last_audio_prompt.unsqueeze(-2)
+            audio_prompt = torch.stack(audio_prompt, dim=2)
+            audio_prompts.append(audio_prompt)
+            last_audio_prompts.append(last_audio_prompt)
+            # print(video_path[-15:-4], "audio_prompts chunk shape", audio_prompt.shape)
+            # print(video_path[-15:-4], "last audio prompts shape", last_audio_prompt.shape)
+            # lSteele_000 audio_prompts chunk shape torch.Size([1, 1500, 5, 384])
+            # lSteele_000 last audio prompts shape torch.Size([1, 1500, 1, 384])
 
+        audio_prompts = torch.cat(audio_prompts, dim=1)
+        # print(video_path[-15:-4], "audio_prompts 1 shape", audio_prompts.shape)
+        # lSteele_000 audio_prompts 1 shape torch.Size([1, 1500, 5, 384])
+        audio_prompts = audio_prompts[:, :audio_len * 2]
+        # print(video_path[-15:-4], "audio_prompts 2 shape", audio_prompts.shape)
+        # lSteele_000 audio_prompts 2 shape torch.Size([1, 650, 5, 384])
+        audio_prompts = torch.cat(
+            [torch.zeros_like(audio_prompts[:, :4]), audio_prompts, torch.zeros_like(audio_prompts[:, :6])], 1)
+
+        last_audio_prompts = torch.cat(last_audio_prompts, dim=1)
+        last_audio_prompts = last_audio_prompts[:, :audio_len * 2]
+        last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
+                                        torch.zeros_like(last_audio_prompts[:, :26])], 1)
+
+        print("audio_prompts:", audio_prompts.shape)
+        print("last_audio_prompts:", last_audio_prompts.shape)
+        print("new audio end \n\n ")
+        # new audio feature end
 
 
         audio_frame_num = whisper_chunks.shape[0]
