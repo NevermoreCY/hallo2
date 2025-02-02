@@ -65,14 +65,14 @@ from hallo.models.whisper_local.audio2feature import load_audio_model
 from hallo.models.diffuser.unet_spatio_temporal_condition_audio import UNetSpatioTemporalConditionModel
 
 from hallo.diffusers.schedulers.scheduling_euler_discrete import EulerDiscreteScheduler
-
+from transformers import WhisperModel, CLIPVisionModelWithProjection, AutoFeatureExtractor
 from einops import rearrange
 from PIL import Image
 import imageio
 import torchvision
 from transformers import WhisperModel
-from transformers import WhisperModel, CLIPVisionModelWithProjection, AutoFeatureExtractor
 from hallo.utils.test_preprocess import process_bbox, image_audio_to_tensor,get_audio_feature
+from transformers import CLIPImageProcessor
 def save_videos_from_pil(pil_images, path, fps=8):
     save_fmt = Path(path).suffix
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -526,12 +526,14 @@ def inference_process(args: argparse.Namespace):
     )
     pipeline.to(device=device, dtype=weight_dtype)
 
-
+    clip_processor = CLIPImageProcessor()
+    clip_image_size = 224
 
     # for each reference image exmaple
     for idx, source_image_path in enumerate(source_image_paths):
         print("***\n\n staring job fpr", idx, source_image_path)
         source_image_name = os.path.basename(source_image_path)[:-4]
+
 
         source_image_pixels, \
             source_image_face_region, \
@@ -541,8 +543,25 @@ def inference_process(args: argparse.Namespace):
             source_image_lip_mask = image_processor.preprocess(
             source_image_path, save_path, config.face_expand_ratio)
 
+
         driving_audio_path = driving_audio_paths[idx]
         driving_audio_name = os.path.basename(driving_audio_path)[:-4]
+        # feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
+
+
+        # no alignment for now
+        ref_img = Image.open(source_image_path).convert('RGB')
+
+        ref_img_clip = ref_img_clip.resize((clip_image_size, clip_image_size), Image.LANCZOS)
+        ref_img_clip = np.array(ref_img_clip)
+        print("ref_img_clip shape , max min", ref_img_clip.shape, np.max(ref_img_clip), np.min(ref_img_clip))
+        # ref_img_clip shape , max min (224, 224, 3) 236 0
+        clip_image = clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
+
+
+
+
+
 
 
         # audio_emb, audio_length = audio_processor.preprocess(driving_audio_path, clip_length)
