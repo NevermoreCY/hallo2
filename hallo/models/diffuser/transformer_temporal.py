@@ -263,6 +263,7 @@ class TransformerSpatioTemporalModel(nn.Module):
         inner_dim = num_attention_heads * attention_head_dim
         self.inner_dim = inner_dim
         self.use_audio_module = use_audio_module
+        self.use_pe = use_pe
 
         # 2. Define input layers
         self.in_channels = in_channels
