@@ -141,6 +141,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             unet=unet,
             scheduler=scheduler,
             # feature_extractor=feature_extractor,
+            audio_guider = audio_guider,
             audio2bucket = audio2bucket,
             image_proj = image_proj,
             audio2token = audio2token,
