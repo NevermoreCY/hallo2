@@ -25,6 +25,34 @@ from diffusers.models.modeling_utils import ModelMixin
 
 from .resnet import AlphaBlender
 from .attention import BasicTransformerBlock, TemporalBasicTransformerBlock
+import math
+
+
+class SinusoidalPositionalEmbedding(nn.Module):
+    """Apply positional information to a sequence of embeddings.
+
+    Takes in a sequence of embeddings with shape (batch_size, seq_length, embed_dim) and adds positional embeddings to
+    them
+
+    Args:
+        embed_dim: (int): Dimension of the positional embedding.
+        max_seq_length: Maximum sequence length to apply positional embeddings
+
+    """
+
+    def __init__(self, embed_dim: int, max_seq_length: int = 32):
+        super().__init__()
+        position = torch.arange(max_seq_length).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embed_dim, 2) * (-math.log(10000.0) / embed_dim))
+        pe = torch.zeros(1, max_seq_length, embed_dim)
+        pe[0, :, 0::2] = torch.sin(position * div_term)
+        pe[0, :, 1::2] = torch.cos(position * div_term)
+        self.register_buffer("pe", pe)
+
+    def forward(self, x):
+        _, seq_length, _ = x.shape
+        x = x + self.pe[:, :seq_length]
+        return x
 
 
 @dataclass
@@ -226,6 +254,7 @@ class TransformerSpatioTemporalModel(nn.Module):
         num_layers: int = 1,
         cross_attention_dim: Optional[int] = None,
         use_audio_module: bool = False,
+        use_pe: bool = False,
     ):
         super().__init__()
         self.num_attention_heads = num_attention_heads
@@ -239,6 +268,8 @@ class TransformerSpatioTemporalModel(nn.Module):
         self.in_channels = in_channels
         self.norm = torch.nn.GroupNorm(num_groups=32, num_channels=in_channels, eps=1e-6)
         self.proj_in = nn.Linear(in_channels, inner_dim)
+
+        self.position_embedding = SinusoidalPositionalEmbedding(embed_dim=inner_dim, max_seq_length=512)
 
         # 3. Define transformers blocks
         self.transformer_blocks = nn.ModuleList(
@@ -319,6 +350,11 @@ class TransformerSpatioTemporalModel(nn.Module):
         # hidden_states shape is  torch.Size([28, 320, 64, 64])
         # encoder_hidden_states shape is  torch.Size([28, 4, 1024])
         # image_only_indicator shape is  torch.Size([2, 14])
+
+        if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
+            print("audio encoder_hidden_states shape is ", encoder_hidden_states.shape)
+            encoder_hidden_states = self.position_embedding(encoder_hidden_states)  # Add positional encoding
+
         time_context = encoder_hidden_states
         time_context_first_timestep = time_context[None, :].reshape(
             batch_size, num_frames, -1, time_context.shape[-1]
