@@ -352,28 +352,30 @@ class TransformerSpatioTemporalModel(nn.Module):
         # encoder_hidden_states shape is  torch.Size([28, 4, 1024])
         # image_only_indicator shape is  torch.Size([2, 14])
 
-        if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
-            print("audio encoder_hidden_states shape is ", encoder_hidden_states.shape)
-            encoder_hidden_states = self.position_embedding(encoder_hidden_states)  # Add positional encoding
+        # if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
+        #     print("audio encoder_hidden_states shape is ", encoder_hidden_states.shape)
+        #     encoder_hidden_states = self.position_embedding(encoder_hidden_states)  # Add positional encoding
         # audio encoder_hidden_states shape is  torch.Size([50, 32, 768])
 
         time_context = encoder_hidden_states
         time_context_first_timestep = time_context[None, :].reshape(
             batch_size, num_frames, -1, time_context.shape[-1]
         )[:, 0]
-
-        print("time_context_first_timestep shape is ", time_context_first_timestep.shape)
+        if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
+            print("time_context_first_timestep shape is ", time_context_first_timestep.shape)
         # time_context_first_timestep shape is  torch.Size([2, 4, 1024])
 
         time_context = time_context_first_timestep[:, None].broadcast_to(
             batch_size, height * width, time_context.shape[-2], time_context.shape[-1]
         )
-        print("1time_context shape is ", time_context .shape)
+        if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
+            print("1time_context shape is ", time_context .shape)
         # 1time_context shape is  torch.Size([2, 4096, 4, 1024])
 
 
         time_context = time_context.reshape(batch_size * height * width, -1, time_context.shape[-1])
-        print("2time_context  shape is ", time_context.shape)
+        if self.use_audio_module and self.use_pe and encoder_hidden_states is not None:
+            print("2time_context  shape is ", time_context.shape)
         # 2time_context  shape is  torch.Size([8192, 4, 1024])
 
         residual = hidden_states
