@@ -522,6 +522,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         last_audio_prompts = torch.cat([torch.zeros_like(last_audio_prompts[:, :24]), last_audio_prompts,
                                         torch.zeros_like(last_audio_prompts[:, :26])], 1)
 
+        print("audio_len", audio_len)
         print("audio_prompts:", audio_prompts.shape)
         print("last_audio_prompts:", last_audio_prompts.shape)
         print("new audio end \n\n ")
@@ -534,6 +535,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("\n audio_fea_final:", audio_fea_final.shape)
         #  audio_fea_final: torch.Size([1, 189, 50, 384])
         video_length = min(video_length, audio_frame_num)
+        print("audio frame num =", audio_frame_num)
+        print("video len =", video_length)
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
 
