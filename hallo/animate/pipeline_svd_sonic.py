@@ -845,6 +845,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio latents", audio_latents.dtype, audio_latents.device)
                     # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
+                    added_time_ids2 = added_time_ids2.repeat(2)
+
                     print("\n\n Before Unet")
                     print("latent_model_input", latent_model_input.shape)
                     # print("t", t.dtype)
