@@ -750,7 +750,22 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
-                    # print("c_audio_latents shape is :", c_audio_latents.shape)
+
+                    # audio_latnets = []
+                    # for c in new_context:
+                    #     audio_clip_start_idx = c * 2
+                    #     audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
+                    #     audio_clip_for_bucket = last_audio_prompts[:,
+                    #                             audio_clip_for_bucket_start_idx:audio_clip_for_bucket_start_idx + 50]
+
+
+                    print("c_audio_latents shape is :", c_audio_latents.shape)
+                    print("latent_model_input", latent_model_input.shape)
+                    print("image_embedding shape", image_embeddings.shape)
+                    print("audio_latents shape ", audio_latents.shape)
+                    print("added_time_ids shape", added_time_ids.shape)
+
+
                     # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
                     audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
                     # print("audio_latents shape is :", audio_latents.shape)
@@ -776,9 +791,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
 
-                    audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
-                    audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
-                    audio_latents = self.audio_proj(audio_latents)
+                    # audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
+                    # audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
+                    # audio_latents = self.audio_proj(audio_latents)
 
 
 
@@ -792,10 +807,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio latents", audio_latents.dtype, audio_latents.device)
                     # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
-                    print("latent_model_input", latent_model_input.shape)
-                    print("image_embedding shape", image_embeddings.shape)
-                    print("audio_latents shape ", audio_latents.shape)
-                    print("added_time_ids shape", added_time_ids.shape)
+
 
 
                     pred = self.unet(
