@@ -552,7 +552,7 @@ def inference_process(args: argparse.Namespace):
         # no alignment for now
         ref_img = Image.open(source_image_path).convert('RGB')
 
-        ref_img_clip = ref_img_clip.resize((clip_image_size, clip_image_size), Image.LANCZOS)
+        ref_img_clip = ref_img.resize((clip_image_size, clip_image_size), Image.LANCZOS)
         ref_img_clip = np.array(ref_img_clip)
         print("ref_img_clip shape , max min", ref_img_clip.shape, np.max(ref_img_clip), np.min(ref_img_clip))
         # ref_img_clip shape , max min (224, 224, 3) 236 0
