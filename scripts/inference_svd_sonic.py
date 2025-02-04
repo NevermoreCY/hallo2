@@ -556,6 +556,8 @@ def inference_process(args: argparse.Namespace):
         ref_img_clip = np.array(ref_img_clip)
         print("ref_img_clip shape , max min", ref_img_clip.shape, np.max(ref_img_clip), np.min(ref_img_clip))
         # ref_img_clip shape , max min (224, 224, 3) 236 0
+
+        # ref_img_clip shape , max min (224, 224, 3) 243 0
         clip_image = clip_processor(images=ref_img_clip, return_tensors="pt").pixel_values[0]
 
 

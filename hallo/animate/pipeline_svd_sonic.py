@@ -487,6 +487,13 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         wav_enc.requires_grad_(False)
         feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
 
+        image_encoder = CLIPVisionModelWithProjection.from_pretrained( "./pretrained_models", subfolder="image_encoder",  variant="fp16")
+        image_encoder.requires_grad_(False)
+        clip_image_embeds = image_encoder(
+            clip_image
+        ).image_embeds
+        print("clip_image_embeds:", clip_image_embeds.shape)
+
 
         audio_input, audio_len = get_audio_feature(audio_path, feature_extractor)
         audio_feature = audio_input[0]
@@ -525,6 +532,11 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("audio_len", audio_len)
         print("audio_prompts:", audio_prompts.shape)
         print("last_audio_prompts:", last_audio_prompts.shape)
+
+        # audio_len 375
+        # audio_prompts: torch.Size([1, 760, 5, 384])
+        # last_audio_prompts: torch.Size([1, 800, 1, 384])
+
         print("new audio end \n\n ")
         # new audio feature end
 
@@ -534,11 +546,17 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         audio_fea_final = audio_fea_final.unsqueeze(0)
         print("\n audio_fea_final:", audio_fea_final.shape)
         #  audio_fea_final: torch.Size([1, 189, 50, 384])
-        video_length = min(video_length, audio_frame_num)
+        # video_length = min(video_length, audio_frame_num)
+        video_length = min(video_length,audio_len)
         print("audio frame num =", audio_frame_num)
         print("video len =", video_length)
+        # 377
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
+
+        if video_length < audio_len:
+            audio_prompts = audio_prompts[:, :video_length, :, :]
+            last_audio_prompts = last_audio_prompts[:, :video_length, :, :]
 
         context_scheduler = get_context_scheduler(context_schedule)
         context_queue = list(
@@ -555,6 +573,11 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         #  context_queue: 16 [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35], [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47], [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59], [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71], [72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83], [84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95], [96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107], [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119], [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131], [132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143], [144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155], [156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167], [168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179], [180, 181, 182, 183, 184, 185, 186, 187, 188, 0, 1, 2]]
         # 3. Encode input image
         image_embeddings = face_emb
+
+        clip_image_embeds = image_encoder( clip_image).image_embeds
+        print("\n image embd, clip image embd")
+        print(image_embeddings.shape)
+        print(clip_image_embeds.shape)
 
         # NOTE: Stable Video Diffusion was conditioned on fps - 1, which is why it is reduced here.
         # See: https://github.com/Stability-AI/generative-models/blob/ed0997173f98eaf8f4edf7ba5fe8f15c6b877fd3/scripts/sampling/simple_video_sample.py#L188
