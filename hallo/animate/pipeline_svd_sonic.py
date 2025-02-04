@@ -843,8 +843,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio latents", audio_latents.dtype, audio_latents.device)
                     # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
-
-
+                    print("\n\n Before Unet")
+                    print("latent_model_input", latent_model_input.shape)
+                    # print("t", t.dtype)
+                    print("audio latents", audio_latents.shape)
+                    print("image_embeddings_cfg", image_embeddings.shape)
+                    print("added_time_ids", added_time_ids.shape)
 
                     pred = self.unet(
                         latent_model_input,
