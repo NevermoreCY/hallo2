@@ -828,8 +828,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
                     audio_latents =audio_latents if self.do_classifier_free_guidance else audio_clips
-                    audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
-                    audio_latents = self.audio_proj(audio_latents)
+                    audio_latents = audio_latents.to(device=self.audio2token.device,dtype = self.audio2token.dtype)
+                    audio_latents = self.audio2token(audio_latents)
 
 
 
