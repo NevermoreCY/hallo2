@@ -487,6 +487,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         wav_enc.requires_grad_(False)
         feature_extractor = AutoFeatureExtractor.from_pretrained("/yuch_ws/DH/hallo2/pretrained_models/whisper-tiny/")
 
+        print("clip_image shape", clip_image.shape)
+        clip_image = clip_image.unsqueeze(0)
+        print("clip_image shape", clip_image.shape)
         image_encoder = CLIPVisionModelWithProjection.from_pretrained( "./pretrained_models", subfolder="image_encoder",  variant="fp16")
         image_encoder.requires_grad_(False)
         clip_image_embeds = image_encoder(
