@@ -550,7 +550,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("\n audio_fea_final:", audio_fea_final.shape)
         #  audio_fea_final: torch.Size([1, 189, 50, 384])
         # video_length = min(video_length, audio_frame_num)
-        video_length = min(video_length,audio_len*2)
+        video_length = min(video_length,audio_len)
         print("audio frame num =", audio_frame_num)
         print("video len =", video_length)
         # 377
