@@ -790,8 +790,18 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio_latents shape ", audio_latents.shape)
                     print("added_time_ids shape", added_time_ids.shape)
 
+                    motion_bucket_scale = 1
 
-                    # c_audio_latents shape is : torch.Size([1, 25, 50, 384])
+                    motion_buckets = motion_buckets * motion_bucket_scale
+
+                    motion_buckets = torch.mean(motion_buckets, dim=1).squeeze(2)
+                    print("motion buckets shape ", motion_buckets.shape)
+
+                    bz, _ = motion_buckets.shape
+                    new_column = torch.full((bz, 1), 24, dtype=motion_buckets.dtype, device=motion_buckets.device)
+                    added_time_ids2 = torch.cat([new_column, motion_buckets], dim=1)
+                    print("added time ids2 shape ", added_time_ids2.shape)
+
                     audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
                     # print("audio_latents shape is :", audio_latents.shape)
                     # audio_latents shape is : torch.Size([2, 25, 50, 384])
