@@ -737,7 +737,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
                             new_context[c_j][c_i] = (context[c_j][c_i] + i * shift_count) % video_length
-                    # print("new context 2 is ", new_context)
+                    print("new context 2 is ", new_context)
                     # print("latents shape is ", latents.shape)
                     # latents shape is  torch.Size([1, 189, 4, 64, 64])
 
