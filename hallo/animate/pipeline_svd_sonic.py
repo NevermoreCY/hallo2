@@ -492,10 +492,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("clip_image shape", clip_image.shape)
         image_encoder = CLIPVisionModelWithProjection.from_pretrained( "./pretrained_models", subfolder="image_encoder",  variant="fp16")
         image_encoder.requires_grad_(False)
-        clip_image_embeds = image_encoder(
-            clip_image
-        ).image_embeds
-        print("clip_image_embeds:", clip_image_embeds.shape)
+        # clip_image_embeds = image_encoder(
+        #     clip_image
+        # ).image_embeds
+        # print("clip_image_embeds:", clip_image_embeds.shape)
 
 
         audio_input, audio_len = get_audio_feature(audio_path, feature_extractor)
@@ -776,8 +776,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                     print(audio_clips.shape)
                     print(audio_clips_for_bucket.shape)
-
+                    image_embeds = image_embeddings.repeat_interleave(25, dim=0)
                     image_embeds = image_embeds.to(dtype=self.audio2bucket.dtype)
+                    print("image embeds for bucket shape is ", image_embeds)
                     audio_clips_for_bucket = audio_clips_for_bucket.to(dtype=self.audio2bucket.dtype)
                     motion_buckets = self.audio2bucket(audio_clips_for_bucket, image_embeds)
 
