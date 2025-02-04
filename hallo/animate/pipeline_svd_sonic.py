@@ -557,9 +557,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
 
-        if video_length < audio_len * 2:
-            audio_prompts = audio_prompts[:, :video_length, :, :]
-            last_audio_prompts = last_audio_prompts[:, :video_length, :, :]
+        # if video_length < audio_len * 2:
+        #     audio_prompts = audio_prompts[:, :video_length, :, :]
+        #     last_audio_prompts = last_audio_prompts[:, :video_length, :, :]
 
         context_scheduler = get_context_scheduler(context_schedule)
         context_queue = list(
