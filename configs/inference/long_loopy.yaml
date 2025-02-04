@@ -52,7 +52,7 @@ use_cut: true
 audio_ckpt_dir: pretrained_models/hallo2
 
 
-save_path: ./output_whisper/motion_bucket_128_overlap5/
+save_path: ./output_whisper/sonic_30k/
 cache_path: ./.cache
 
 base_model_path: ./pretrained_models/stable-diffusion-v1-5
