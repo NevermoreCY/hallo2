@@ -518,10 +518,10 @@ class TalkingVideoDataset(Dataset):
             audio_clips_for_bucket = []
             for i in center_indices:
                 # we shift window to cover past info
-                audio_clip_start_idx = i * 2  -4
+                audio_clip_start_idx = i * 2
                 audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
                 # we shift window to cover past info
-                audio_clip_for_bucket_start_idx = i * 2  - 24
+                audio_clip_for_bucket_start_idx = i * 2
                 audio_clip_for_bucket = last_audio_prompts[:, audio_clip_for_bucket_start_idx:audio_clip_for_bucket_start_idx + 50]
                 audio_clips.append(audio_clip)
                 audio_clips_for_bucket.append(audio_clip_for_bucket)
