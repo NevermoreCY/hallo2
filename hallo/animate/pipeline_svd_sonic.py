@@ -613,9 +613,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         # Repeat the image latents for each frame so we can concatenate them with the noise
         # image_latents [batch, channels, height, width] ->[batch, num_frames, channels, height, width]
         image_latents = image_latents.unsqueeze(1).repeat(1, num_frames, 1, 1, 1)
-        print("current motion_bucket_id is ", motion_bucket_id )
+        # print("current motion_bucket_id is ", motion_bucket_id )
         motion_bucket_id = 250
-        print("decrease motion_bucket_id to ", motion_bucket_id)
+        # print("decrease motion_bucket_id to ", motion_bucket_id)
         # 5. Get Added Time IDs
         added_time_ids = self._get_add_time_ids(
             fps,
@@ -635,8 +635,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # 7. Prepare latent variables
         num_channels_latents = self.unet.config.in_channels
-        print("ww\n\n weight_dtype is ", weight_dtype)
-        print(" vae_dtype is ", self.vae.dtype)
+        # print("ww\n\n weight_dtype is ", weight_dtype)
+        # print(" vae_dtype is ", self.vae.dtype)
         latents = self.prepare_latents(
             batch_size * num_videos_per_prompt,
             video_length,
@@ -648,7 +648,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             generator,
             latents,
         )
-        print("latents d type is ", latents.dtype)
+        # print("latents d type is ", latents.dtype)
         # 8. Prepare guidance scale
         # guidance_scale = torch.linspace(min_guidance_scale, max_guidance_scale, num_frames).unsqueeze(0)
         # guidance_scale = guidance_scale.to(device, latents.dtype)
@@ -660,14 +660,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
             max_guidance_scale,
             num_inference_steps)
 
-        print("guidance scale")
-        print("do CFG", self.do_classifier_free_guidance)
+        # print("guidance scale")
+        # print("do CFG", self.do_classifier_free_guidance)
         # print(guidance_scale.shape)
         # [1,25,1,1,1]
         # print(guidance_scale)
         # 1,1.2,1.31,1.41,1.52.....3.39,3.5
         self._guidance_scale = guidance_scale
-        print("self._guidance_scale", self._guidance_scale)
+        # print("self._guidance_scale", self._guidance_scale)
 
         # 9. Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
@@ -676,17 +676,17 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
         # prepare image embeddings
 
-        print("image_embeddings shape is ", image_embeddings.shape)
+        # print("image_embeddings shape is ", image_embeddings.shape)
         image_embeddings_cfg = torch.cat([torch.zeros_like(image_embeddings), image_embeddings], 0)
-        print("image_embeddings cfg shape is ", image_embeddings.shape)
-        print("do cfg: ", self.do_classifier_free_guidance)
+        # print("image_embeddings cfg shape is ", image_embeddings.shape)
+        # print("do cfg: ", self.do_classifier_free_guidance)
         image_embeddings = image_embeddings_cfg if self.do_classifier_free_guidance else image_embeddings
         image_embeddings = image_embeddings.to(device=self.image_proj.device, dtype=self.image_proj.dtype)
         image_embeddings = self.image_proj(image_embeddings)
 
 
         # timesteps = timesteps
-        print("DEBUG\n\n timesteps old", len(timesteps), timesteps.dtype, timesteps)
+        # print("DEBUG\n\n timesteps old", len(timesteps), timesteps.dtype, timesteps)
 
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -732,7 +732,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # context = global_context[0]
                     # print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
-                    # print("new context is ", new_context)  # all zeros
+                    print("new context is ", new_context)  # all zeros
 
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
@@ -750,10 +750,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
-                    print("c_audio_latents shape is ", c_audio_latents.shape)
-                    print("new_context", new_context)
+                    # print("c_audio_latents shape is ", c_audio_latents.shape)
+                    # print("new_context", new_context)
                     audio_clips = []
                     audio_clips_for_bucket = []
+                    print("lap shape :", last_audio_prompts.shape)
+                    print("audio_prompts shape", audio_prompts.shape)
                     for c in new_context[0]:
                         c=int(c)
 
@@ -766,8 +768,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                     audio_clips = torch.cat(audio_clips, dim=0)
                     audio_clips_for_bucket = torch.cat(audio_clips_for_bucket, dim=0)
-                    print("audio_clips shape", audio_clips.shape)
-                    print("audio_clips_for_bucket.shape")
+                    # print("audio_clips shape", audio_clips.shape)
+                    # print("audio_clips_for_bucket.shape")
                     print(audio_clips.shape)
                     print(audio_clips_for_bucket.shape)
 
@@ -778,17 +780,17 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     print(audio_clips_for_bucket.shape)
                     image_embeds = clip_image_embeds.repeat_interleave(repeat_num, dim=0)
                     image_embeds = image_embeds.to(dtype=self.audio2bucket.dtype,device=self.audio2bucket.device)
-                    print("image embeds for bucket shape is ", image_embeds.shape)
+                    # print("image embeds for bucket shape is ", image_embeds.shape)
                     audio_clips_for_bucket = audio_clips_for_bucket.to(dtype=self.audio2bucket.dtype,device=self.audio2bucket.device)
                     motion_buckets = self.audio2bucket(audio_clips_for_bucket, image_embeds)
 
-                    print("motion buckets s",motion_buckets.shape)
+                    # print("motion buckets s",motion_buckets.shape)
 
-                    print("c_audio_latents shape is :", c_audio_latents.shape)
-                    print("latent_model_input", latent_model_input.shape)
-                    print("image_embedding shape", image_embeddings.shape)
+                    # print("c_audio_latents shape is :", c_audio_latents.shape)
+                    # print("latent_model_input", latent_model_input.shape)
+                    # print("image_embedding shape", image_embeddings.shape)
                     # print("audio_latents shape ", audio_latents.shape)
-                    print("added_time_ids shape", added_time_ids.shape)
+                    # print("added_time_ids shape", added_time_ids.shape)
 
                     motion_bucket_scale = 1
 
@@ -848,14 +850,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("t", t.dtype)
                     print("audio latents", audio_latents.shape)
                     print("image_embeddings_cfg", image_embeddings.shape)
-                    print("added_time_ids", added_time_ids.shape)
+                    print("added_time_ids2", added_time_ids2.shape)
 
                     pred = self.unet(
                         latent_model_input,
                         t,
                         encoder_hidden_states= image_embeddings,
                         audio_embedding=audio_latents,
-                        added_time_ids=added_time_ids,
+                        added_time_ids=added_time_ids2,
                         return_dict=False,
                     )[0]
 
