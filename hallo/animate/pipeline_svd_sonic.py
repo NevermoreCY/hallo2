@@ -802,7 +802,8 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     added_time_ids2 = torch.cat([new_column, motion_buckets], dim=1)
                     print("added time ids2 shape ", added_time_ids2.shape)
 
-                    audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
+                    # audio_latents = torch.cat([torch.zeros_like(c_audio_latents), c_audio_latents], 0)
+                    audio_latents = torch.cat([torch.zeros_like(audio_clips), audio_clips], 0)
                     # print("audio_latents shape is :", audio_latents.shape)
                     # audio_latents shape is : torch.Size([2, 25, 50, 384])
                     # expand the latents if we are doing classifier free guidance
@@ -826,9 +827,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
 
 
-                    # audio_latents =audio_latents if self.do_classifier_free_guidance else c_audio_latents
-                    # audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
-                    # audio_latents = self.audio_proj(audio_latents)
+                    audio_latents =audio_latents if self.do_classifier_free_guidance else audio_clips
+                    audio_latents = audio_latents.to(device=self.audio_proj.device,dtype = self.audio_proj.dtype)
+                    audio_latents = self.audio_proj(audio_latents)
 
 
 
