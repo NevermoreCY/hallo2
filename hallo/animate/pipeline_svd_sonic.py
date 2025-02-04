@@ -773,10 +773,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
 
                     audio_clips = audio_clips.unsqueeze(0)
                     audio_clips_for_bucket = audio_clips_for_bucket.unsqueeze(0)
-
+                    repeat_num = len(new_context[0])
                     print(audio_clips.shape)
                     print(audio_clips_for_bucket.shape)
-                    image_embeds = clip_image_embeds.repeat_interleave(25, dim=0)
+                    image_embeds = clip_image_embeds.repeat_interleave(repeat_num, dim=0)
                     image_embeds = image_embeds.to(dtype=self.audio2bucket.dtype,device=self.audio2bucket.device)
                     print("image embeds for bucket shape is ", image_embeds.shape)
                     audio_clips_for_bucket = audio_clips_for_bucket.to(dtype=self.audio2bucket.dtype,device=self.audio2bucket.device)
