@@ -750,6 +750,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("latent_model_input shape is :", latent_model_input.shape, latent_model_input.dtype)
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
+                    print("c_audio_latents shape is ", c_audio_latents)
 
                     audio_clips = []
                     audio_clips_for_bucket = []
