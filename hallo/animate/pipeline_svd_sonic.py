@@ -550,14 +550,14 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         print("\n audio_fea_final:", audio_fea_final.shape)
         #  audio_fea_final: torch.Size([1, 189, 50, 384])
         # video_length = min(video_length, audio_frame_num)
-        video_length = min(video_length,audio_len)
+        video_length = min(video_length,audio_len*2)
         print("audio frame num =", audio_frame_num)
         print("video len =", video_length)
         # 377
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
 
-        if video_length < audio_len*2:
+        if video_length < audio_len * 2:
             audio_prompts = audio_prompts[:, :video_length, :, :]
             last_audio_prompts = last_audio_prompts[:, :video_length, :, :]
 
