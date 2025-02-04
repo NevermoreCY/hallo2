@@ -762,7 +762,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     print("c_audio_latents shape is :", c_audio_latents.shape)
                     print("latent_model_input", latent_model_input.shape)
                     print("image_embedding shape", image_embeddings.shape)
-                    print("audio_latents shape ", audio_latents.shape)
+                    # print("audio_latents shape ", audio_latents.shape)
                     print("added_time_ids shape", added_time_ids.shape)
 
 
