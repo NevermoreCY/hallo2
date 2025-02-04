@@ -754,6 +754,9 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     audio_clips = []
                     audio_clips_for_bucket = []
                     for c in new_context:
+                        print("c is ", c)
+                        print(type(c))
+
                         audio_clip_start_idx = c * 2
                         audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
                         audio_clip_for_bucket = last_audio_prompts[:,
