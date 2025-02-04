@@ -590,7 +590,7 @@ def inference_process(args: argparse.Namespace):
         generator = torch.manual_seed(42)
 
 
-        print("source_image_pixels", source_image_pixels.shape, torch.max())
+        print("source_image_pixels", source_image_pixels.shape, torch.max(source_image_pixels), torch.min(source_image_pixels))
 
         video = pipeline(
             image=source_image_pixels,
