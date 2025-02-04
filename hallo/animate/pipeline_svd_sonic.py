@@ -554,7 +554,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
         if video_length < audio_frame_num:
             audio_fea_final = audio_fea_final[:, :video_length, :, :]
 
-        if video_length < audio_len:
+        if video_length < audio_len*2:
             audio_prompts = audio_prompts[:, :video_length, :, :]
             last_audio_prompts = last_audio_prompts[:, :video_length, :, :]
 
@@ -789,6 +789,10 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio latents", audio_latents.dtype, audio_latents.device)
                     # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
+                    print("latent_model_input", latent_model_input.shape)
+                    print("image_embedding shape", image_embeddings.shape)
+                    print("audio_latents shape ", audio_latents.shape)
+                    print("added_time_ids shape", added_time_ids.shape)
 
 
                     pred = self.unet(
