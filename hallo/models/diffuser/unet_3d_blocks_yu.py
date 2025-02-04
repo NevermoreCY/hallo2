@@ -1588,8 +1588,8 @@ class CrossAttnUpBlockSpatioTemporal(nn.Module):
                     in_channels=out_channels,
                     num_layers=transformer_layers_per_block[i],
                     cross_attention_dim=audio_attention_dim,
-                    use_audio_module=True,
-                    use_pe= True,
+                    # use_audio_module=True,
+                    # use_pe= True,
                 )
             )
 
