@@ -751,13 +751,34 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
 
-                    # audio_latnets = []
-                    # for c in new_context:
-                    #     audio_clip_start_idx = c * 2
-                    #     audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
-                    #     audio_clip_for_bucket = last_audio_prompts[:,
-                    #                             audio_clip_for_bucket_start_idx:audio_clip_for_bucket_start_idx + 50]
+                    audio_clips = []
+                    audio_clips_for_bucket = []
+                    for c in new_context:
+                        audio_clip_start_idx = c * 2
+                        audio_clip = audio_prompts[:, audio_clip_start_idx:audio_clip_start_idx+10]
+                        audio_clip_for_bucket = last_audio_prompts[:,
+                                                audio_clip_start_idx:audio_clip_start_idx + 50]
+                        audio_clips.append(audio_clip)
+                        audio_clips_for_bucket.append(audio_clip_for_bucket)
 
+                    audio_clips = torch.cat(audio_clips, dim=0)
+                    audio_clips_for_bucket = torch.cat(audio_clips_for_bucket, dim=0)
+                    print("audio_clips shape", audio_clips.shape)
+                    print("audio_clips_for_bucket.shape")
+                    print(audio_clips.shape)
+                    print(audio_clips_for_bucket.shape)
+
+                    audio_clips = audio_clips.unsqueeze(0)
+                    audio_clips_for_bucket = audio_clips_for_bucket.unsqueeze(0)
+
+                    print(audio_clips.shape)
+                    print(audio_clips_for_bucket.shape)
+
+                    image_embeds = image_embeds.to(dtype=self.audio2bucket.dtype)
+                    audio_clips_for_bucket = audio_clips_for_bucket.to(dtype=self.audio2bucket.dtype)
+                    motion_buckets = self.audio2bucket(audio_clips_for_bucket, image_embeds)
+
+                    print("motion buckets s",motion_buckets.shape)
 
                     print("c_audio_latents shape is :", c_audio_latents.shape)
                     print("latent_model_input", latent_model_input.shape)
