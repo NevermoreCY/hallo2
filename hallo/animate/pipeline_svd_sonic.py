@@ -845,7 +845,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # print("audio latents", audio_latents.dtype, audio_latents.device)
                     # print("image_embeddings_cfg", image_embeddings.dtype, image_embeddings.device)
 
-                    added_time_ids2 = added_time_ids2.repeat(2)
+                    added_time_ids2 = added_time_ids2.repeat(2,1)
 
                     print("\n\n Before Unet")
                     print("latent_model_input", latent_model_input.shape)
@@ -853,6 +853,12 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     print("audio latents", audio_latents.shape)
                     print("image_embeddings_cfg", image_embeddings.shape)
                     print("added_time_ids2", added_time_ids2.shape)
+
+
+                    #latent_model_input torch.Size([2, 25, 8, 64, 64])
+                    # audio latents torch.Size([2, 25, 32, 768])
+                    # image_embeddings_cfg torch.Size([2, 4, 1024])
+                    # added_time_ids torch.Size([2, 3])
 
                     pred = self.unet(
                         latent_model_input,
