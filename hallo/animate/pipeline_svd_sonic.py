@@ -732,7 +732,7 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # context = global_context[0]
                     # print("context is ", context)
                     new_context = [[0 for _ in range(len(context[c_j]))] for c_j in range(len(context))]
-                    print("new context is ", new_context)  # all zeros
+                    # print("new context is ", new_context)  # all zeros
 
                     for c_j in range(len(context)):
                         for c_i in range(len(context[c_j])):
@@ -751,11 +751,11 @@ class StableVideoDiffusionPipeline(DiffusionPipeline):
                     # latent_model_input shape is : torch.Size([2, 25, 4, 64, 64])
                     c_audio_latents = torch.cat([audio_fea_final[:, c] for c in new_context]).to(device)
                     # print("c_audio_latents shape is ", c_audio_latents.shape)
-                    # print("new_context", new_context)
+                    print("new_context", new_context)
                     audio_clips = []
                     audio_clips_for_bucket = []
-                    print("lap shape :", last_audio_prompts.shape)
-                    print("audio_prompts shape", audio_prompts.shape)
+                    # print("lap shape :", last_audio_prompts.shape)
+                    # print("audio_prompts shape", audio_prompts.shape)
                     for c in new_context[0]:
                         c=int(c)
 
