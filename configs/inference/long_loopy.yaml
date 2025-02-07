@@ -32,7 +32,7 @@ driving_audio:
 weight_dtype: fp16
 
 data:
-  n_motion_frames: 2
+  n_motion_frames: 0
   n_sample_frames: 25
   source_image:
     width: 512
@@ -52,7 +52,7 @@ use_cut: true
 audio_ckpt_dir: pretrained_models/hallo2
 
 
-save_path: ./output_whisper/sonic_30k/
+save_path: ./output_sonic/sonic_30k_v2/
 cache_path: ./.cache
 
 base_model_path: ./pretrained_models/stable-diffusion-v1-5
