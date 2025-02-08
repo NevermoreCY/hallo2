@@ -744,12 +744,15 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
 
 
     trainable_params = []
+    untrain_params_names = []
     train_param_names= []
     for name, param in unet.named_parameters():
         if "audio_modules" in name or "attentions" in name:
             trainable_params.append(param)
             train_param_names.append(name)
             param.requires_grad = True
+        else:
+            untrain_params_names.append(name)
 
     for name, param in imageproj.named_parameters():
             trainable_params.append(param)
@@ -1340,7 +1343,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                 save_path = os.path.join(
                     checkpoint_dir, f"checkpoint-{global_step}")
                 if accelerator.is_main_process:
-                    delete_additional_ckpt(checkpoint_dir, 3)
+                    delete_additional_ckpt(checkpoint_dir, 2)
                 accelerator.wait_for_everyone()
                 accelerator.save_state(save_path)
 
@@ -1352,7 +1355,7 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
                         module_dir,
                         "net",
                         global_step,
-                        total_limit=3,
+                        total_limit=10,
                     )
             if global_step >= cfg.solver.max_train_steps:
                 break
