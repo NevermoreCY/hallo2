@@ -775,7 +775,8 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     #         train_param_names.append(name)
     #         param.requires_grad = True
 
-    print("** ALL Trainable params: " , train_param_names)
+    print("***^^^\n\n ALL Trainable params: \n\n\n" , train_param_names)
+    print("***^^^\n\n UnTrain params: \n\n\n", untrain_params_names)
     optimizer = optimizer_cls(
         trainable_params,
         lr=learning_rate,
