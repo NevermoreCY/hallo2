@@ -288,7 +288,7 @@ class TalkingVideoDataset(Dataset):
             assert (video_frames is not None and len(video_frames) > 0), "Fail to load video frames."
             video_length = len(video_frames)
 
-            print("audio len is", audio_len , "video len is", video_length)
+            # print("audio len is", audio_len , "video len is", video_length)
             # print(f"{video_path[-15:-4]} {index} video length:", video_length)
 
             assert (
