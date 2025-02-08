@@ -120,7 +120,7 @@ mask_rate: 0.25
 
 seed: 42
 resume_from_checkpoint: "latest"
-checkpointing_steps: 1000
+checkpointing_steps: 10
 
 exp_name: "svd_whisper_train_v1.5_fixshift_t2"
 output_dir: "./exp_output"
