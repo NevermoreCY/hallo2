@@ -747,12 +747,15 @@ def train_stage2_process(cfg: argparse.Namespace) -> None:
     untrain_params_names = []
     train_param_names= []
     for name, param in unet.named_parameters():
-        if "audio_modules" in name or "attentions" in name:
-            trainable_params.append(param)
-            train_param_names.append(name)
-            param.requires_grad = True
-        else:
-            untrain_params_names.append(name)
+        trainable_params.append(param)
+        train_param_names.append(name)
+        param.requires_grad = True
+        # if "audio_modules" in name or "attentions" in name:
+        #     trainable_params.append(param)
+        #     train_param_names.append(name)
+        #     param.requires_grad = True
+        # else:
+        #     untrain_params_names.append(name)
 
     for name, param in imageproj.named_parameters():
             trainable_params.append(param)
