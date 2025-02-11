@@ -499,13 +499,13 @@ def inference_process(args: argparse.Namespace):
 
     m,u = net.load_state_dict(
         torch.load(
-            os.path.join(audio_ckpt_dir, f"net-29000.pth"),
+            os.path.join(audio_ckpt_dir, f"net-15000.pth"),
             map_location="cpu",
         ),
     )
 
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
-    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-29000.pth"))
+    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-15000.pth"))
 
     # vae: AutoencoderKLTemporalDecoder,
     # unet: UNetSpatioTemporalConditionModel,
@@ -658,7 +658,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--face_expand_ratio", type=float, help="face region", required=False)
     parser.add_argument(
-        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/svd_whisper_train_v2_pe/modules",type=str, help="specific checkpoint dir", required=False)
+        "--audio_ckpt_dir", "--checkpoint", default="/yuch_ws/DH/hallo2/exp_output/svd_whisper_train_v2_fixshift",type=str, help="specific checkpoint dir", required=False)
 
 
     command_line_args = parser.parse_args()
