@@ -499,13 +499,13 @@ def inference_process(args: argparse.Namespace):
 
     m,u = net.load_state_dict(
         torch.load(
-            os.path.join(audio_ckpt_dir, f"net-45000.pth"),
+            os.path.join(audio_ckpt_dir, f"net-74000.pth"),
             map_location="cpu",
         ),
     )
 
     assert len(m) == 0 and len(u) == 0, "Fail to load correct checkpoint."
-    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-45000.pth"))
+    print("\n\n\n\n\n **** loaded weight from ", os.path.join(audio_ckpt_dir, "net-74000.pth"))
 
     # vae: AutoencoderKLTemporalDecoder,
     # unet: UNetSpatioTemporalConditionModel,

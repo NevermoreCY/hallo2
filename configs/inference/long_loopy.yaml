@@ -52,7 +52,7 @@ use_cut: true
 audio_ckpt_dir: pretrained_models/hallo2
 
 
-save_path: ./output_sonic/sonic_v2_45k/
+save_path: ./output_sonic/sonic_v2_74k/
 cache_path: ./.cache
 
 base_model_path: ./pretrained_models/stable-diffusion-v1-5
